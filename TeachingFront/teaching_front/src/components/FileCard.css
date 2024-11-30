@@ -1,0 +1,61 @@
+.file-card {
+  border-radius: 12px;
+  background: linear-gradient(to right, #f9fafb, #f0f4f8);
+  transition: box-shadow 0.3s ease;
+}
+
+.file-card:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.download-button {
+  background: #ebf4ff;
+  color: #3182ce;
+  border: 1px solid #90cdf4;
+  transition: background 0.2s, transform 0.1s ease;
+}
+
+.download-button:hover {
+  background: #bee3f8;
+  color: #2b6cb0;
+  transform: scale(1.03);
+}
+
+.file-info img {
+  transition: border 0.2s;
+}
+
+.file-info img:hover {
+  border: 2px solid #cbd5e0;
+}
+
+/* Cross button for delete */
+.delete-button {
+  background: none;
+  border: none;
+  font-size: 1.25rem; /* Slightly larger for visibility */
+  cursor: pointer;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  color: #ef4444; /* Red color */
+  transition: color 0.2s ease-in-out;
+}
+
+.delete-button:hover {
+  color: #dc2626; /* Darker red on hover */
+}
+
+/* Ensure file actions (Download button) fit within the card */
+.file-actions {
+  display: flex;
+  flex-wrap: wrap; /* Ensure responsive layout */
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Download button adjustments to prevent overlap */
+.download-button {
+  max-width: 100%;
+  text-align: center;
+}

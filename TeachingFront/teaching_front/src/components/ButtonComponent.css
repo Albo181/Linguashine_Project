@@ -1,0 +1,60 @@
+/* Button Container Styles */
+.button-container {
+  display: flex;               /* Flexbox to center content */
+  justify-content: center;     /* Horizontally center */
+  align-items: center;         /* Vertically center */
+  margin-top: 2rem;            /* Adjust top margin */
+  margin-bottom: 2rem;         /* Adjust bottom margin */
+  position: relative;          /* Necessary for absolute positioning of call-to-action */
+  width: 100%;                 /* Full width to ensure centering works */
+}
+
+/* Image Style (Button) */
+.student-button-image {
+  width: 200px;                /* Image width */
+  height: auto;                /* Maintain aspect ratio */
+  cursor: pointer;            /* Change cursor to pointer */
+  border: 2px solid gray;      /* Border for the button */
+  transition: transform 0.3s;  /* Smooth transition for hover effect */
+}
+
+/* Hover effect for button */
+.student-button-image:hover {
+  transform: scale(1.1);       /* Enlarge the image on hover */
+}
+
+/* Call-to-Action Box */
+.call-to-action {
+  position: absolute;          /* Position relative to the parent container */
+  top: 0;                      /* Adjust as needed */
+  right: 0;                    /* Adjust as needed */
+  display: flex;
+  flex-direction: column;      /* Stack arrow and text vertically */
+  align-items: center;         /* Center the content */
+}
+
+/* Arrow Icon Style */
+.call-to-action img {
+  height: 80px;                /* Arrow image size */
+  width: auto;                 /* Maintain aspect ratio */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Text under the arrow */
+.call-to-action span {
+  margin-top: 0.5rem;           /* Space between the icon and text */
+  font-size: 1rem;              /* Standard font size */
+  font-weight: 600;             /* Bold text */
+  color: #388e3c;               /* Green color */
+  animation: bounce 1s infinite; /* Bounce animation */
+}
+
+/* Bounce animation for the text */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);  /* Move text up and down */
+  }
+}
