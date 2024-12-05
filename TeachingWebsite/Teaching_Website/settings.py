@@ -210,27 +210,19 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 
 # Database configuration
-if 'DATABASE_URL' in os.environ:
-    DATABASES = {
-        'default': dj_database_url.config(
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=True,
-        )
-    }
-else:
-    # Railway provides these environment variables
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': env('PGDATABASE', default='railway'),
-            'USER': env('PGUSER', default='postgres'),
-            'PASSWORD': env('PGPASSWORD', default=''),
-            'HOST': env('PGHOST', default='localhost'),
-            'PORT': env('PGPORT', default='5432'),
-            'OPTIONS': {'sslmode': 'require'},
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGDATABASE'),
+        'USER': os.getenv('PGUSER'),
+        'PASSWORD': os.getenv('PGPASSWORD'),
+        'HOST': os.getenv('PGHOST'),
+        'PORT': os.getenv('PGPORT'),
+        'OPTIONS': {
+            'sslmode': 'require'
         }
     }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
