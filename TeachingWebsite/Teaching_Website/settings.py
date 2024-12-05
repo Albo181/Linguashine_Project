@@ -185,55 +185,32 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 # Database configuration
 import dj_database_url
 
-# Log all environment variables for debugging
-env_vars = {k: v for k, v in os.environ.items() if 'DATABASE' in k.upper() or 'PG' in k.upper() or 'RAILWAY' in k.upper()}
-logger.warning(f"Available environment variables: {env_vars}")
-
-# Check for database configuration
-if not any(k for k in os.environ if 'DATABASE' in k.upper() or 'PG' in k.upper()):
-    logger.error("No database configuration found in environment variables!")
-    logger.error("Please add a PostgreSQL database in Railway and connect it to this project.")
-    logger.error("Required variables: DATABASE_URL or (PGDATABASE, PGUSER, PGPASSWORD, PGHOST, PGPORT)")
-
-# Prioritize private connection URL
-if os.getenv('DATABASE_PRIVATE_URL'):
-    logger.info("Using private DATABASE_URL for database configuration")
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_PRIVATE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-            ssl_require=True
-        )
-    }
-elif all(os.getenv(v) for v in ['PGDATABASE', 'PGUSER', 'PGPASSWORD', 'PGHOST', 'PGPORT']):
-    logger.info("Using individual PostgreSQL environment variables")
-    # If RAILWAY_PRIVATE_DOMAIN is available, use it instead of PGHOST
-    pg_host = os.getenv('RAILWAY_PRIVATE_DOMAIN') or os.getenv('PGHOST')
+# Railway PostgreSQL configuration
+if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('PGDATABASE'),
-            'USER': os.getenv('PGUSER'),
-            'PASSWORD': os.getenv('PGPASSWORD'),
-            'HOST': pg_host,
-            'PORT': os.getenv('PGPORT'),
-            'OPTIONS': {'sslmode': 'require'},
+            'NAME': 'railway',
+            'USER': 'postgres',
+            'PASSWORD': 'sJypeIXPTqQLfsmWiShWyAPfgcMnglso',
+            'HOST': 'postgres.railway.internal',
+            'PORT': '5432',
+            'OPTIONS': {
+                'sslmode': 'require',
+                'connect_timeout': 5,
+            }
         }
     }
 else:
-    logger.error("Incomplete database configuration!")
-    logger.error("Please ensure all required database variables are set.")
-    # Fallback configuration - this should never be used in production
+    # Local development database
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('PGDATABASE', 'railway'),
-            'USER': os.getenv('PGUSER', 'postgres'),
-            'PASSWORD': os.getenv('PGPASSWORD', ''),
-            'HOST': os.getenv('RAILWAY_PRIVATE_DOMAIN', 'localhost'),
-            'PORT': os.getenv('PGPORT', '5432'),
-            'OPTIONS': {'sslmode': 'require'},
+            'NAME': 'linguashine_project',
+            'USER': 'postgres',
+            'PASSWORD': 'Trgi105manzana123',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
 
@@ -241,7 +218,7 @@ else:
 db_config = DATABASES['default'].copy()
 if 'PASSWORD' in db_config:
     db_config['PASSWORD'] = '********'
-logger.warning(f"Final database config: {db_config}")
+logger.info(f"Final database config: {db_config}")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
