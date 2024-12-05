@@ -210,19 +210,31 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 
 # Database configuration
+import logging
+logger = logging.getLogger(__name__)
+
+# Log database configuration
+logger.warning(f"PGDATABASE: {os.getenv('PGDATABASE')}")
+logger.warning(f"PGUSER: {os.getenv('PGUSER')}")
+logger.warning(f"PGHOST: {os.getenv('PGHOST')}")
+logger.warning(f"PGPORT: {os.getenv('PGPORT')}")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE'),
-        'USER': os.getenv('PGUSER'),
+        'NAME': os.getenv('PGDATABASE', 'railway'),
+        'USER': os.getenv('PGUSER', 'postgres'),
         'PASSWORD': os.getenv('PGPASSWORD'),
-        'HOST': os.getenv('PGHOST'),
-        'PORT': os.getenv('PGPORT'),
+        'HOST': os.getenv('PGHOST', 'localhost'),
+        'PORT': os.getenv('PGPORT', '5432'),
         'OPTIONS': {
             'sslmode': 'require'
         }
     }
 }
+
+# Log final database configuration
+logger.warning(f"Final database config: {DATABASES['default']}")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
