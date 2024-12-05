@@ -1,1 +1,1 @@
-web: gunicorn Teaching_Website.wsgi:application --log-file -
+web: cd TeachingWebsite && python manage.py collectstatic --noinput && gunicorn Teaching_Website.wsgi:application --config gunicorn_config.py
