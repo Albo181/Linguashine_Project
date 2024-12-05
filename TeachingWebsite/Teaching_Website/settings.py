@@ -174,16 +174,19 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Static files configuration
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'Teaching_Website', 'static'),
+    os.path.join(BASE_DIR, 'static'),
 ]
+
+# Create static directory if it doesn't exist
+os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 ROOT_URLCONF = 'Teaching_Website.urls'
 
