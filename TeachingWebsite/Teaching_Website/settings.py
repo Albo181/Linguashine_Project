@@ -210,16 +210,18 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 
 # Database configuration
+default_config = dj_database_url.config(
+    conn_max_age=600,
+    conn_health_checks=True,
+    ssl_require=True,
+)
+
 DATABASES = {
-    'default': dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        options={'sslmode': 'require'}
-    )
+    'default': default_config
 }
 
 # Ensure we have a default if DATABASE_URL is not set
-if 'DATABASE_URL' not in os.environ:
+if not default_config:
     DATABASES['default'] = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('POSTGRES_DB', default='railway'),
