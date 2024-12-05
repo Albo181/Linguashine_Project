@@ -210,35 +210,52 @@ import dj_database_url
 logger = logging.getLogger(__name__)
 
 # Log all environment variables for debugging
-env_vars = {
-    'DATABASE_URL': os.getenv('DATABASE_URL'),
-    'RAILWAY_ENVIRONMENT': os.getenv('RAILWAY_ENVIRONMENT'),
-    'RAILWAY_PROJECT_NAME': os.getenv('RAILWAY_PROJECT_NAME'),
-    'PGDATABASE': os.getenv('PGDATABASE'),
-    'PGHOST': os.getenv('PGHOST'),
-    'PGPORT': os.getenv('PGPORT'),
-    'PGUSER': os.getenv('PGUSER'),
-}
-logger.warning(f"Environment variables: {env_vars}")
+env_vars = {k: v for k, v in os.environ.items() if 'DATABASE' in k.upper() or 'PG' in k.upper() or 'RAILWAY' in k.upper()}
+logger.warning(f"Available environment variables: {env_vars}")
 
-if os.getenv('DATABASE_URL'):
+# Check for database configuration
+if not any(k for k in os.environ if 'DATABASE' in k.upper() or 'PG' in k.upper()):
+    logger.error("No database configuration found in environment variables!")
+    logger.error("Please add a PostgreSQL database in Railway and connect it to this project.")
+    logger.error("Required variables: DATABASE_URL or (PGDATABASE, PGUSER, PGPASSWORD, PGHOST, PGPORT)")
+
+# Prioritize private connection URL
+if os.getenv('DATABASE_PRIVATE_URL'):
+    logger.info("Using private DATABASE_URL for database configuration")
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
+            default=os.getenv('DATABASE_PRIVATE_URL'),
             conn_max_age=600,
             conn_health_checks=True,
             ssl_require=True
         )
     }
+elif all(os.getenv(v) for v in ['PGDATABASE', 'PGUSER', 'PGPASSWORD', 'PGHOST', 'PGPORT']):
+    logger.info("Using individual PostgreSQL environment variables")
+    # If RAILWAY_PRIVATE_DOMAIN is available, use it instead of PGHOST
+    pg_host = os.getenv('RAILWAY_PRIVATE_DOMAIN') or os.getenv('PGHOST')
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('PGDATABASE'),
+            'USER': os.getenv('PGUSER'),
+            'PASSWORD': os.getenv('PGPASSWORD'),
+            'HOST': pg_host,
+            'PORT': os.getenv('PGPORT'),
+            'OPTIONS': {'sslmode': 'require'},
+        }
+    }
 else:
-    # Fallback configuration
+    logger.error("Incomplete database configuration!")
+    logger.error("Please ensure all required database variables are set.")
+    # Fallback configuration - this should never be used in production
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('PGDATABASE', 'railway'),
             'USER': os.getenv('PGUSER', 'postgres'),
             'PASSWORD': os.getenv('PGPASSWORD', ''),
-            'HOST': os.getenv('PGHOST', 'localhost'),
+            'HOST': os.getenv('RAILWAY_PRIVATE_DOMAIN', 'localhost'),
             'PORT': os.getenv('PGPORT', '5432'),
             'OPTIONS': {'sslmode': 'require'},
         }
