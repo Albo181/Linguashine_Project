@@ -25,14 +25,53 @@ const FileCard = ({ file, onDownload, onDelete }) => {
 
   // Helper function to format the date and time
   const formatDateTime = (dateTime) => {
-    return new Date(dateTime).toLocaleString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
+    if (!dateTime) return 'Date not available';
+    
+    try {
+      // Try parsing the date string
+      const date = new Date(dateTime);
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.error('Invalid date:', dateTime);
+        return 'Invalid date';
+      }
+
+      // Format the date using Intl.DateTimeFormat for better localization
+      const formatter = new Intl.DateTimeFormat('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+
+      return formatter.format(date);
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime);
+      return 'Invalid date';
+    }
+  };
+
+  // Helper function to format sender name
+  const formatSenderName = (sender) => {
+    if (!sender) return 'Unknown';
+    try {
+      const { first_name, last_name } = sender;
+      if (first_name && last_name) {
+        return `${first_name} ${last_name}`;
+      } else if (first_name) {
+        return first_name;
+      } else if (last_name) {
+        return last_name;
+      } else {
+        return sender.username || 'Unknown';
+      }
+    } catch (error) {
+      console.error('Error formatting sender name:', error);
+      return 'Unknown';
+    }
   };
 
   return (
@@ -62,9 +101,9 @@ const FileCard = ({ file, onDownload, onDelete }) => {
       </div>
 
       <div className="file-actions p-4 flex justify-between items-center">
-        {/* Display sender directly as a string */}
+        {/* Display sender's name */}
         <span className="text-sm text-blue-400">
-          Sender: {file.sender || 'Unknown'}
+          Sender: {formatSenderName(file.sender)}
         </span>
         <button
           onClick={onDownload}

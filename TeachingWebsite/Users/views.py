@@ -15,7 +15,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
-
+from rest_framework.throttling import AnonRateThrottle
 
 
 def session_id_check(request):
@@ -28,8 +28,7 @@ def session_id_check(request):
     return HttpResponse("Session key retrieved.")
 
 
-
-
+#Sets CSRF token in cookies if not already present
 @ensure_csrf_cookie             #prepares a backend response, sets cookie in response
 def get_csrf_token(request):
     """
@@ -55,19 +54,26 @@ class CheckAuthView(APIView):
 #Gets all users from backend
 class AllUsersProfileView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = CustomUser.objects.all()  # Get all users
     serializer_class = UserProfileSerializer  # Use your custom serializer
-    
-          
-#Gets user data from backend
-class CurrentUserView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
-        serializer = StudentAccessSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+    def get_queryset(self):
+        # Filter by user_type if provided in query params
+        user_type = self.request.query_params.get('user_type', None)
+        queryset = CustomUser.objects.all()
+        
+        if user_type:
+            queryset = queryset.filter(user_type=user_type)
+            
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        users = self.get_queryset()
+        print("Available users:")
+        for user in users:
+            print(f"ID: {user.id}, Username: {user.username}, Email: {user.email}, Type: {user.user_type}")
+        
+        return super().list(request, *args, **kwargs)
+
 
 ### ----AMEND PROFILE DATA VIEW --------------------------------------------------------------------------------
 
@@ -97,9 +103,13 @@ class StudentProfileView(RetrieveUpdateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class LoginRateThrottle(AnonRateThrottle):
+    rate = '5/minute'
+
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CustomLoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         username = request.data.get('username')
@@ -132,3 +142,36 @@ class CustomLogoutView(APIView):
     def post(self, request):
         logout(request) #clears the session
         return JsonResponse({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class UserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'user_type': user.user_type,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': 'Failed to fetch user info', 'detail': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+#Gets user data from backend
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = StudentAccessSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)

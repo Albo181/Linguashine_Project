@@ -12,8 +12,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+import environ
 
+# Initialize environ
+env = environ.Env()
+environ.Env.read_env()
+
+# -*- coding: utf-8 -*-
+ 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,7 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bk5yy!vw)_^73af-1@=@6zpb+8+p-3l_=4k5^=_zy$p=-0zmc3'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -46,6 +53,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'Documents',
     'django_extensions',
+    'Teaching_Website.log_viewer',  # Add our new log viewer app
 ]
 
 X_FRAME_OPTIONS = 'ALLOW'
@@ -64,28 +72,30 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'Teaching_Website.middleware.EndpointLoggingMiddleware',  # Add our new middleware
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests
 CSRF_COOKIE_SECURE = False  # Use True if using HTTPS in development ***
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:5173']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:5173', 'http://localhost:5174' ]
 #CSRF_COOKIE_DOMAIN = 'None'
 
 SESSION_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests ***
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2  # 2 weeks, in seconds
 SESSION_COOKIE_HTTPONLY = False #pi says will allow me to see cookies while developing locally (set back to true for security on deployment)
-#SESSION_COOKIE_DOMAIN = 'localhost' #***
+#SESSION_COOKIE_DOMAIN = 'localhost'
 SESSION_COOKIE_SECURE = False  # Use True if using HTTPS in development
 SECURE_SSL_REDIRECT = False
 
 SESSION_SAVE_EVERY_REQUEST = True
 
 
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max size, adjust as needed
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB max size for all request data    
-
+# File Upload Settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 26214400  # 25MB in bytes
+DATA_UPLOAD_MAX_MEMORY_SIZE = 26214400  # 25MB in bytes
+MAX_UPLOAD_SIZE = 26214400  # 25MB in bytes
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -95,59 +105,80 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
     ],
-}
-# settings.py
-# settings.py
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.Argon2PasswordHasher',
-    'django.contrib.auth.hashers.BCryptPasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-]
 
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',  # 100 requests per hour for anonymous users
+        'user': '1000/hour',  # 1000 requests per hour for authenticated users
+        'login': '5/minute',  # 5 login attempts per minute
+    },
+    'DEFAULT_THROTTLE_MESSAGE': 'Too many requests. Please try again in {wait} seconds.',
+}
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:5173",  # Add your frontend local URL here
-    "http://localhost:5173",
-    "http://127.0.0.1:5174",  # Add your frontend local URL here
-    "http://localhost:5174",
-]
-CORS_ALLOW_CREDENTIALS = True
-# Allows cookies with cross-origin requests
-# CSRF settings, if using different origin for frontend/backend
-CSRF_TRUSTED_ORIGINS = [
-    "http://127.0.0.1:8000",  # Backend's origin
-    "http://localhost:5173",   # Frontend's origin
-    "http://localhost:5174",   # Frontend's origin
+    'http://localhost:5173',  # Vite dev server
+    'http://127.0.0.1:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:5174',
 ]
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https?://localhost(:[0-9]+)?$"
+CORS_ALLOW_CREDENTIALS = True  # Allow credentials (cookies) to be included
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
 ]
 
 CORS_ALLOW_HEADERS = [
-    "X-CSRFToken",
-    "Content-Type",
-    "Authorization"
- 
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'cache-control',
+    'pragma',
 ]
 
-load_dotenv()  # Load the environment variables from .env file
+# For development only - remove in production
+CORS_ORIGIN_ALLOW_ALL = True
 
+# Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.office365.com'  
-EMAIL_PORT = 587  
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') 
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')  # email password or app-specific password
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
-
-
-import os
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'linguashine1@gmail.com'
+EMAIL_HOST_PASSWORD = 'vhnwtzbdqxbjmfcz'  # Gmail app password
+DEFAULT_FROM_EMAIL = 'linguashine1@gmail.com'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Static files configuration
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'Teaching_Website', 'static'),
+]
 
 ROOT_URLCONF = 'Teaching_Website.urls'
 
@@ -175,8 +206,15 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env("DB_NAME"),
+        'USER': env("DB_USER"),
+        'PASSWORD': env("DB_PASSWORD"),
+        'HOST': env("DB_HOST"),
+        'PORT': env("DB_PORT"), 
+        'OPTIONS':{
+            'client_encoding': 'UTF8',
+        },
     }
 }
 
@@ -203,23 +241,52 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
-
-# Static files configuration (for fallback image, if applicable)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+DATE_FORMAT = 'd/m/Y'
+DATETIME_FORMAT = 'd/m/Y H:i'
+SHORT_DATE_FORMAT = 'd/m/Y'
+SHORT_DATETIME_FORMAT = 'd/m/Y H:i'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'logs/api_endpoints.log',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'api_endpoints': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Ensure logs directory exists
+import os
+if not os.path.exists('logs'):
+    os.makedirs('logs')

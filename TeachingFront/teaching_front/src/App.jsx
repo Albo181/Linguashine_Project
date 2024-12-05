@@ -17,6 +17,7 @@ import AnnotationList from './components/AnnotationList';
 import TeacherHomeworkReview from './components/TeacherHomeworkReview';  
 import StudentHomeworkSummary from './components/StudentHomeworkSummary';  
 import GradeSummary from './components/GradeSummary';
+import HomeworkPage from './components/HomeworkPage';
 
 const App = () => {
     const router = createBrowserRouter(
@@ -35,6 +36,7 @@ const App = () => {
                 <Route path="/blog/:id" element={<BlogDetails />} />
                 <Route path="/feedback" element={<FeedbackForm />} />
                 <Route path="/feedback/:id/annotations" element={<AnnotationList />} />
+                <Route path="/homework" element={<HomeworkPage />} />
                 {/* new routes */}
                 <Route path="/teacher-homework" element={<TeacherHomeworkReview />} />
                 <Route path="/student-homework" element={<StudentHomeworkSummary />} />

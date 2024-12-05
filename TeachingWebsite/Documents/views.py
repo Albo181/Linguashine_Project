@@ -104,38 +104,93 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
 
 
+    def get_file_type_from_mime(self, file_obj):
+        """Helper method to determine file type from MIME type and extension"""
+        extension = os.path.splitext(file_obj.name)[1].lower()
+        
+        # Register common MIME types
+        mimetypes.add_type('video/mp4', '.mp4')
+        mimetypes.add_type('video/webm', '.webm')
+        mimetypes.add_type('video/quicktime', '.mov')
+        mimetypes.add_type('video/x-matroska', '.mkv')
+        mimetypes.add_type('audio/mpeg', '.mp3')
+        mimetypes.add_type('audio/wav', '.wav')
+        mimetypes.add_type('audio/aac', '.aac')
+        mimetypes.add_type('audio/ogg', '.ogg')
+        
+        mime_type, _ = mimetypes.guess_type(file_obj.name)
+        logger.info(f"Detected MIME type: {mime_type}, Extension: {extension}")
+        
+        # Audio types
+        if (mime_type and mime_type.startswith('audio/')) or extension in ['.mp3', '.wav', '.ogg', '.aac', '.m4a']:
+            return 'audio'
+        
+        # Video types
+        elif (mime_type and mime_type.startswith('video/')) or extension in ['.mp4', '.webm', '.avi', '.mov', '.mkv']:
+            return 'video'
+        
+        # Image types
+        elif (mime_type and mime_type.startswith('image/')) or extension in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+            return 'image'
+        
+        # Default to document
+        else:
+            return 'document'
+
     def upload_file(self, request, student_id=None):
-        user = request.user
-        student_user = get_object_or_404(CustomUser, id=student_id)
-
-        target_user = (CustomUser.objects.filter(user_type=UserType.TEACHER).first()
-                    if user.user_type == UserType.STUDENT else student_user)
-
-        file = request.FILES.get('file')
-        title = request.data.get("title")
-
-        if not file or not title:
-            return Response({"error": "File and title are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        mime_type, _ = mimetypes.guess_type(file.name)
-        file_type = mime_type.split('/')[0] if mime_type else 'application'
-
         try:
-            if file_type == 'application':
-                private_file = PrivateDocument.objects.create(user=target_user, sender=user, title=title, document=file)
-            elif file_type == 'image':
-                private_file = PrivateImage.objects.create(user=target_user, sender=user, title=title, image=file)
-            # Handle other file types as required
-            else:
-                return Response({"error": f"Unsupported file type: {file_type}"}, status=status.HTTP_400_BAD_REQUEST)
+            file_obj = request.FILES.get('file')
+            if not file_obj:
+                return JsonResponse({'error': 'No file provided'}, status=400)
 
-            private_file.save()  # Automatically generates thumbnail during save
-            serializer_class = (PrivateDocumentSerializer if isinstance(private_file, PrivateDocument) else
-                                PrivateImageSerializer)
-            serializer = serializer_class(private_file, context={'request': request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            title = request.POST.get('title', '')
+            if not title:
+                return JsonResponse({'error': 'No title provided'}, status=400)
+
+            # Get file type from request or detect it
+            file_type = request.POST.get('fileType') or self.get_file_type_from_mime(file_obj)
+            logger.info(f"File type for upload: {file_type}")
+
+            # Create the appropriate model instance based on file type
+            if file_type == 'document':
+                file_instance = PrivateDocument(title=title, document=file_obj)
+            elif file_type == 'image':
+                file_instance = PrivateImage(title=title, image=file_obj)
+            elif file_type == 'audio':
+                file_instance = PrivateAudio(title=title, audio=file_obj)
+            elif file_type == 'video':
+                file_instance = PrivateVideo(title=title, video=file_obj)
+            else:
+                return JsonResponse({'error': f'Invalid file type: {file_type}'}, status=400)
+
+            # Set additional fields
+            file_instance.sender = request.user
+            if student_id and student_id != 'default':
+                try:
+                    student = CustomUser.objects.get(id=student_id)
+                    file_instance.user = student
+                except CustomUser.DoesNotExist:
+                    return JsonResponse({'error': f'Student with id {student_id} not found'}, status=404)
+
+            file_instance.save()
+            logger.info(f"File saved successfully: {file_instance.id}")
+
+            # Return file info in response
+            return JsonResponse({
+                'id': file_instance.id,
+                'title': file_instance.title,
+                'file_url': file_instance.get_file_url(),
+                'sender': {
+                    'id': request.user.id,
+                    'username': request.user.username,
+                    'first_name': request.user.first_name,
+                    'last_name': request.user.last_name
+                }
+            })
+
         except Exception as e:
-            return Response({"error": f"File upload failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            logger.error(f"Error uploading file: {str(e)}", exc_info=True)
+            return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -148,21 +203,64 @@ class PrivateFileViewSet(viewsets.ViewSet):
         if not file_obj:
             return HttpResponse("File not found", status=404)
 
-        file_path = getattr(file_obj, 'document' if isinstance(file_obj, PrivateDocument) else
-                            'image' if isinstance(file_obj, PrivateImage) else
-                            'audio' if isinstance(file_obj, PrivateAudio) else
-                            'video').path
+        # Get the actual file field and path based on type
+        if isinstance(file_obj, PrivateDocument):
+            file_field = file_obj.document
+            content_type = 'application/pdf'  # Default for documents
+        elif isinstance(file_obj, PrivateImage):
+            file_field = file_obj.image
+            content_type = 'image/jpeg'  # Default for images
+        elif isinstance(file_obj, PrivateAudio):
+            file_field = file_obj.audio
+            content_type = 'audio/mpeg'  # Default for audio
+        elif isinstance(file_obj, PrivateVideo):
+            file_field = file_obj.video
+            content_type = 'video/mp4'  # Default for video
+        else:
+            return HttpResponse("Invalid file type", status=400)
 
+        file_path = file_field.path
         if not os.path.exists(file_path):
             return HttpResponse("File not found on server", status=404)
 
-        file_name = f"{file_obj.title}{os.path.splitext(file_path)[1]}"
-        content_type, _ = mimetypes.guess_type(file_path) or ('application/octet-stream',)
+        # Get file extension and override content type if needed
+        file_extension = os.path.splitext(file_path)[1].lower()
+        
+        # Override content type based on file extension
+        extension_content_types = {
+            # Video formats
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.mov': 'video/quicktime',
+            '.mkv': 'video/x-matroska',
+            # Audio formats
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.aac': 'audio/aac',
+            '.ogg': 'audio/ogg',
+            # Image formats
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            # Document formats
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword',
+            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
 
-        with open(file_path, 'rb') as file_handle:
-            response = HttpResponse(file_handle.read(), content_type=content_type)
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_name)}"'
-            return response
+        if file_extension in extension_content_types:
+            content_type = extension_content_types[file_extension]
+
+        # Prepare response
+        response = HttpResponse(content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+        
+        # Stream the file in chunks to avoid memory issues with large files
+        with open(file_path, 'rb') as f:
+            response.write(f.read())
+
+        return response
 
 
 

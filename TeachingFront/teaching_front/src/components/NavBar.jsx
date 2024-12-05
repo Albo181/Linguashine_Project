@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import ChristmasLights from './ChristmasLights';
 
 const NavBar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -75,9 +77,9 @@ const NavBar = () => {
   return (
     <nav className="bg-green-950 fixed w-full z-20 top-0 start-0 border-b-4 border-white-950">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+        <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
           <span
-            className="self-center text-2xl ml-12 font-bold whitespace-nowrap bg-clip-text text-transparent drop-shadow-[0_1.5px_1.5px_rgba(0,0,0,0.8)]"
+            className="self-center text-2xl ml-2 sm:ml-12 font-bold whitespace-nowrap bg-clip-text text-transparent drop-shadow-[0_1.5px_1.5px_rgba(0,0,0,0.8)]"
             style={{
               backgroundImage: 'linear-gradient(to right, #ffffff, #d4f2ff, #ffffff)',
               textShadow: '0 0 1px rgba(255, 255, 255, 0.8), 0 0 5px rgba(0, 0, 0, 0.5)',
@@ -86,58 +88,63 @@ const NavBar = () => {
           >
             Linguashine
           </span>
-        </a>
-        <div className="flex items-center space-x-4 md:order-2">
-          <a href="/contacto">
-            <button
-              type="button"
-              className="text-white bg-blue-700 hover:bg-blue-800 border-2 border-grey py-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            >
+        </Link>
+
+        {/* Desktop Menu */}
+        <div className="hidden md:flex items-center space-x-4">
+          <Link to="/contacto">
+            <button type="button" className="text-white bg-blue-700 hover:bg-blue-800 border-2 border-grey py-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 text-center">
               Contactar
             </button>
-          </a>
+          </Link>
           <span className="text-white text-md font-bold">Teléfono: 633 971 070</span>
-
           {isLoggedIn ? (
-            <button
-              onClick={handleLogout}
-              className="text-white bg-red-500 border-2 border-grey hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
-            >
+            <button onClick={handleLogout} className="text-white bg-red-500 border-2 border-grey hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
               Logout
             </button>
           ) : (
-            <button
-              onClick={() => navigate('/login')}
-              className="text-white bg-green-700 border-2 border-grey hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center"
-            >
-              Acceder
-            </button>
+            <Link to="/login">
+              <button type="button" className="text-white bg-green-700 hover:bg-green-800 border-2 border-grey focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                Acceder
+              </button>
+            </Link>
           )}
+        </div>
 
-          <button
-            data-collapse-toggle="navbar-sticky"
-            type="button"
-            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-            aria-controls="navbar-sticky"
-            aria-expanded="false"
-          >
-            <span className="sr-only">Open main menu</span>
-            <svg
-              className="w-5 h-5"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 17 14"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M1 1h15M1 7h15M1 13h15"
-              />
+        {/* Mobile Menu Button */}
+        <div className="flex md:hidden">
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-white p-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
             </svg>
           </button>
+        </div>
+      </div>
+      <ChristmasLights />
+      {/* Mobile Menu Dropdown */}
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-green-950 border-t border-green-800`}>
+        <div className="px-4 pt-2 pb-3 space-y-3">
+          <Link to="/contacto" className="block">
+            <button type="button" className="w-full text-white bg-blue-700 hover:bg-blue-800 border-2 border-grey py-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 text-center">
+              Contactar
+            </button>
+          </Link>
+          <div className="text-white text-md font-bold text-center py-2">Teléfono: 633 971 070</div>
+          {isLoggedIn ? (
+            <button onClick={handleLogout} className="w-full text-white bg-red-500 border-2 border-grey hover:bg-red-600 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="block">
+              <button type="button" className="w-full text-white bg-green-700 hover:bg-green-800 border-2 border-grey focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 text-center">
+                Acceder
+              </button>
+            </Link>
+          )}
         </div>
       </div>
 

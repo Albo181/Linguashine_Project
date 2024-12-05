@@ -13,37 +13,48 @@ CustomUser = settings.AUTH_USER_MODEL
 
 
 # Base PrivateFile Model
-class PrivateFile(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="%(class)s_sent_files")  # Dynamically generated related_name
+class BasePrivateFile(models.Model):
     title = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_sender')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_user')
     file_type = models.CharField(max_length=10, choices=FileType, default=FileType.DOCUMENT)
-
-    def __str__(self):
-        return self.title
 
     class Meta:
         abstract = True  # Defines common fields for inheritance; no database table created
 
+    def get_file_url(self):
+        if hasattr(self, 'document'):
+            return self.document.url if self.document else None
+        elif hasattr(self, 'image'):
+            return self.image.url if self.image else None
+        elif hasattr(self, 'audio'):
+            return self.audio.url if self.audio else None
+        elif hasattr(self, 'video'):
+            return self.video.url if self.video else None
+        return None
+
+    def __str__(self):
+        return self.title
+
 
 # Private Document Model
-class PrivateDocument(PrivateFile):
+class PrivateDocument(BasePrivateFile):
     document = models.FileField(upload_to='private_docs/')
 
 
 # Private Image Model
-class PrivateImage(PrivateFile):
+class PrivateImage(BasePrivateFile):
     image = models.ImageField(upload_to='private_images/')
 
 
 # Private Audio Model
-class PrivateAudio(PrivateFile):
+class PrivateAudio(BasePrivateFile):
     audio = models.FileField(upload_to='private_audio/')
 
 
 # Private Video Model
-class PrivateVideo(PrivateFile):
+class PrivateVideo(BasePrivateFile):
     video = models.FileField(upload_to='private_videos/')
 
 

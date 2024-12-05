@@ -11,9 +11,11 @@ const ContactBody = () => {
   {/* Wrapper div to hold space for the absolute element */}
    
 <div
-  className="absolute bg-no-repeat bg-cover h-[697px] w-[600px] border-black box-border opacity-50 top-15 md: -left-60 md:top-16"
+  className="absolute bg-no-repeat bg-cover h-[697px] w-[600px] border-black box-border top-15 md: -left-60 md:top-16"
   style={{
     backgroundImage: `url(${StateHome})`,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    backgroundBlendMode: 'overlay',
   }}
 ></div>
 
@@ -29,14 +31,16 @@ const ContactBody = () => {
     {/* Flex container for email and icon */}
     <div className="flex items-center justify-center text-lg font-bold text-green-950 mx-auto max-w-screen-xl pb-8">
       <MdOutlineMail className="mr-2" />
-      <span>Email: info@linguashine.com</span>
+      <span>Email: info@linguashine.es</span>
     </div>
   </div>
   
   <div
-      className="absolute bg-no-repeat bg-cover h-[695px] w-[600px] border-black box-border opacity-50"
+      className="absolute bg-no-repeat bg-cover h-[695px] w-[600px] border-black box-border"
       style={{
         backgroundImage: `url(${Students})`,
+        backgroundColor: 'rgba(255, 255, 255, 0.5)',
+        backgroundBlendMode: 'overlay',
         right: '-100px',   // Fine-tune position here
         top: '-30px',     // Fine-tune vertical position here
       }}

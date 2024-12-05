@@ -4,6 +4,7 @@ from .models import (
     SharedFile, Announcement
 )
 from Users.models import CustomUser
+from Users.serializers import UserProfileSerializer  # Using UserProfileSerializer instead of UserSerializer
 
 
 # Helper Function to Get Absolute URL
@@ -16,14 +17,41 @@ def get_absolute_url(request, path):
 # Base Serializer for File Models
 class BaseFileSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
+    sender = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField()
 
     class Meta:
-        fields = ['id', 'title', 'file_url']
+        fields = ['id', 'title', 'file_url', 'sender', 'type']
 
     def get_file_url(self, obj):
         request = self.context.get('request')
         file_field = getattr(obj, self.file_field_name, None)
         return get_absolute_url(request, file_field.url if file_field else None)
+    
+    def get_sender(self, obj):
+        return {
+            'id': obj.sender.id,
+            'username': obj.sender.username,
+            'first_name': obj.sender.first_name,
+            'last_name': obj.sender.last_name
+        } if obj.sender else None
+    
+    def get_type(self, obj):
+        return obj.file_type
+
+
+# Base Private File Serializer
+class BasePrivateFileSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+    sender = UserProfileSerializer(read_only=True)
+    user = UserProfileSerializer(read_only=True)
+
+    def get_file_url(self, obj):
+        return obj.get_file_url()
+
+    class Meta:
+        fields = ['id', 'title', 'uploaded_at', 'sender', 'user', 'file_url']
+        abstract = True
 
 
 # Student Serializer
@@ -34,39 +62,27 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 # Private Document Serializer
-class PrivateDocumentSerializer(BaseFileSerializer):
-    file_field_name = 'document'
-
-    class Meta(BaseFileSerializer.Meta):
+class PrivateDocumentSerializer(BasePrivateFileSerializer):
+    class Meta(BasePrivateFileSerializer.Meta):
         model = PrivateDocument
-        fields = BaseFileSerializer.Meta.fields
 
 
 # Private Image Serializer
-class PrivateImageSerializer(BaseFileSerializer):
-    file_field_name = 'image'
-
-    class Meta(BaseFileSerializer.Meta):
+class PrivateImageSerializer(BasePrivateFileSerializer):
+    class Meta(BasePrivateFileSerializer.Meta):
         model = PrivateImage
-        fields = BaseFileSerializer.Meta.fields
 
 
 # Private Audio Serializer
-class PrivateAudioSerializer(BaseFileSerializer):
-    file_field_name = 'audio'
-
-    class Meta(BaseFileSerializer.Meta):
+class PrivateAudioSerializer(BasePrivateFileSerializer):
+    class Meta(BasePrivateFileSerializer.Meta):
         model = PrivateAudio
-        fields = BaseFileSerializer.Meta.fields
 
 
 # Private Video Serializer
-class PrivateVideoSerializer(BaseFileSerializer):
-    file_field_name = 'video'
-
-    class Meta(BaseFileSerializer.Meta):
+class PrivateVideoSerializer(BasePrivateFileSerializer):
+    class Meta(BasePrivateFileSerializer.Meta):
         model = PrivateVideo
-        fields = BaseFileSerializer.Meta.fields
 
 
 # Shared File Serializer

@@ -9,12 +9,12 @@ class IsStudent(permissions.BasePermission):
         if not request.user.is_authenticated:
             raise PermissionDenied("Authentication required.")
 
-        if getattr(request.user, 'user_type', None) != UserType.STUDENT.value:  # Use UserType.STUDENT.value instead of 'STUDENT'
+        if request.user.user_type != 'student':  
             raise PermissionDenied("Only students can access this resource.")
         
         return True
 
-def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj):
         return obj.student_name == request.user  # Ensure the user owns the object
 
 class IsTeacher(permissions.BasePermission):
@@ -22,10 +22,10 @@ class IsTeacher(permissions.BasePermission):
         if not request.user.is_authenticated:
             raise PermissionDenied("Authentication required.")
 
-        if getattr(request.user, 'user_type', None) != UserType.TEACHER.value:  # Use UserType.TEACHER.value instead of 'TEACHER'
+        if request.user.user_type != 'teacher':  
             raise PermissionDenied("Only teachers can access this resource.")
         
         return True
     
-def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj):
         return obj.send_to == request.user  # Teachers access specific objects

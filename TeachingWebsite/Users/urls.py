@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (StudentProfileView, CustomLoginView, CustomLogoutView, 
                     get_csrf_token, session_id_check, CurrentUserView, 
-                    CheckAuthView, AllUsersProfileView)
+                    CheckAuthView, AllUsersProfileView, UserInfoView)
 
 router = DefaultRouter()
  
@@ -16,5 +16,6 @@ urlpatterns = [
     path("session_id/", session_id_check, name='logout'),
     path("api/get-csrf-token/", get_csrf_token, name='get_csrf_token'),
     path('all-users/', AllUsersProfileView.as_view(), name='all-users-profiles'),
+    path('user-info/', UserInfoView.as_view(), name='user-info'),
     path("", include(router.urls)),  # This will include /users/profile endpoint
 ]

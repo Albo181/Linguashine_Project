@@ -7,7 +7,7 @@ from .aggregate_serializers import CustomUserSerializer
 # DOWNLOAD SERIALIZERS (can we reuse upload ones?) --------------------------------------------------------------
 
 class StudentFetchSerializer(serializers.ModelSerializer):
-    student_name = CustomUserSerializer(read_only=True)  # Includes profile_picture from CustomUserSerializer
+    student_name = CustomUserSerializer(read_only=True)  # Includes profile_picture from UserSerializer
     send_to = CustomUserSerializer(read_only=True)      # Also includes profile_picture
     
 
@@ -38,15 +38,14 @@ class TeacherFetchSerializer(serializers.ModelSerializer):
             'id',
             'student_name',  # Student who received
             'send_to',       # Teacher who submitted
-            'task_type',
-            'feedback_date',
-            'document_area',  # Link to the submitted file
+            'submission_date', 
+            'feedback_date', 
+            'task_type', 
+            'grade_awarded', 
+            'grade_total', 
+            'grade_percent', 
             'teacher_notes',
-            'submission_date',
-            'grade_awarded',
-            'grade_total',
-            'grade_percent',
-          
+            'document_area',  # Link to the submitted file
         ]
         read_only_fields = ['id', 'feedback_date', 'grade_percent']
 
@@ -59,90 +58,115 @@ class TeacherFetchSerializer(serializers.ModelSerializer):
 
 
 class TeacherFeedbackSerializer(serializers.ModelSerializer):
+    # For teacher feedback, student_name is the recipient and send_to is the teacher
+    student_name = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.filter(user_type='student'))
+    send_to = serializers.PrimaryKeyRelatedField(read_only=True)  # This will be set to the current teacher
+    
     class Meta:
         model = Feedback
         fields = ['id', 
-                  'student_name', 
-                  'send_to', 
+                  'student_name',  # The student receiving feedback
+                  'send_to',      # The teacher sending feedback (auto-set)
                   'submission_date', 
                   'feedback_date', 
                   'task_type', 
                   'grade_awarded', 
                   'grade_total', 
                   'grade_percent', 
-                  'student_notes', 
                   'teacher_notes', 
                   'document_area']
+        read_only_fields = ['id', 'submission_date', 'feedback_date', 'grade_percent', 'send_to']
         
-        def validate_task_type(self, value):
-            if value not in TaskType.values:
-                raise serializers.ValidationError(f"Invalid task_type: {value}")
-            return value
-        
-        def validate_student_name(self, value):
-        # Ensure the student exists
-            if not CustomUser.objects.filter(id=value.id).exists():
-                raise serializers.ValidationError("Student does not exist.")
-            return value
-        
-        def validate(self, data):
-            if 'grade_awarded' in data and 'grade_total' in data:
-              
-                data['grade_percent'] = (data['grade_awarded'] / data['grade_total']) * 100
-          
-            return data
-    
-    document_area = serializers.FileField()  # Make sure this is defined as a FileField
-    
-    
-
-
-
-class StudentFeedbackSerializer(serializers.ModelSerializer):
-     
-    send_to = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
-    
-    document_area = serializers.FileField()  # Ensure this is correctly defined
-
-    class Meta:
-        model = Feedback
-        fields = [
-            'id', 
-            'student_name', 
-            'send_to', 
-            'grade_awarded',
-            'submission_date', 
-            'feedback_date', 
-            'task_type',
-            'student_notes', 
-            'document_area'
-        ]
-        read_only_fields = ['id', 'submission_date', 'feedback_date', 'grade_awarded']
-        
-
-    # Ensures task_type is valid
     def validate_task_type(self, value):
         if value not in TaskType.values:
             raise serializers.ValidationError(f"Invalid task_type: {value}")
         return value
-
-    # Ensure send_to (teacher) exists
-    def validate_send_to(self, value):
-        if not CustomUser.objects.filter(id=value.id).exists():
-            raise serializers.ValidationError("Teacher does not exist.")
+        
+    def validate_grade_awarded(self, value):
+        if value is not None:
+            try:
+                value = float(value)
+                if value < 0:
+                    raise serializers.ValidationError("Grade awarded cannot be negative")
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Grade awarded must be a valid number")
         return value
-
-    # General validation method
+        
+    def validate_grade_total(self, value):
+        if value is not None:
+            try:
+                value = float(value)
+                if value <= 0:
+                    raise serializers.ValidationError("Grade total must be greater than 0")
+            except (TypeError, ValueError):
+                raise serializers.ValidationError("Grade total must be a valid number")
+        return value
+        
     def validate(self, data):
-        # Example: Ensure document_area is provided for a student   
-        if 'document_area' not in data or data['document_area'] is None:
-            raise serializers.ValidationError("A document must be uploaded.")
+        # Set the teacher (send_to) as the current user
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("Authentication required")
+            
+        if request.user.user_type != 'teacher':
+            raise serializers.ValidationError("Only teachers can create teacher feedback")
+            
+        data['send_to'] = request.user
+        
+        # Validate grades if provided
+        if 'grade_awarded' in data and 'grade_total' in data:
+            grade_awarded = data.get('grade_awarded')
+            grade_total = data.get('grade_total')
+            
+            if grade_awarded is not None and grade_total is not None:
+                if grade_awarded > grade_total:
+                    raise serializers.ValidationError({
+                        "grade_awarded": "Grade awarded cannot be greater than total"
+                    })
+                    
+                # Calculate grade percentage
+                data['grade_percent'] = (grade_awarded / grade_total) * 100
+                
         return data
 
-
-
-
-
+class StudentFeedbackSerializer(serializers.ModelSerializer):
+    student_name = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+    send_to = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.filter(user_type='teacher'))
+    
+    class Meta:
+        model = Feedback
+        fields = ['id', 
+                  'student_name', 
+                  'send_to', 
+                  'submission_date', 
+                  'task_type', 
+                  'student_notes', 
+                  'document_area']
+        read_only_fields = ['id', 'submission_date']
+        
+    def validate_task_type(self, value):
+        if value not in TaskType.values:
+            raise serializers.ValidationError(f"Invalid task_type: {value}")
+        return value
+        
+    def validate_student_name(self, value):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            raise serializers.ValidationError("Authentication required")
+            
+        if request.user.id != value.id:
+            raise serializers.ValidationError("student_name must be the current user")
+        return value
+        
+    def create(self, validated_data):
+        student = validated_data.pop('student_name')
+        teacher = validated_data.pop('send_to')
+        
+        return Feedback.objects.create(
+            student_name=student,
+            send_to=teacher,
+            **validated_data
+        )
     
 ###ANNOTATION SERIALIZERS ------------------------------------------------------------------------------------------    
 

@@ -1,46 +1,144 @@
 import React, { useEffect, useState } from "react";
 
 const GradeSummary = () => {
+
+  // Starts window at top
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
     const [feedbackData, setFeedbackData] = useState([]);
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState("");
     const [filterType, setFilterType] = useState("");
+    const [userInfo, setUserInfo] = useState(null);
 
-    // Fetch feedback data from the backend
+    // Fetch user info first
     useEffect(() => {
-        const fetchFeedback = async () => {
+        const fetchUserInfo = async () => {
             try {
-                const response = await fetch("/api/grade-summary/");
-                if (!response.ok) throw new Error("Failed to fetch feedback data");
-                const data = await response.json();
-                setFeedbackData(data);
-
-                // Extract unique students for dropdown
-                const uniqueStudents = [...new Set(data.map(item => item.send_to?.username || "Unknown Student"))];
-                setStudents(uniqueStudents);
-                setSelectedStudent(uniqueStudents[0] || "");
+                console.log("Fetching user info...");
+                const response = await fetch('/users/user-info/', {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("User info:", data);
+                    setUserInfo(data);
+                    // If the user is a student, automatically set them as the selected student
+                    if (data.user_type === 'student') {
+                        setSelectedStudent(data.username);
+                    }
+                } else {
+                    console.error("Error fetching user info:", response.status);
+                }
             } catch (error) {
-                console.error("Error fetching feedback data:", error);
+                console.error("Error fetching user info:", error);
             }
         };
-        fetchFeedback();
+        fetchUserInfo();
     }, []);
+
+    // Fetch all students for teachers
+    useEffect(() => {
+        const fetchStudents = async () => {
+            if (userInfo?.user_type === 'teacher') {
+                try {
+                    console.log("Fetching students...");
+                    const response = await fetch('/users/all-users/?user_type=student', {
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log("Student data:", data);
+                        // Extract usernames directly from the data
+                        const studentList = data.map(student => student.username).filter(Boolean);
+                        console.log("Processed student list:", studentList);
+                        setStudents(studentList);
+                        
+                        // Set default student if none selected and we have students
+                        if (studentList.length > 0 && !selectedStudent) {
+                            console.log("Setting default student:", studentList[0]);
+                            setSelectedStudent(studentList[0]);
+                        }
+                    } else {
+                        console.error("Error fetching students:", response.status);
+                    }
+                } catch (error) {
+                    console.error("Error fetching students:", error);
+                }
+            }
+        };
+        fetchStudents();
+    }, [userInfo, selectedStudent]); // Re-run when either userInfo or selectedStudent changes
+
+    // Fetch feedback data
+    useEffect(() => {
+        const fetchFeedback = async () => {
+            if (!selectedStudent) {
+                console.log("No student selected, skipping feedback fetch");
+                return;
+            }
+            
+            try {
+                console.log("Fetching feedback for student:", selectedStudent);
+                const response = await fetch(`/api/grade-summary/?student=${selectedStudent}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log("Raw feedback data:", data);
+                    setFeedbackData(data);
+                } else {
+                    console.error("Error fetching feedback:", response.status);
+                    setFeedbackData([]); // Clear feedback data on error
+                }
+            } catch (error) {
+                console.error("Error fetching feedback:", error);
+                setFeedbackData([]); // Clear feedback data on error
+            }
+        };
+        
+        fetchFeedback();
+    }, [selectedStudent]); // Only re-run when selectedStudent changes
 
     // Filter data by selected student
     const filteredFeedbackData = feedbackData
-        .filter(item => item.send_to?.username === selectedStudent)
+        .filter(item => {
+            if (!selectedStudent) return true;
+            
+            const studentName = item.student_name?.username;
+            const sendToName = item.send_to?.username;
+            
+            // For teachers, show feedback where the selected student is involved
+            if (userInfo?.user_type === 'teacher') {
+                return studentName === selectedStudent;
+            }
+            // For students, show feedback where the selected person (teacher/student) is involved
+            else if (userInfo?.user_type === 'student') {
+                return (studentName === selectedStudent || sendToName === selectedStudent);
+            }
+            
+            return false;
+        })
         .sort((a, b) => {
+            if (!a.submission_date && !b.submission_date) return 0;
+            if (!a.submission_date) return 1;
+            if (!b.submission_date) return -1;
+            
             switch (filterType) {
                 case "Date (Newest to Oldest)":
                     return new Date(b.submission_date) - new Date(a.submission_date);
                 case "Date (Oldest to Newest)":
                     return new Date(a.submission_date) - new Date(b.submission_date);
                 case "Spanish Grade":
-                    return b.grade_percent - a.grade_percent;
+                    return (b.grade_percent || 0) - (a.grade_percent || 0);
                 case "Grade Awarded":
-                    return b.grade_awarded - a.grade_awarded;
+                    return (b.grade_awarded || 0) - (a.grade_awarded || 0);
                 case "Teacher Name":
-                    return a.student_name?.username.localeCompare(b.student_name?.username);
+                    return (a.send_to?.username || "").localeCompare(b.send_to?.username || "");
                 default:
                     return 0;
             }
@@ -92,19 +190,27 @@ const GradeSummary = () => {
             {/* Student Dropdown */}
             <div className="mb-6">
                 <label htmlFor="studentSelect" className="block text-sm font-medium text-gray-700">
-                    Select Student:
+                    {userInfo?.user_type === 'student' ? 'Your Feedback:' : 'Select Student:'}
                 </label>
                 <select
                     id="studentSelect"
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
-                    value={selectedStudent}
+                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md bg-white shadow-sm"
+                    value={selectedStudent || ''}
                     onChange={(e) => setSelectedStudent(e.target.value)}
+                    disabled={userInfo?.user_type === 'student'}
                 >
-                    {students.map((student, index) => (
-                        <option key={index} value={student}>
-                            {student}
-                        </option>
-                    ))}
+                    {userInfo?.user_type === 'student' ? (
+                        <option value={userInfo.username}>{userInfo.username}</option>
+                    ) : (
+                        <>
+                            <option value="">Select a student</option>
+                            {students.map((student, index) => (
+                                <option key={index} value={student}>
+                                    {student}
+                                </option>
+                            ))}
+                        </>
+                    )}
                 </select>
             </div>
 
@@ -113,6 +219,9 @@ const GradeSummary = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-green-300">
                         <tr>
+                            <th className="px-6 py-3 text-left text-sm font-medium text-gray-800 uppercase tracking-wider">
+                                Student
+                            </th>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-800 uppercase tracking-wider">
                                 Teacher
                             </th>
@@ -145,29 +254,37 @@ const GradeSummary = () => {
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-gray divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-200">
                         {filteredFeedbackData.map((item, index) => (
-                            <tr key={index}>
+                            <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {item.student_name?.username || "Unknown Teacher"}
+                                    {item.student_name?.username || "Unknown Student"}
+                                    {userInfo?.user_type === 'student' && (
+                                        <span className="ml-2 text-xs text-gray-500">
+                                            {item.student_name?.username === userInfo.username ? '(Sent)' : '(Received)'}
+                                        </span>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {new Date(item.submission_date).toLocaleDateString()}
+                                    {item.send_to?.username || "Unknown Teacher"}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {new Date(item.feedback_date).toLocaleDateString()}
+                                    {item.submission_date ? new Date(item.submission_date).toLocaleDateString() : "-"}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {item.task_type}
+                                    {item.feedback_date ? new Date(item.feedback_date).toLocaleDateString() : "-"}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                    {item.task_type || "-"}
                                 </td>
                                 <td className="px-6 py-4 text-sm font-bold text-blue-900">
                                     {item.grade_awarded || "-"}
                                 </td>
-                                <td className="px-6 py-4 text-sm font-bold text-blue-900">
-                                    /{item.grade_total || "-"}
+                                <td className="px-6 py-4 text-sm text-gray-900">
+                                    {item.grade_total || "-"}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
-                                    {item.grade_percent?.toFixed(2) || "-"}
+                                    {item.grade_percent ? `${item.grade_percent}%` : "-"}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-900">
                                     {calculateSpanishGrade(item.grade_percent)}

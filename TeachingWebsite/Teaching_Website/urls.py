@@ -31,9 +31,11 @@ urlpatterns = [
     path('send_query/', include("TeachingAPP.urls")),
     path('users/', include("Users.urls")),
     path('files/', include('Documents.urls')),
+    
+    # Add alternative path for user-info to maintain compatibility
+    path('api/user-info/', include("Users.urls")),
 ]
 
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
