@@ -12,18 +12,13 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-import environ
-import dj_database_url
+from dotenv import load_dotenv
 
-# Initialize environ
-env = environ.Env()
-environ.Env.read_env()
-
-# -*- coding: utf-8 -*-
- 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -33,7 +28,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = os.environ.get('DEBUG', default=False)
 
 ALLOWED_HOSTS = ['*', '.railway.app']  # Allow Railway domains and your custom domain later
 
@@ -166,13 +161,13 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = env('EMAIL_HOST')
-EMAIL_PORT = env('EMAIL_PORT')
-EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 EMAIL_USE_SSL = False
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
@@ -214,31 +209,45 @@ import logging
 import dj_database_url
 logger = logging.getLogger(__name__)
 
-# Log database URL
-logger.warning(f"DATABASE_URL present: {'DATABASE_URL' in os.environ}")
+# Log all environment variables for debugging
+env_vars = {
+    'DATABASE_URL': os.getenv('DATABASE_URL'),
+    'RAILWAY_ENVIRONMENT': os.getenv('RAILWAY_ENVIRONMENT'),
+    'RAILWAY_PROJECT_NAME': os.getenv('RAILWAY_PROJECT_NAME'),
+    'PGDATABASE': os.getenv('PGDATABASE'),
+    'PGHOST': os.getenv('PGHOST'),
+    'PGPORT': os.getenv('PGPORT'),
+    'PGUSER': os.getenv('PGUSER'),
+}
+logger.warning(f"Environment variables: {env_vars}")
 
-# Configure database with DATABASE_URL
-database_url = os.getenv('DATABASE_URL')
-if database_url:
+if os.getenv('DATABASE_URL'):
     DATABASES = {
-        'default': dj_database_url.parse(database_url, conn_max_age=600)
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True
+        )
     }
 else:
-    logger.warning("No DATABASE_URL found, using default configuration")
+    # Fallback configuration
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'railway',
-            'USER': 'postgres',
-            'PASSWORD': '',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': os.getenv('PGDATABASE', 'railway'),
+            'USER': os.getenv('PGUSER', 'postgres'),
+            'PASSWORD': os.getenv('PGPASSWORD', ''),
+            'HOST': os.getenv('PGHOST', 'localhost'),
+            'PORT': os.getenv('PGPORT', '5432'),
+            'OPTIONS': {'sslmode': 'require'},
         }
     }
 
-# Log final database configuration (excluding sensitive data)
+# Log final configuration (without sensitive data)
 db_config = DATABASES['default'].copy()
-db_config['PASSWORD'] = '********' if 'PASSWORD' in db_config else None
+if 'PASSWORD' in db_config:
+    db_config['PASSWORD'] = '********'
 logger.warning(f"Final database config: {db_config}")
 
 # Password validation
