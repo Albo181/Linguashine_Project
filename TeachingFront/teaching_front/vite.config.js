@@ -5,7 +5,17 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
+      },
       '/users': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/feedback': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
@@ -19,12 +29,7 @@ export default defineConfig({
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false,
-      },
-      '/api': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
+      }
+    }
+  }
 });
