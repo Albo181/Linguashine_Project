@@ -32,10 +32,14 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', default=False)
+DEBUG = os.getenv('RAILWAY_ENVIRONMENT') != 'production'
 
-ALLOWED_HOSTS = ['*', '.railway.app']  # Allow Railway domains and your custom domain later
-
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'linguashineproject-production.up.railway.app',
+    '.railway.app',
+]
 
 # Application definition
 
@@ -81,8 +85,9 @@ CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests
 CSRF_COOKIE_SECURE = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:5173', 'http://localhost:5174' ]
-#CSRF_COOKIE_DOMAIN = 'None'
+CSRF_TRUSTED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+]
 
 SESSION_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests ***
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2  # 2 weeks, in seconds
@@ -129,12 +134,11 @@ PASSWORD_HASHERS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'https://linguashine.up.railway.app',  # Your Railway frontend URL
-    'http://localhost:5173',               # Local development frontend
-    'http://localhost:8000',               # Local development backend
+    'http://localhost:5173',  # Vite development server
+    'https://linguashineproject-production.up.railway.app',
 ]
+
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = os.getenv('RAILWAY_ENVIRONMENT') != 'production'  # Only in development
 
 # Security Headers
 SECURE_HSTS_SECONDS = 31536000 if os.getenv('RAILWAY_ENVIRONMENT') == 'production' else 0
