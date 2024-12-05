@@ -40,22 +40,22 @@ class BasePrivateFile(models.Model):
 
 # Private Document Model
 class PrivateDocument(BasePrivateFile):
-    document = models.FileField(upload_to='private_docs/')
+    document = models.FileField(upload_to='private_docs/', null=True, blank=True)
 
 
 # Private Image Model
 class PrivateImage(BasePrivateFile):
-    image = models.ImageField(upload_to='private_images/')
+    image = models.ImageField(upload_to='private_images/', null=True, blank=True)
 
 
 # Private Audio Model
 class PrivateAudio(BasePrivateFile):
-    audio = models.FileField(upload_to='private_audio/')
+    audio = models.FileField(upload_to='private_audio/', null=True, blank=True)
 
 
 # Private Video Model
 class PrivateVideo(BasePrivateFile):
-    video = models.FileField(upload_to='private_videos/')
+    video = models.FileField(upload_to='private_videos/', null=True, blank=True)
 
 
 # Shared File Model

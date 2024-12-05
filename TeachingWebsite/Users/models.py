@@ -8,11 +8,11 @@ class UserType(models.TextChoices):
 
 class CustomUser(AbstractUser):
     
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     email = models.EmailField(unique=True)
-    telephone = models.CharField(max_length=30, blank=True)
-    bio = models.TextField(blank=True)
+    telephone = models.CharField(max_length=30, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     user_type = models.CharField(max_length=20, choices=UserType.choices, default=UserType.STUDENT)
     forum_access = models.BooleanField(default=False)
@@ -29,6 +29,3 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.user_type})"
-
-
-
