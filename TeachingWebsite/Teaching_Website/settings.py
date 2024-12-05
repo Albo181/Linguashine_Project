@@ -54,8 +54,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'Documents',
     'django_extensions',
-    'Teaching_Website.log_viewer',  # Add our new log viewer app
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'Teaching_Website.log_viewer',  
+    'Teaching_Website',
 ]
 
 X_FRAME_OPTIONS = 'ALLOW'
@@ -75,7 +75,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Teaching_Website.middleware.EndpointLoggingMiddleware',  # Add our new middleware
+    'Teaching_Website.middleware.EndpointLoggingMiddleware',  
 ]
 
 CSRF_COOKIE_NAME = "csrftoken"
