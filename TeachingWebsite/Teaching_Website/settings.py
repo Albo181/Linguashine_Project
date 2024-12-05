@@ -217,9 +217,17 @@ DATABASES = {
         default='sqlite:///db.sqlite3',
         conn_max_age=600,
         conn_health_checks=True,
+        ssl_require=True,
     )
 }
 
+# If using SQLite locally, this ensures the directory exists
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    db_dir = os.path.dirname(DATABASES['default']['NAME'])
+    if db_dir and not os.path.exists(db_dir):
+        os.makedirs(db_dir)
+
+DATABASE_URL = env('DATABASE_URL', default='sqlite:///db.sqlite3')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
