@@ -19,13 +19,17 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
- 
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "ok", "message": "API is running"})
 
 # Create the router and register your viewsets
 router = DefaultRouter()
 
 
 urlpatterns = [
+    path('', health_check, name='health_check'),  # Add root URL handler
     path('admin/', admin.site.urls),
     path('api/', include("Feedback_app.urls")),  # Include API routes under the `/api` prefix
     path('send_query/', include("TeachingAPP.urls")),

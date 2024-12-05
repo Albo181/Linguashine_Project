@@ -70,7 +70,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',    
@@ -145,25 +145,19 @@ SECURE_HSTS_SECONDS = 31536000 if os.getenv('RAILWAY_ENVIRONMENT') == 'productio
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 SECURE_HSTS_PRELOAD = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 
-# Static and Media Files
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Ensure static and media directories exist
-os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
-os.makedirs(os.path.join(BASE_DIR, 'media'), exist_ok=True)
+# Whitenoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Whitenoise for static files in production
-if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
-    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'Teaching_Website.urls'
 
