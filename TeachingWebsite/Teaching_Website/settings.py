@@ -211,30 +211,35 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 # Database configuration
 import logging
+import dj_database_url
 logger = logging.getLogger(__name__)
 
-# Log database configuration
-logger.warning(f"PGDATABASE: {os.getenv('PGDATABASE')}")
-logger.warning(f"PGUSER: {os.getenv('PGUSER')}")
-logger.warning(f"PGHOST: {os.getenv('PGHOST')}")
-logger.warning(f"PGPORT: {os.getenv('PGPORT')}")
+# Log database URL
+logger.warning(f"DATABASE_URL present: {'DATABASE_URL' in os.environ}")
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE', 'railway'),
-        'USER': os.getenv('PGUSER', 'postgres'),
-        'PASSWORD': os.getenv('PGPASSWORD'),
-        'HOST': os.getenv('PGHOST', 'localhost'),
-        'PORT': os.getenv('PGPORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require'
+# Configure database with DATABASE_URL
+database_url = os.getenv('DATABASE_URL')
+if database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(database_url, conn_max_age=600)
+    }
+else:
+    logger.warning("No DATABASE_URL found, using default configuration")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'railway',
+            'USER': 'postgres',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
-}
 
-# Log final database configuration
-logger.warning(f"Final database config: {DATABASES['default']}")
+# Log final database configuration (excluding sensitive data)
+db_config = DATABASES['default'].copy()
+db_config['PASSWORD'] = '********' if 'PASSWORD' in db_config else None
+logger.warning(f"Final database config: {db_config}")
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
