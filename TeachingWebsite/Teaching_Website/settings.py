@@ -76,7 +76,7 @@ MIDDLEWARE = [
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests
-CSRF_COOKIE_SECURE = False  # Use True if using HTTPS in development ***
+CSRF_COOKIE_SECURE = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:5173', 'http://localhost:5174' ]
 #CSRF_COOKIE_DOMAIN = 'None'
 
@@ -84,8 +84,9 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Required for cross-origin requests ***
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7 * 2  # 2 weeks, in seconds
 SESSION_COOKIE_HTTPONLY = False #pi says will allow me to see cookies while developing locally (set back to true for security on deployment)
 #SESSION_COOKIE_DOMAIN = 'localhost'
-SESSION_COOKIE_SECURE = False  # Use True if using HTTPS in development
-SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
+SECURE_SSL_REDIRECT = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 SESSION_SAVE_EVERY_REQUEST = True
 
@@ -124,64 +125,37 @@ PASSWORD_HASHERS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',  # Vite dev server
-    'http://127.0.0.1:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5174',
+    'https://linguashine.up.railway.app',  # Your Railway frontend URL
+    'http://localhost:5173',               # Local development frontend
+    'http://localhost:8000',               # Local development backend
 ]
-
-CORS_ALLOW_CREDENTIALS = True  # Allow credentials (cookies) to be included
-
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    'OPTIONS',
-]
-
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-    'cache-control',
-    'pragma',
-]
-
-# For development only - remove in production
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = os.getenv('RAILWAY_ENVIRONMENT') != 'production'  # Only in development
 
-# Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST')
-EMAIL_PORT = os.environ.get('EMAIL_PORT')
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
-EMAIL_USE_SSL = False
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
+# Security Headers
+SECURE_HSTS_SECONDS = 31536000 if os.getenv('RAILWAY_ENVIRONMENT') == 'production' else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
+SECURE_HSTS_PRELOAD = os.getenv('RAILWAY_ENVIRONMENT') == 'production'
 
-# Static files (CSS, JavaScript, Images)
+# Static and Media Files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-# Create static directory if it doesn't exist
+# Ensure static and media directories exist
 os.makedirs(os.path.join(BASE_DIR, 'static'), exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, 'media'), exist_ok=True)
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Whitenoise for static files in production
+if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'Teaching_Website.urls'
 
@@ -205,7 +179,6 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 
 # Database configuration
-import logging
 import dj_database_url
 logger = logging.getLogger(__name__)
 
@@ -338,3 +311,25 @@ LOGGING = {
 import os
 if not os.path.exists('logs'):
     os.makedirs('logs')
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+# Log email configuration (without sensitive data)
+import logging
+logger = logging.getLogger(__name__)
+email_config = {
+    'EMAIL_HOST': EMAIL_HOST,
+    'EMAIL_PORT': EMAIL_PORT,
+    'EMAIL_USE_TLS': EMAIL_USE_TLS,
+    'EMAIL_HOST_USER': EMAIL_HOST_USER,
+    'EMAIL_HOST_PASSWORD': '********' if EMAIL_HOST_PASSWORD else ''
+}
+logger.info(f"Email configuration: {email_config}")
+
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
