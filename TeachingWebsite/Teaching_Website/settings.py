@@ -209,19 +209,22 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-DATABASES = {
+# Database configuration
+db_config = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
         conn_max_age=600,
         conn_health_checks=True,
-        ssl_require=True,
     )
 }
 
-# If using SQLite locally, this ensures the directory exists
+# Add SSL requirement only for PostgreSQL
+if db_config['default']['ENGINE'] == 'django.db.backends.postgresql':
+    db_config['default']['OPTIONS'] = {'sslmode': 'require'}
+
+DATABASES = db_config
+
+# If using SQLite locally, ensure the directory exists
 if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
     db_dir = os.path.dirname(DATABASES['default']['NAME'])
     if db_dir and not os.path.exists(db_dir):
