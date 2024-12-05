@@ -14,7 +14,7 @@ class CustomUser(AbstractUser):
     telephone = models.CharField(max_length=30, blank=True)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
-    user_type = models.CharField(max_length=20, choices=UserType, default=UserType.STUDENT)
+    user_type = models.CharField(max_length=20, choices=UserType.choices, default=UserType.STUDENT)
     forum_access = models.BooleanField(default=False)
     receive_email_notifications = models.BooleanField(default=False)
     

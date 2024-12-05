@@ -18,7 +18,7 @@ class BasePrivateFile(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_sender')
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='%(class)s_user')
-    file_type = models.CharField(max_length=10, choices=FileType, default=FileType.DOCUMENT)
+    file_type = models.CharField(max_length=10, choices=FileType.choices, default=FileType.DOCUMENT)
 
     class Meta:
         abstract = True  # Defines common fields for inheritance; no database table created
