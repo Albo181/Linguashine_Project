@@ -12,7 +12,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import logging
 from dotenv import load_dotenv
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -180,7 +184,6 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 # Database configuration
 import dj_database_url
-logger = logging.getLogger(__name__)
 
 # Log all environment variables for debugging
 env_vars = {k: v for k, v in os.environ.items() if 'DATABASE' in k.upper() or 'PG' in k.upper() or 'RAILWAY' in k.upper()}
@@ -308,7 +311,6 @@ LOGGING = {
 }
 
 # Ensure logs directory exists
-import os
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
@@ -321,8 +323,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 # Log email configuration (without sensitive data)
-import logging
-logger = logging.getLogger(__name__)
 email_config = {
     'EMAIL_HOST': EMAIL_HOST,
     'EMAIL_PORT': EMAIL_PORT,
