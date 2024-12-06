@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./annotationlist.css";
+import "./AnnotationList.css";
 import AnnotationEditor from "./AnnotationEditor";
 import { getAnnotations, createAnnotation, deleteAnnotation } from "../api/feedbackAPi";
 
