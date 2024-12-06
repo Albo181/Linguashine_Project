@@ -13,7 +13,6 @@ import SharedDriveDashboard from './components/SharedDriveDashboard';
 import BlogComponent from './components/BlogComponent';
 import BlogDetails from './components/BlogDetails';
 import FeedbackForm from './components/FeedbackForm';
-// import AnnotationList from './components/AnnotationList';
 import TeacherHomeworkReview from './components/TeacherHomeworkReview';  
 import StudentHomeworkSummary from './components/StudentHomeworkSummary';  
 import GradeSummary from './components/GradeSummary';
@@ -35,13 +34,10 @@ const App = () => {
                 <Route path="/blog" element={<BlogComponent />} />
                 <Route path="/blog/:id" element={<BlogDetails />} />
                 <Route path="/feedback" element={<FeedbackForm />} />
-                {/* <Route path="/feedback/:id/annotations" element={<AnnotationList />} /> */}
                 <Route path="/homework" element={<HomeworkPage />} />
-                {/* new routes */}
                 <Route path="/teacher-homework" element={<TeacherHomeworkReview />} />
                 <Route path="/student-homework" element={<StudentHomeworkSummary />} />
                 <Route path="/grade-summary-page" element={<GradeSummary />} />
-                <Route path="/annotations-api" element={<AnnotationList />} />
             </Route>
         )
     );
