@@ -19,12 +19,14 @@ export const AuthProvider = ({ children }) => {
       setCheckInProgress(true);
       console.log('Starting auth check...');
       
-      // Try to get user info instead of using check-auth endpoint
-      const response = await apiClient.get('/users/me/');
-      console.log('Auth check response:', response.data);
+      // First check authentication status
+      const authResponse = await apiClient.get('/users/check-auth/');
+      console.log('Auth check response:', authResponse.data);
       
-      if (response.status === 200 && response.data) {
-        setUser(response.data);
+      if (authResponse.data?.isAuthenticated) {
+        // If authenticated, get user details
+        const userResponse = await apiClient.get('/users/me/');
+        setUser(userResponse.data);
         setIsAuthenticated(true);
         return true;
       } else {
@@ -50,9 +52,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async () => {
     try {
-      const response = await apiClient.get('/users/me/');
-      if (response.status === 200 && response.data) {
-        setUser(response.data);
+      const authResponse = await apiClient.get('/users/check-auth/');
+      if (authResponse.data?.isAuthenticated) {
+        const userResponse = await apiClient.get('/users/me/');
+        setUser(userResponse.data);
         setIsAuthenticated(true);
         return true;
       }
