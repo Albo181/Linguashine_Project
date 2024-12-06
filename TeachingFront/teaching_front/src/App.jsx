@@ -17,6 +17,8 @@ import TeacherHomeworkReview from './components/TeacherHomeworkReview';
 import StudentHomeworkSummary from './components/StudentHomeworkSummary';  
 import GradeSummary from './components/GradeSummary';
 import HomeworkPage from './components/HomeworkPage';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
     const router = createBrowserRouter(
@@ -27,22 +29,26 @@ const App = () => {
                 <Route path="/metodo" element={<Method />} />
                 <Route path="/sobre-mi" element={<Sobre_Mi />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/profile" element={<StudentProfilePage />} />
-                <Route path="/landing" element={<StudentLanding />} />
-                <Route path="/dash/files" element={<FileDashboard />} />
-                <Route path="/dash-shared/files" element={<SharedDriveDashboard />} />
-                <Route path="/blog" element={<BlogComponent />} />
-                <Route path="/blog/:id" element={<BlogDetails />} />
-                <Route path="/feedback" element={<FeedbackForm />} />
-                <Route path="/homework" element={<HomeworkPage />} />
-                <Route path="/teacher-homework" element={<TeacherHomeworkReview />} />
-                <Route path="/student-homework" element={<StudentHomeworkSummary />} />
-                <Route path="/grade-summary-page" element={<GradeSummary />} />
+                <Route path="/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
+                <Route path="/landing" element={<ProtectedRoute><StudentLanding /></ProtectedRoute>} />
+                <Route path="/dash/files" element={<ProtectedRoute><FileDashboard /></ProtectedRoute>} />
+                <Route path="/dash-shared/files" element={<ProtectedRoute><SharedDriveDashboard /></ProtectedRoute>} />
+                <Route path="/blog" element={<ProtectedRoute><BlogComponent /></ProtectedRoute>} />
+                <Route path="/blog/:id" element={<ProtectedRoute><BlogDetails /></ProtectedRoute>} />
+                <Route path="/feedback" element={<ProtectedRoute><FeedbackForm /></ProtectedRoute>} />
+                <Route path="/homework" element={<ProtectedRoute><HomeworkPage /></ProtectedRoute>} />
+                <Route path="/teacher-homework" element={<ProtectedRoute><TeacherHomeworkReview /></ProtectedRoute>} />
+                <Route path="/student-homework" element={<ProtectedRoute><StudentHomeworkSummary /></ProtectedRoute>} />
+                <Route path="/grade-summary-page" element={<ProtectedRoute><GradeSummary /></ProtectedRoute>} />
             </Route>
         )
     );
 
-    return <RouterProvider router={router} />;
+    return (
+        <AuthProvider>
+            <RouterProvider router={router} />
+        </AuthProvider>
+    );
 };
 
 export default App;
