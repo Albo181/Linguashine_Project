@@ -1,38 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import ChristmasLights from './ChristmasLights';
 import apiClient from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated: isLoggedIn, checkAuth } = useAuth();
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const response = await apiClient.get('/users/check-auth/');
-        if (response.status === 200) {
-          setIsLoggedIn(response.data.logged_in);
-        } else {
-          setIsLoggedIn(false);
-        }
-      } catch (error) {
-        console.error('Error checking authentication:', error);
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [location.pathname]);
-
   const handleLogout = async () => {
     try {
       const response = await apiClient.post('/users/logout/');
       if (response.status === 200) {
-        setIsLoggedIn(false);
+        await checkAuth(); // Update auth state after logout
         setShowLogoutPopup(false);
         navigate('/');
       }
