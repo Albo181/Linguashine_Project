@@ -115,33 +115,55 @@ class CustomLoginView(APIView):
         password = request.data.get('password')
 
         # Log request details (safely)
+        print("="*50)
+        print("LOGIN ATTEMPT DEBUG INFO:")
         print(f"Login attempt for user: {username}")
-        print(f"Request headers: {dict(request.headers)}")
+        print(f"Content-Type: {request.content_type}")
+        print(f"Request method: {request.method}")
+        print(f"Request data type: {type(request.data)}")
+        print(f"Request data keys: {request.data.keys()}")
         print(f"CSRF Token in headers: {request.headers.get('X-CSRFToken')}")
         print(f"Session ID: {request.session.session_key}")
+        print(f"Is secure: {request.is_secure()}")
+        print(f"Current cookies: {request.COOKIES}")
+        print("="*50)
 
         # Validate input
         if not username or not password:
             print("Login failed: Missing username or password")
             return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Check if user exists first
+        try:
+            user_exists = CustomUser.objects.filter(username=username).exists()
+            if not user_exists:
+                print(f"Login failed: User {username} does not exist")
+                return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            print(f"Database error checking user: {str(e)}")
+            return Response({'error': 'Server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         # Authenticate user
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                print(f"Login successful for user: {username}")
-                print(f"New session ID: {request.session.session_key}")
-                serializer = StudentAccessSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            user = authenticate(request, username=username, password=password)
+            print(f"Authentication result for {username}: {'Success' if user else 'Failed'}")
+            
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    print(f"Login successful for user: {username}")
+                    print(f"New session ID: {request.session.session_key}")
+                    serializer = StudentAccessSerializer(user)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                else:
+                    print(f"Login failed: User {username} is inactive")
+                    return Response({'error': 'User account is inactive'}, status=status.HTTP_401_UNAUTHORIZED)
             else:
-                print(f"Login failed: User {username} is inactive")
-                return Response({'error': 'User account is inactive'}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            print(f"Login failed: Invalid credentials for user {username}")
-            return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
+                print(f"Login failed: Invalid credentials for user {username}")
+                return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            print(f"Authentication error: {str(e)}")
+            return Response({'error': 'Server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
