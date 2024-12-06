@@ -35,14 +35,10 @@ export const fetchCSRFToken = async (retries = 3) => {
         });
         console.log('CSRF token response:', response.data);
         
-        // Get CSRF token from cookie or response
-        const csrfToken = response.data.csrfToken || document.cookie
-          .split('; ')
-          .find(row => row.startsWith('csrftoken='))
-          ?.split('=')[1];
+        const csrfToken = response.data.csrfToken;
         
         if (!csrfToken) {
-          console.error(`Attempt ${i + 1}/${retries}: Failed to get CSRF token`);
+          console.error(`Attempt ${i + 1}/${retries}: No CSRF token in response`);
           if (i === retries - 1) {
             throw new Error('Failed to get CSRF token after multiple attempts');
           }
@@ -73,18 +69,25 @@ export const fetchCSRFToken = async (retries = 3) => {
 apiClient.interceptors.request.use(
   async config => {
     try {
-      // Always try to get CSRF token for all requests
-      const csrfToken = await fetchCSRFToken();
-      if (csrfToken) {
-        config.headers['X-CSRFToken'] = csrfToken;
-        console.log('Added CSRF token to request headers');
+      // Only add CSRF token for non-GET methods
+      if (config.method !== 'get') {
+        const csrfToken = await fetchCSRFToken();
+        if (csrfToken) {
+          config.headers['X-CSRFToken'] = csrfToken;
+          console.log('Added CSRF token to request headers:', csrfToken);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch CSRF token in interceptor:', error);
     }
 
     // Log the final request configuration
-    console.log('Request config:', config);
+    console.log('Request config:', {
+      method: config.method,
+      url: config.url,
+      headers: config.headers,
+      withCredentials: config.withCredentials
+    });
     return config;
   },
   error => {
@@ -96,14 +99,19 @@ apiClient.interceptors.request.use(
 // Add response interceptor for better error handling
 apiClient.interceptors.response.use(
   response => {
-    console.log('Response:', response);
+    console.log('Response:', {
+      status: response.status,
+      headers: response.headers,
+      data: response.data
+    });
     return response;
   },
   error => {
-    console.error('Response error:', error);
-    if (error.response?.status === 403) {
-      console.error('CSRF token validation failed');
-    }
+    console.error('Response error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
     return Promise.reject(error);
   }
 );
