@@ -3,7 +3,7 @@ import axios from 'axios';
 // In production, use relative paths to go through our proxy
 // In development, use localhost
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? 'https://attractive-upliftment-production.up.railway.app'  // Remove /api suffix
+  ? 'https://linguashineproject-production.up.railway.app'  // Use backend URL
   : 'http://localhost:8000';
 
 console.log('API Client baseURL:', baseURL);
@@ -30,7 +30,7 @@ export const fetchCSRFToken = async (retries = 3) => {
     for (let i = 0; i < retries; i++) {
       try {
         // Make a GET request to Django's CSRF endpoint
-        const response = await axios.get(`${baseURL}/users/get-csrf-token/`, {
+        const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
           withCredentials: true
         });
         console.log('CSRF token response:', response.data);
