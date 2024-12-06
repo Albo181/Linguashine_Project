@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,6 +33,7 @@ INSTALLED_APPS = [
     'Users',
     'TeachingAPP',
     'Feedback_app',
+    'Documents',
 ]
 
 MIDDLEWARE = [
@@ -69,16 +69,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
-        'USER': 'postgres',
-        'PASSWORD': 'sJypeIXPTqQLfsmWiShWyAPfgcMnglso',
-        'HOST': 'postgres.railway.internal',
-        'PORT': '5432',
+# Try to get the DATABASE_URL from environment, otherwise use default PostgreSQL settings
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    # Parse database URL
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=True
+        )
     }
-}
+else:
+    # Default PostgreSQL settings
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'railway',
+            'USER': 'postgres',
+            'PASSWORD': 'sJypeIXPTqQLfsmWiShWyAPfgcMnglso',
+            'HOST': 'postgres.railway.internal',
+            'PORT': '5432',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -110,6 +124,14 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# User model
+AUTH_USER_MODEL = 'Users.CustomUser'
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
