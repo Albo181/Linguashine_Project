@@ -127,7 +127,7 @@ USE_TZ = True
 # Security Settings
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Changed to False to allow JavaScript to read the token
 SESSION_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
@@ -179,6 +179,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'cookie',  # Added cookie header
 ]
 
 # Rest Framework settings
