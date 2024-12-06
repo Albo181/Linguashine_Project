@@ -16,7 +16,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from rest_framework.throttling import AnonRateThrottle
-
+from django.db import connection
 
 def session_id_check(request):
     session = request.session
@@ -206,3 +206,37 @@ class CurrentUserView(APIView):
         user = request.user
         serializer = StudentAccessSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def test_db_connection(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            row = cursor.fetchone()
+            
+        # Get all tables in the database
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+            """)
+            tables = [row[0] for row in cursor.fetchall()]
+            
+        # Count users
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        user_count = User.objects.count()
+            
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Database connection successful',
+            'database': connection.settings_dict['NAME'],
+            'tables': tables,
+            'user_count': user_count
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Database connection failed: {str(e)}'
+        }, status=500)

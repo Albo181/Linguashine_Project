@@ -82,15 +82,32 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL and not DEBUG:  # Only use Railway DB in production
     # Parse database URL
     import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.config(
+    print("="*50)
+    print("DATABASE CONNECTION INFO:")
+    print(f"Using production database")
+    print(f"Database URL found: {bool(DATABASE_URL)}")
+    
+    try:
+        db_config = dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
             ssl_require=True
         )
-    }
+        print(f"Database engine: {db_config.get('ENGINE')}")
+        print(f"Database name: {db_config.get('NAME')}")
+        print(f"Database host: {db_config.get('HOST')}")
+        print(f"Database port: {db_config.get('PORT')}")
+        print(f"Database user: {db_config.get('USER')}")
+        DATABASES = {
+            'default': db_config
+        }
+        print("Database configuration loaded successfully")
+    except Exception as e:
+        print(f"Error configuring database: {str(e)}")
+    print("="*50)
 else:
     # Use SQLite for local development
+    print("Using SQLite database for development")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
