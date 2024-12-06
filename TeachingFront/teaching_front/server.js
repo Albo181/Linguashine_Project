@@ -31,7 +31,7 @@ app.use((req, res, next) => {
 });
 
 // Proxy middleware configuration
-app.use(['/api', '/users', '/feedback', '/files'], createProxyMiddleware({
+app.use(['/api', '/users', '/feedback', '/files', '/csrf'], createProxyMiddleware({
   target: BACKEND_URL,
   changeOrigin: true,
   secure: true,
