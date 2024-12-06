@@ -27,21 +27,21 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data);
         setIsAuthenticated(true);
         return true;
-      } else {
-        console.log('Auth check failed with status:', response.status);
-        setIsAuthenticated(false);
-        setUser(null);
-        return false;
       }
     } catch (error) {
-      console.error('Auth check error:', error);
+      // If we get a 403, it just means we're not authenticated - this is normal for the homepage
+      if (error.response?.status === 403) {
+        console.log('Not authenticated (403) - this is normal for public pages');
+      } else {
+        console.error('Auth check error:', error);
+      }
       setIsAuthenticated(false);
       setUser(null);
-      return false;
     } finally {
       setIsLoading(false);
       setCheckInProgress(false);
     }
+    return false;
   }, []);
 
   // Only check auth once when the provider mounts
