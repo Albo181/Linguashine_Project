@@ -3,7 +3,7 @@ import axios from 'axios';
 // In production, use relative paths to go through our proxy
 // In development, use localhost
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? 'https://attractive-upliftment-production.up.railway.app'  // Add explicit production URL
+  ? 'https://attractive-upliftment-production.up.railway.app/api'  // Added /api prefix for production
   : 'http://localhost:8000';
 
 console.log('API Client baseURL:', baseURL);
