@@ -1,5 +1,5 @@
 import React from 'react';
-import Student_Button_NEW from '../images/Student_Button_NEW.png';
+import Student_Button_NEW from '../images/Student_button_NEW.png';
 import red_arrow_icon from '../images/red_arrow_icon.png'
 import { Link } from 'react-router-dom';
 
