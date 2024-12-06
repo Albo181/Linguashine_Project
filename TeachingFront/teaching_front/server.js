@@ -18,9 +18,27 @@ const apiProxy = createProxyMiddleware(['/api', '/users', '/feedback', '/files']
   cookieDomainRewrite: {
     '*': ''  // This will rewrite the cookie domain to match your frontend domain
   },
+  onProxyReq: function(proxyReq, req, res) {
+    // Forward the CSRF token if present
+    if (req.headers['x-csrftoken']) {
+      proxyReq.setHeader('X-CSRFToken', req.headers['x-csrftoken']);
+    }
+    // Forward cookies for session authentication
+    if (req.headers.cookie) {
+      proxyReq.setHeader('Cookie', req.headers.cookie);
+    }
+  },
   onProxyRes: function(proxyRes, req, res) {
-    // Log cookies for debugging
-    console.log('Received cookies:', proxyRes.headers['set-cookie']);
+    // Preserve original cookies including CSRF and session cookies
+    const cookies = proxyRes.headers['set-cookie'];
+    if (cookies) {
+      // Ensure cookies work across domains
+      const modifiedCookies = cookies.map(cookie =>
+        cookie.replace(/Domain=[^;]+;/, '')
+             .replace(/SameSite=Lax/, 'SameSite=None; Secure')
+      );
+      proxyRes.headers['set-cookie'] = modifiedCookies;
+    }
   }
 });
 
