@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import ChristmasLights from './ChristmasLights';
+import apiClient from '../api/apiClient';
 
 const NavBar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,13 +13,9 @@ const NavBar = () => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('/users/check-auth/', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsLoggedIn(data.logged_in);
+        const response = await apiClient.get('/users/check-auth/');
+        if (response.status === 200) {
+          setIsLoggedIn(response.data.logged_in);
         } else {
           setIsLoggedIn(false);
         }
@@ -31,46 +28,16 @@ const NavBar = () => {
     checkAuthStatus();
   }, [location.pathname]);
 
-  const getCsrfToken = () => {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split('=');
-      if (name === 'csrftoken') return value;
-    }
-    return null;
-  };
-
   const handleLogout = async () => {
     try {
-      const csrfToken = getCsrfToken();
-      if (!csrfToken) {
-        alert('CSRF token is missing. Please refresh the page and try again.');
-        return;
-      }
-
-      const response = await fetch('/users/logout/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-      });
-
-      if (response.ok) {
-        setShowLogoutPopup(true);
-        setTimeout(() => {
-          setShowLogoutPopup(false);
-          setIsLoggedIn(false);
-          navigate('/login');
-        }, 3000);
-      } else {
-        console.error('Logout failed:', response.status);
-        alert('Logout failed. Please try again.');
+      const response = await apiClient.post('/users/logout/');
+      if (response.status === 200) {
+        setIsLoggedIn(false);
+        setShowLogoutPopup(false);
+        navigate('/');
       }
     } catch (error) {
-      console.error('Logout error:', error);
-      alert('An error occurred while logging out.');
+      console.error('Error logging out:', error);
     }
   };
 
