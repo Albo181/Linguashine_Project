@@ -3,8 +3,8 @@ import axios from 'axios';
 // In production, use relative paths to go through our proxy
 // In development, use localhost
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? '' // Use relative paths to go through our proxy
-  : 'http://localhost:8080';
+  ? 'https://attractive-upliftment-production.up.railway.app'  // Add explicit production URL
+  : 'http://localhost:8000';
 
 console.log('API Client baseURL:', baseURL);
 
@@ -18,81 +18,91 @@ const apiClient = axios.create({
   }
 });
 
-// Function to get CSRF token
-export const fetchCSRFToken = async () => {
-  try {
-    // Make a GET request to Django's CSRF endpoint
-    const response = await apiClient.get('/users/api/get-csrf-token/');
-    console.log('CSRF token response:', response.data);
-    
-    // Get CSRF token from cookie
-    const csrfToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrftoken='))
-      ?.split('=')[1];
-    
-    if (!csrfToken) {
-      console.error('Failed to get CSRF token from cookies after fetch');
-    } else {
-      console.log('Successfully retrieved CSRF token');
+let csrfTokenPromise = null;
+
+// Function to get CSRF token with retries
+export const fetchCSRFToken = async (retries = 3) => {
+  if (csrfTokenPromise) {
+    return csrfTokenPromise;
+  }
+
+  csrfTokenPromise = (async () => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        // Make a GET request to Django's CSRF endpoint
+        const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
+          withCredentials: true
+        });
+        console.log('CSRF token response:', response.data);
+        
+        // Get CSRF token from cookie or response
+        const csrfToken = response.data.csrfToken || document.cookie
+          .split('; ')
+          .find(row => row.startsWith('csrftoken='))
+          ?.split('=')[1];
+        
+        if (!csrfToken) {
+          console.error(`Attempt ${i + 1}/${retries}: Failed to get CSRF token`);
+          if (i === retries - 1) {
+            throw new Error('Failed to get CSRF token after multiple attempts');
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        console.log('Successfully retrieved CSRF token');
+        return csrfToken;
+      } catch (error) {
+        console.error(`Attempt ${i + 1}/${retries}: Error fetching CSRF token:`, error);
+        if (i === retries - 1) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
-    
-    return csrfToken;
-  } catch (error) {
-    console.error('Error fetching CSRF token:', error);
-    throw error;
+  })();
+
+  try {
+    return await csrfTokenPromise;
+  } finally {
+    csrfTokenPromise = null;
   }
 };
 
 // Add request interceptor to handle CSRF token
 apiClient.interceptors.request.use(
   async config => {
-    // For POST/PUT/DELETE requests, ensure CSRF token is set
-    if (['post', 'put', 'delete'].includes(config.method?.toLowerCase())) {
-      // Get existing CSRF token
-      let csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
-
-      // If no token exists, try to fetch it
-      if (!csrfToken) {
-        try {
-          console.log('No CSRF token found, fetching new one...');
-          csrfToken = await fetchCSRFToken();
-        } catch (error) {
-          console.error('Failed to fetch CSRF token:', error);
-        }
-      }
-
+    try {
+      // Always try to get CSRF token for all requests
+      const csrfToken = await fetchCSRFToken();
       if (csrfToken) {
         config.headers['X-CSRFToken'] = csrfToken;
         console.log('Added CSRF token to request headers');
-      } else {
-        console.error('No CSRF token available for', config.method.toUpperCase(), 'request');
       }
+    } catch (error) {
+      console.error('Failed to fetch CSRF token in interceptor:', error);
     }
 
+    // Log the final request configuration
+    console.log('Request config:', config);
     return config;
   },
   error => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // Add response interceptor for better error handling
 apiClient.interceptors.response.use(
-  response => response,
+  response => {
+    console.log('Response:', response);
+    return response;
+  },
   error => {
-    if (error.response?.status === 401) {
-      console.error('Authentication error:', error.response?.data);
-    }
+    console.error('Response error:', error);
     if (error.response?.status === 403) {
-      console.error('CSRF or permission error:', error.response?.data);
-      // Try to fetch a new CSRF token on 403 errors
-      fetchCSRFToken().catch(err => 
-        console.error('Failed to refresh CSRF token:', err)
-      );
+      console.error('CSRF token validation failed');
     }
     return Promise.reject(error);
   }

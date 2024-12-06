@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Starting auth check...');
       
       // Try to get user info - if successful, we're authenticated
-      const response = await apiClient.get('/Users/me/');
+      const response = await apiClient.get('/users/me/');
       console.log('Auth check response:', response.data);
       
       if (response.status === 200 && response.data) {
@@ -32,6 +32,14 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
+      // Log detailed error information
+      console.error('Auth check error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
+      
       // 401/403 are expected when not logged in
       if (error.response?.status === 401 || error.response?.status === 403) {
         console.log('Not authenticated - this is normal for public pages');
@@ -50,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async () => {
     try {
-      const response = await apiClient.get('/Users/me/');
+      const response = await apiClient.get('/users/me/');
       if (response.status === 200 && response.data) {
         setUser(response.data);
         setIsAuthenticated(true);
@@ -67,7 +75,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      await apiClient.post('/Users/logout/');
+      await apiClient.post('/users/logout/');
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {

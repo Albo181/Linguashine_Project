@@ -34,11 +34,10 @@ def get_csrf_token(request):
     """
     Sets CSRF token in cookies if not already present.
     """
-    csrf_token = request.COOKIES.get("csrftoken")
-    if not csrf_token:
-        csrf_token = get_token(request)  # Generate a new CSRF token if not present
-    response_data = {"csrfToken": csrf_token}
-    return JsonResponse(response_data)
+    csrf_token = get_token(request)  # Always generate a new token
+    response = JsonResponse({"csrfToken": csrf_token})
+    response["X-CSRFToken"] = csrf_token
+    return response
 
 
 #Checks log-in status   
