@@ -56,16 +56,25 @@ export const AuthProvider = ({ children }) => {
     return false;
   }, []);
 
-  const login = useCallback(async () => {
+  const login = useCallback(async (username, password) => {
     try {
-      const response = await apiClient.get('/users/me/');
-      if (response.status === 200 && response.data) {
-        setUser(response.data);
-        setIsAuthenticated(true);
-        return true;
+      // First, make the login request
+      const loginResponse = await apiClient.post('/users/login/', {
+        username,
+        password
+      });
+      
+      if (loginResponse.status === 200) {
+        // If login successful, get user info
+        const userResponse = await apiClient.get('/users/me/');
+        if (userResponse.status === 200 && userResponse.data) {
+          setUser(userResponse.data);
+          setIsAuthenticated(true);
+          return true;
+        }
       }
     } catch (error) {
-      console.error('Login check failed:', error);
+      console.error('Login failed:', error);
       setIsAuthenticated(false);
       setUser(null);
       throw error;
