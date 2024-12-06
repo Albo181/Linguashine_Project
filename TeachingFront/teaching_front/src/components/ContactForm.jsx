@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { getCsrfToken } from './Utils.js';
-
+import apiClient from '../api/apiClient';
 
 const ContactForm = () => {
   const [name, setName] = useState('');
@@ -11,22 +10,15 @@ const ContactForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmissionStatus("pending");
- 
     
-      try {
-      const csrftoken = getCsrfToken();
-      console.log("CSRF Token:", csrftoken); // Verify it is not null
-
-      const response = await fetch("/send_query/contacto/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrftoken, // Includes CSRF token in headers
-        },
-        body: JSON.stringify({ name, subject, message }),
+    try {
+      const response = await apiClient.post("/send_query/contacto/", {
+        name,
+        subject,
+        message
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         setSubmissionStatus("success");
         console.log("Mensaje enviado!");
       } else {

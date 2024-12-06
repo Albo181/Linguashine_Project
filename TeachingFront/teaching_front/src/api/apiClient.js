@@ -22,7 +22,8 @@ const apiClient = axios.create({
 export const fetchCSRFToken = async () => {
   try {
     // Make a GET request to Django's CSRF endpoint
-    await apiClient.get('/csrf/');
+    const response = await apiClient.get('/users/api/get-csrf-token/');
+    console.log('CSRF token response:', response.data);
     
     // Get CSRF token from cookie
     const csrfToken = document.cookie
@@ -32,6 +33,8 @@ export const fetchCSRFToken = async () => {
     
     if (!csrfToken) {
       console.error('Failed to get CSRF token from cookies after fetch');
+    } else {
+      console.log('Successfully retrieved CSRF token');
     }
     
     return csrfToken;
@@ -55,6 +58,7 @@ apiClient.interceptors.request.use(
       // If no token exists, try to fetch it
       if (!csrfToken) {
         try {
+          console.log('No CSRF token found, fetching new one...');
           csrfToken = await fetchCSRFToken();
         } catch (error) {
           console.error('Failed to fetch CSRF token:', error);
@@ -63,6 +67,7 @@ apiClient.interceptors.request.use(
 
       if (csrfToken) {
         config.headers['X-CSRFToken'] = csrfToken;
+        console.log('Added CSRF token to request headers');
       } else {
         console.error('No CSRF token available for', config.method.toUpperCase(), 'request');
       }
