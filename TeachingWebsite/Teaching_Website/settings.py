@@ -140,6 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'https://linguashineproject-production.up.railway.app',
+    'https://attractive-upliftment-production.up.railway.app'
 ]
 CORS_ALLOW_CREDENTIALS = True
 
