@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js",
-    "postinstall": "npm run build --omit=dev"
+    "postinstall": "npm run --omit=dev"
   },
   "engines": {
     "node": ">=18.0.0",
