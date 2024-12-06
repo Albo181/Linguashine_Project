@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const BACKEND_URL = 'https://linguashineproject-production.up.railway.app';
+const BACKEND_URL = 'https://attractive-upliftment-production.up.railway.app';
 
 // Parse JSON bodies
 app.use(express.json());
