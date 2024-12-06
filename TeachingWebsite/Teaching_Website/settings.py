@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 # Database
 # Try to get the DATABASE_URL from environment, otherwise use default PostgreSQL settings
 DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL:
+if DATABASE_URL and not DEBUG:  # Only use Railway DB in production
     # Parse database URL
     import dj_database_url
     DATABASES = {
@@ -90,15 +90,11 @@ if DATABASE_URL:
         )
     }
 else:
-    # Default PostgreSQL settings
+    # Use SQLite for local development
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'railway',
-            'USER': 'postgres',
-            'PASSWORD': 'sJypeIXPTqQLfsmWiShWyAPfgcMnglso',
-            'HOST': 'postgres.railway.internal',
-            'PORT': '5432',
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
@@ -127,38 +123,29 @@ USE_TZ = True
 # Security Settings
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = False  # Changed to False to allow JavaScript to read the token
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+# Don't force SSL redirect as Railway handles HTTPS
+SECURE_SSL_REDIRECT = False
+# Trust Railway's HTTPS header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
-    'https://attractive-upliftment-production.up.railway.app'
+    'https://attractive-upliftment-production.up.railway.app',
+    'http://localhost:5173'
 ]
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# User model
-AUTH_USER_MODEL = 'Users.CustomUser'
-
-# Authentication backends
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'https://linguashineproject-production.up.railway.app',
-    'https://attractive-upliftment-production.up.railway.app'
+    'https://attractive-upliftment-production.up.railway.app',
+    'http://localhost:5173'
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -179,7 +166,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'cookie',  # Added cookie header
+    'cookie',
 ]
 
 # Rest Framework settings
@@ -191,3 +178,23 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# User model
+AUTH_USER_MODEL = 'Users.CustomUser'
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

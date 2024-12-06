@@ -114,8 +114,15 @@ class CustomLoginView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
 
+        # Log request details (safely)
+        print(f"Login attempt for user: {username}")
+        print(f"Request headers: {dict(request.headers)}")
+        print(f"CSRF Token in headers: {request.headers.get('X-CSRFToken')}")
+        print(f"Session ID: {request.session.session_key}")
+
         # Validate input
         if not username or not password:
+            print("Login failed: Missing username or password")
             return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Authenticate user
@@ -123,12 +130,15 @@ class CustomLoginView(APIView):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                # Serialize and return user data (avoid sensitive data)
+                print(f"Login successful for user: {username}")
+                print(f"New session ID: {request.session.session_key}")
                 serializer = StudentAccessSerializer(user)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
+                print(f"Login failed: User {username} is inactive")
                 return Response({'error': 'User account is inactive'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
+            print(f"Login failed: Invalid credentials for user {username}")
             return Response({'error': 'Invalid username or password'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
