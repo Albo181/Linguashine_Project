@@ -11,14 +11,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('RAILWAY_ENVIRONMENT') != 'production'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'linguashineproject-production.up.railway.app',
-    '.railway.app',
-]
+# If we're in production (DEBUG is False), add railway domain to allowed hosts
+if not DEBUG:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+        'linguashineproject-production.up.railway.app',
+        '.railway.app',
+        '.up.railway.app',
+    ]
+else:
+    ALLOWED_HOSTS = [
+        'localhost',
+        '127.0.0.1',
+    ]
 
 # Application definition
 INSTALLED_APPS = [
