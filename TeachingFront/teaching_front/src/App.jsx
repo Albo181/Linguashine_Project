@@ -29,12 +29,12 @@ const App = () => {
                 <Route path="/metodo" element={<Method />} />
                 <Route path="/sobre-mi" element={<Sobre_Mi />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/blog" element={<BlogComponent />} />
+                <Route path="/blog/:id" element={<BlogDetails />} />
                 <Route path="/profile" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
                 <Route path="/landing" element={<ProtectedRoute><StudentLanding /></ProtectedRoute>} />
                 <Route path="/dash/files" element={<ProtectedRoute><FileDashboard /></ProtectedRoute>} />
                 <Route path="/dash-shared/files" element={<ProtectedRoute><SharedDriveDashboard /></ProtectedRoute>} />
-                <Route path="/blog" element={<ProtectedRoute><BlogComponent /></ProtectedRoute>} />
-                <Route path="/blog/:id" element={<ProtectedRoute><BlogDetails /></ProtectedRoute>} />
                 <Route path="/feedback" element={<ProtectedRoute><FeedbackForm /></ProtectedRoute>} />
                 <Route path="/homework" element={<ProtectedRoute><HomeworkPage /></ProtectedRoute>} />
                 <Route path="/teacher-homework" element={<ProtectedRoute><TeacherHomeworkReview /></ProtectedRoute>} />
