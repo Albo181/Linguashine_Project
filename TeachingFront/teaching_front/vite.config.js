@@ -1,34 +1,36 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const backendUrl = process.env.VITE_BACKEND_URL || 'https://linguashineproject-production.up.railway.app';
+
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       '/users': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       '/feedback': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       '/send_query': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
-        secure: false,
+        secure: true,
       },
       '/files': {
-        target: 'http://127.0.0.1:8000',
+        target: backendUrl,
         changeOrigin: true,
-        secure: false,
+        secure: true,
       }
     }
   }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Label, TextInput } from 'flowbite-react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/apiClient';
 
 // Helper function to get CSRF token from cookies
 function getCsrfToken() {    //run in users browser, retrieves from browsers cookie (no need to fetch from backend again)
@@ -25,31 +26,19 @@ const LoginForm = () => {
       event.preventDefault();
     
       try {
-        const loginResponse = await fetch('/users/login/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),
-          },
-          body: JSON.stringify({ username, password }),
-          credentials: 'include',
+        const loginResponse = await apiClient.post('/users/login/', { 
+          username, 
+          password 
         });
     
         //If details match, GET request for userData from backend endpoint 
-        if (loginResponse.ok) {
+        if (loginResponse.status === 200) {
           // Login successful, fetch user data
-          const userResponse = await fetch('/users/me/', {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCsrfToken(),
-            },
-            credentials: 'include',
-          });
+          const userResponse = await apiClient.get('/users/me/');
     
           //If data correctly received, store it as userData and navigate to 'landing'
-          if (userResponse.ok) {
-            const userData = await userResponse.json();
+          if (userResponse.status === 200) {
+            const userData = await userResponse.data;
             console.log('User Data:', userData); // Use this data as needed
             navigate('/landing');
           } else {

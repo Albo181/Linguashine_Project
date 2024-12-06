@@ -13,6 +13,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import apiClient from '../api/apiClient';
 
 // Configure dayjs
 dayjs.locale('en-gb');
@@ -54,33 +55,29 @@ const HomeworkPage = () => {
         const fetchUserData = async () => {
             try {
                 // Fetch user type
-                const userResponse = await fetch('/users/me/', {
-                    credentials: 'include',
-                });
+                const userResponse = await apiClient.get('/users/me/');
                 
-                if (userResponse.ok) {
-                    const userData = await userResponse.json();
+                if (userResponse.status === 200) {
+                    const userData = userResponse.data;
                     setUserType(userData.user_type);
                     console.log('User data:', userData);
 
                     // If user is a teacher, fetch students list
                     if (userData.user_type === 'teacher') {
-                        const studentsResponse = await fetch('/users/all-users/', {
-                            credentials: 'include',
-                        });
+                        const studentsResponse = await apiClient.get('/users/all-users/');
 
-                        if (studentsResponse.ok) {
-                            const studentsData = await studentsResponse.json();
+                        if (studentsResponse.status === 200) {
+                            const studentsData = studentsResponse.data;
                             // Filter for only student users
                             const studentUsers = studentsData.filter(user => user.user_type === 'student');
                             console.log('Available students:', studentUsers);
                             setStudents(studentUsers);
                         } else {
-                            console.error('Failed to fetch students:', await studentsResponse.text());
+                            console.error('Failed to fetch students:', studentsResponse.data);
                         }
                     }
                 } else {
-                    console.error('Failed to fetch user data:', await userResponse.text());
+                    console.error('Failed to fetch user data:', userResponse.data);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -93,18 +90,22 @@ const HomeworkPage = () => {
     useEffect(() => {
         const fetchStudents = async () => {
             try {
-                const response = await fetch('/users/all-users/', {
-                    credentials: 'include'
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch students');
+                const response = await apiClient.get('/users/all-users/');
+                if (response.status === 200) {
+                    const data = response.data;
+                    // For testing: show all users except current user
+                    const currentUserId = localStorage.getItem('userId');
+                    const otherUsers = data.filter(user => user.id !== parseInt(currentUserId));
+                    console.log('Available users:', otherUsers);
+                    setStudents(otherUsers);
+                } else {
+                    console.error('Failed to fetch students:', response.data);
+                    setAlert({
+                        show: true,
+                        message: 'Failed to load users. Please try again.',
+                        severity: 'error'
+                    });
                 }
-                const data = await response.json();
-                // For testing: show all users except current user
-                const currentUserId = localStorage.getItem('userId');
-                const otherUsers = data.filter(user => user.id !== parseInt(currentUserId));
-                console.log('Available users:', otherUsers);
-                setStudents(otherUsers);
             } catch (error) {
                 console.error('Error fetching users:', error);
                 setAlert({
@@ -124,13 +125,8 @@ const HomeworkPage = () => {
         const fetchStudentHomework = async () => {
             if (userType === 'student') {
                 try {
-                    const response = await fetch('/api/homework/', {
-                        credentials: 'include'
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setStudentHomework(data);
-                    }
+                    const response = await apiClient.get('/api/homework/');
+                    setStudentHomework(response.data);
                 } catch (error) {
                     console.error('Error fetching homework:', error);
                 }
@@ -182,26 +178,9 @@ const HomeworkPage = () => {
         setLoading(true);
 
         try {
-            // Get CSRF token from cookie
-            const csrfToken = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('csrftoken='))
-                ?.split('=')[1];
-
-            if (!csrfToken) {
-                throw new Error('CSRF token not found');
-            }
-
             // Get current user info first
-            const userResponse = await fetch('/users/me/', {
-                credentials: 'include',
-            });
-
-            if (!userResponse.ok) {
-                throw new Error('Failed to get user information');
-            }
-
-            const userData = await userResponse.json();
+            const userResponse = await apiClient.get('/users/me/');
+            const userData = userResponse.data;
             console.log('Current user data:', userData);
 
             // Format dates according to Django's expected format
@@ -236,21 +215,14 @@ const HomeworkPage = () => {
                 console.log(`${key}: ${value}`);
             }
 
-            const response = await fetch('/api/homework/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                },
-                credentials: 'include',
-                body: formData,
-            });
+            const response = await apiClient.post('/api/homework/', formData);
 
-            if (!response.ok) {
-                const errorData = await response.json();
+            if (response.status !== 201) {
+                const errorData = response.data;
                 throw new Error(errorData.detail || 'Failed to create homework');
             }
 
-            const responseData = await response.json();
+            const responseData = response.data;
             console.log('Server response:', responseData);
 
             setAlert({
@@ -331,35 +303,19 @@ const HomeworkPage = () => {
                 console.log(`${key}:`, value);
             }
 
-            // Get CSRF token from cookies
-            const csrfToken = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('csrftoken='))
-                ?.split('=')[1];
-
-            console.log('Making request to backend...');
-            const response = await fetch('http://localhost:8000/api/homework-submission/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Accept': 'application/json',
-                },
-                credentials: 'include',
-                mode: 'cors',
-                body: formData
-            });
+            const response = await apiClient.post('/api/homework-submission/', formData);
 
             // Try to parse response as JSON, but handle cases where it's not JSON
             let responseData;
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
-                responseData = await response.json();
+                responseData = response.data;
             } else {
                 responseData = await response.text();
                 console.log('Non-JSON response:', responseData);
             }
 
-            if (!response.ok) {
+            if (response.status !== 201) {
                 throw new Error(
                     typeof responseData === 'object' ? 
                         responseData.error || 'Failed to submit homework' :

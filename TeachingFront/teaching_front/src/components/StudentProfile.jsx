@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiClient from '../api/apiClient';
 
 const StudentProfile = () => {
 
@@ -26,53 +27,38 @@ const StudentProfile = () => {
 
   const MAX_GOALS = 50; // Maximum number of goals allowed
 
-  const getCsrfToken = () => {
-    const cookies = document.cookie.split(';');
-    for (let cookie of cookies) {
-      cookie = cookie.trim();
-      if (cookie.startsWith('csrftoken=')) {
-        return cookie.substring('csrftoken='.length);
-      }
-    }
-    return null;
-  };
-
   useEffect(() => {
     const fetchProfile = async () => {
-      const csrfToken = getCsrfToken();
-      const response = await fetch('/users/profile/', {  //fetch profile data from backend **on opening page
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-      });
+      try {
+        const response = await apiClient.get('/users/profile/');
+        if (response.status === 200) {
+          const data = response.data;
 
-      if (response.ok) {
-        const data = await response.json();
+          setStudentData(data);                         // setters for general data and picture data
 
-        setStudentData(data);                         // setters for general data and picture data
-
-        // Parse goals from bio if they exist
-        try {
-          const bioData = JSON.parse(data.bio);
-          if (bioData.goals && Array.isArray(bioData.goals)) {
-            setGoals(bioData.goals);
+          // Parse goals from bio if they exist
+          try {
+            const bioData = JSON.parse(data.bio);
+            if (bioData.goals && Array.isArray(bioData.goals)) {
+              setGoals(bioData.goals);
+            }
+            if (bioData.notes) {
+              setStudentData(prev => ({ ...prev, bio: bioData.notes }));
+            }
+          } catch {
+            // If bio isn't JSON, treat it all as notes
+            setStudentData(data);
           }
-          if (bioData.notes) {
-            setStudentData(prev => ({ ...prev, bio: bioData.notes }));
-          }
-        } catch {
-          // If bio isn't JSON, treat it all as notes
-          setStudentData(data);
-        }
 
-        if (data.profile_picture) {
-          setProfilePicturePreview(data.profile_picture);
+          if (data.profile_picture) {
+            setProfilePicturePreview(data.profile_picture);
+          }
+        } else {
+          console.error("Failed to fetch profile data:", response.status);
         }
-      } else {
-        console.error("Failed to fetch profile data:", response.status);
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        setErrorMessage('Error loading profile data');
       }
     };
 
@@ -114,43 +100,35 @@ const StudentProfile = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const csrfToken = getCsrfToken();
-
-    if (!csrfToken) {
-      setErrorMessage("Session expired. Please log in again.");
-      navigate('/login');
-      return;
-    }
-
-    // Combine goals and notes into bio field
-    const bioData = JSON.stringify({
-      goals: goals,
-      notes: studentData.bio
-    });
-
-    const formData = new FormData();                                // if token exists, assign data to our model fields
-    formData.append('first_name', studentData.first_name);
-    formData.append('last_name', studentData.last_name);
-    formData.append('email', studentData.email);
-    formData.append('telephone', studentData.telephone);
-    formData.append('bio', bioData);
-
-    if (profilePicture) {
-      formData.append('profile_picture', profilePicture);
-    }
-
+    
     try {
-      const response = await fetch('/users/profile/', {
-        method: 'PATCH',
+      const formData = new FormData();
+      
+      // Append all student data fields
+      Object.keys(studentData).forEach(key => {
+        formData.append(key, studentData[key]);
+      });
+      
+      // Append profile picture if changed
+      if (profilePicture) {
+        formData.append('profile_picture', profilePicture);
+      }
+      
+      // Append goals
+      const bioData = JSON.stringify({
+        goals: goals,
+        notes: studentData.bio
+      });
+      formData.append('bio', bioData);
+
+      const response = await apiClient.put('/users/profile/', formData, {
         headers: {
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-        body: formData,
+          'Content-Type': 'multipart/form-data',
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         
         // Parse the bio field if it's JSON
         try {
@@ -176,8 +154,8 @@ const StudentProfile = () => {
         setErrorMessage("Failed to update profile. Please try again.");
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      setErrorMessage("An error occurred. Please try again later.");
+      console.error('Error updating profile:', error);
+      setErrorMessage('Error updating profile');
     }
   };
 

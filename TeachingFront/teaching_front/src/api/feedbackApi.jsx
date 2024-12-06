@@ -1,14 +1,10 @@
-// Use a fixed base URL instead of environment variable
-const BASE_URL = 'http://127.0.0.1:8000/api';
+import apiClient from './apiClient';
 
 // Function to get annotations
 export const getAnnotations = async (feedbackId) => {
   try {
-    const response = await fetch(`${BASE_URL}/annotations/?feedback=${feedbackId}`);
-    if (!response.ok) {
-      throw new Error('Error fetching annotations');
-    }
-    return await response.json();
+    const response = await apiClient.get(`/api/annotations/?feedback=${feedbackId}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching annotations:', error);
     return [];
@@ -18,17 +14,8 @@ export const getAnnotations = async (feedbackId) => {
 // Function to create a new annotation
 export const createAnnotation = async (annotation) => {
   try {
-    const response = await fetch(`${BASE_URL}/annotations/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(annotation),
-    });
-    if (!response.ok) {
-      throw new Error('Error creating annotation');
-    }
-    return await response.json();
+    const response = await apiClient.post('/api/annotations/', annotation);
+    return response.data;
   } catch (error) {
     console.error('Error creating annotation:', error);
     return null;
@@ -38,13 +25,8 @@ export const createAnnotation = async (annotation) => {
 // Function to delete an annotation
 export const deleteAnnotation = async (id) => {
   try {
-    const response = await fetch(`${BASE_URL}/annotations/${id}/`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Error deleting annotation');
-    }
-    return await response.json(); // Return any data if available
+    const response = await apiClient.delete(`/api/annotations/${id}/`);
+    return response.data;
   } catch (error) {
     console.error('Error deleting annotation:', error);
     return null;
@@ -54,17 +36,8 @@ export const deleteAnnotation = async (id) => {
 // Function to upload feedback
 export const uploadFeedback = async (feedbackData) => {
   try {
-    const response = await fetch(`${BASE_URL}/feedback/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(feedbackData),
-    });
-    if (!response.ok) {
-      throw new Error('Error uploading feedback');
-    }
-    return await response.json();
+    const response = await apiClient.post('/api/feedback/', feedbackData);
+    return response.data;
   } catch (error) {
     console.error('Error uploading feedback:', error);
     return null;
