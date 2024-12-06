@@ -1,9 +1,12 @@
 import axios from 'axios';
 
-// Use relative URL when in production, full URL in development
+// In production, use relative paths to go through our proxy
+// In development, use localhost
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? '' // Use relative URL in production to go through our proxy
-  : 'http://localhost:8080'; // Development URL
+  ? '' // Use relative paths to go through our proxy
+  : 'http://localhost:8080';
+
+console.log('API Client baseURL:', baseURL);
 
 const apiClient = axios.create({
   baseURL,
