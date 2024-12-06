@@ -3,6 +3,10 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from .models import CustomUser
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
@@ -12,11 +16,30 @@ class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['email'].required = True
+        if 'user_type' in self.fields:
+            del self.fields['user_type']
+        if 'is_staff' in self.fields:
+            del self.fields['is_staff']
+        if 'is_active' in self.fields:
+            del self.fields['is_active']
+
+    def save(self, commit=True):
+        try:
+            user = super().save(commit=False)
+            user.is_active = True
+            user.user_type = 'student'
+            if commit:
+                user.save()
+            return user
+        except Exception as e:
+            logger.error(f"Error in CustomUserCreationForm.save: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
 
 class CustomUserDetailsForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ('first_name', 'last_name', 'telephone', 'bio', 'user_type', 'forum_access')
+        fields = ('first_name', 'last_name', 'telephone', 'bio', 'user_type', 'forum_access', 'is_staff', 'is_active')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -30,7 +53,6 @@ class CustomUserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'is_staff')
     list_filter = ('is_staff', 'is_active', 'user_type')
     
-    # Customize fieldsets for user editing
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'telephone', 'bio', 'profile_picture')}),
@@ -38,7 +60,6 @@ class CustomUserAdmin(BaseUserAdmin):
         ('Type', {'fields': ('user_type', 'forum_access')}),
     )
 
-    # First step of user creation - basic info only
     add_fieldsets = (
         ('Basic Information', {
             'classes': ('wide',),
@@ -51,24 +72,44 @@ class CustomUserAdmin(BaseUserAdmin):
     ordering = ('email',)
 
     def get_form(self, request, obj=None, **kwargs):
-        """
-        Use special form during user creation
-        """
-        defaults = {}
-        if obj is None:
-            defaults['form'] = self.add_form
-        defaults.update(kwargs)
-        return super().get_form(request, obj, **defaults)
+        try:
+            defaults = {}
+            if obj is None:
+                defaults['form'] = self.add_form
+            defaults.update(kwargs)
+            return super().get_form(request, obj, **defaults)
+        except Exception as e:
+            logger.error(f"Error in get_form: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
 
     def response_add(self, request, obj, post_url_continue=None):
-        """
-        Determine the HttpResponse for the add_view stage.
-        """
-        # We need to distinguish between different stages:
-        if '_addanother' not in request.POST and '_continue' not in request.POST:
-            request.POST._mutable = True
-            request.POST['_continue'] = 1
-            request.POST._mutable = False
-        return super().response_add(request, obj, post_url_continue)
+        try:
+            if '_addanother' not in request.POST and '_continue' not in request.POST:
+                request.POST._mutable = True
+                request.POST['_continue'] = 1
+                request.POST._mutable = False
+            return super().response_add(request, obj, post_url_continue)
+        except Exception as e:
+            logger.error(f"Error in response_add: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
+
+    def save_model(self, request, obj, form, change):
+        try:
+            if not change:  # If this is a new user being created
+                obj.is_active = True
+                if not hasattr(obj, 'user_type') or not obj.user_type:
+                    obj.user_type = 'student'
+                # Set default values for required fields
+                if not obj.telephone:
+                    obj.telephone = ''  # Set empty string as default
+                if not obj.bio:
+                    obj.bio = ''  # Set empty string as default
+            super().save_model(request, obj, form, change)
+        except Exception as e:
+            logger.error(f"Error in save_model: {str(e)}")
+            logger.error(traceback.format_exc())
+            raise
 
 admin.site.register(CustomUser, CustomUserAdmin)
