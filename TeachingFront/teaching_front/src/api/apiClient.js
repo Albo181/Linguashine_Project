@@ -22,7 +22,7 @@ const apiClient = axios.create({
 export const fetchCSRFToken = async () => {
   try {
     // Make a GET request to Django's CSRF endpoint
-    await apiClient.get('/users/csrf/');
+    await apiClient.get('/csrf/');
     
     // Get CSRF token from cookie
     const csrfToken = document.cookie
