@@ -19,14 +19,12 @@ export const AuthProvider = ({ children }) => {
       setCheckInProgress(true);
       console.log('Starting auth check...');
       
-      // First check authentication status
-      const authResponse = await apiClient.get('/users/check-auth/');
-      console.log('Auth check response:', authResponse.data);
+      // Try to get user info - if successful, we're authenticated
+      const response = await apiClient.get('/Users/me/');
+      console.log('Auth check response:', response.data);
       
-      if (authResponse.data?.isAuthenticated) {
-        // If authenticated, get user details
-        const userResponse = await apiClient.get('/users/me/');
-        setUser(userResponse.data);
+      if (response.status === 200 && response.data) {
+        setUser(response.data);
         setIsAuthenticated(true);
         return true;
       } else {
@@ -52,10 +50,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async () => {
     try {
-      const authResponse = await apiClient.get('/users/check-auth/');
-      if (authResponse.data?.isAuthenticated) {
-        const userResponse = await apiClient.get('/users/me/');
-        setUser(userResponse.data);
+      const response = await apiClient.get('/Users/me/');
+      if (response.status === 200 && response.data) {
+        setUser(response.data);
         setIsAuthenticated(true);
         return true;
       }
@@ -70,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      await apiClient.post('/users/logout/');
+      await apiClient.post('/Users/logout/');
       setIsAuthenticated(false);
       setUser(null);
     } catch (error) {
