@@ -9,7 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build --omit=dev"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   },
   "dependencies": {
     "@emotion/styled": "^11.13.5",
