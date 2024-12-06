@@ -35,7 +35,7 @@ const App = () => {
                 <Route path="/blog" element={<BlogComponent />} />
                 <Route path="/blog/:id" element={<BlogDetails />} />
                 <Route path="/feedback" element={<FeedbackForm />} />
-                <Route path="/feedback/:id/annotations" element={<AnnotationList />} />
+                {/* <Route path="/feedback/:id/annotations" element={<AnnotationList />} /> */}
                 <Route path="/homework" element={<HomeworkPage />} />
                 {/* new routes */}
                 <Route path="/teacher-homework" element={<TeacherHomeworkReview />} />
