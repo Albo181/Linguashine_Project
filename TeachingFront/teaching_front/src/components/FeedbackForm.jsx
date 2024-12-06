@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Button, TextField, MenuItem, Typography, Box } from "@mui/material";
-// import AnnotationList from "./AnnotationEditor";
 import apiClient from '../api/apiClient';
 
 const FeedbackForm = () => {
@@ -18,7 +17,6 @@ const FeedbackForm = () => {
     const [teacherNotes, setTeacherNotes] = useState("");
     const [documentArea, setDocumentArea] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
-    const [annotations, setAnnotations] = useState([]);
     const [feedbackId, setFeedbackId] = useState(null);
     const [studentName, setStudentName] = useState("");
     const [userId, setUserId] = useState(null);
@@ -217,7 +215,6 @@ const FeedbackForm = () => {
 
             const result = await response.json();
             setFeedbackId(result.id);
-            setAnnotations(result.annotations || []);
             alert("Work submitted successfully!");
             
         } catch (error) {
