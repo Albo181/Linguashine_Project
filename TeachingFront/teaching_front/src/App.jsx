@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, createRoutesFromElements, Route, RouterProvider } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import MainLayout from './layout/MainLayout';
+import MainLayout from './Layout/MainLayout';
 import Contact from './pages/Contact';
 import Method from './pages/Method';
 import Sobre_Mi from './pages/Sobre_Mi';
