@@ -1,66 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './FileDashboard.css';
-
-// Helper function to retrieve CSRF token from cookies
-function getCsrfToken() {
-  const cookies = document.cookie.split(';');
-  for (let cookie of cookies) {
-      cookie = cookie.trim();
-      if (cookie.startsWith('csrftoken=')) {
-          return cookie.substring('csrftoken='.length);
-      }
-  }
-  return null;
-}
+import apiClient from '../api/apiClient';
 
 const LandingPage = () => {
   const [user, setUser] = useState(null);
-  const [receiveNotifications, setReceiveNotifications] = useState(false); // State for checkbox
-  const [upcomingHomework, setUpcomingHomework] = useState([]);
-  const navigate = useNavigate(); 
+  const [receiveNotifications, setReceiveNotifications] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  // Get user data from backend (with CSRF token)
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch user data
-        const userResponse = await fetch('/users/me/', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken(),  
-          },
-          credentials: 'include', // Include session cookies
-        });
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          setUser(userData); // Set user data from the backend
-          setReceiveNotifications(userData.receive_email_notifications); // Set checkbox based on user data
-
-          // Fetch upcoming homework
-          const homeworkResponse = await fetch('/api/homework/due_soon/', {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCsrfToken(),
-            },
-            credentials: 'include',
-          });
-
-          if (homeworkResponse.ok) {
-            const homeworkData = await homeworkResponse.json();
-            setUpcomingHomework(homeworkData);
-          }
-        } else if (userResponse.status === 401) {
-          // If the user is not authenticated, redirect to login
-          navigate('/login');
-        } else {
-          console.error('Failed to fetch user data:', userResponse.statusText);
+        setLoading(true);
+        setError(null);
+        
+        // Fetch user data using apiClient
+        const userResponse = await apiClient.get('/users/me/');
+        
+        if (userResponse.status === 200) {
+          setUser(userResponse.data);
+          setReceiveNotifications(userResponse.data.receive_email_notifications || false);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        navigate('/login'); // Redirect to login on error
+        setError('Failed to load user data. Please try again later.');
+        if (error.response?.status === 401) {
+          navigate('/login');
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -72,19 +42,12 @@ const LandingPage = () => {
     const isChecked = e.target.checked;
     setReceiveNotifications(isChecked);
 
-    // Update the user's notification preference in the backend
     try {
-      const response = await fetch('/users/update-notifications/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCsrfToken(),
-        },
-        credentials: 'include',
-        body: JSON.stringify({ receive_email_notifications: isChecked }),
+      const response = await apiClient.post('/users/update-notifications/', {
+        receive_email_notifications: isChecked
       });
-
-      if (!response.ok) {
+      
+      if (response.status !== 200) {
         console.error('Failed to update notifications preference');
       }
     } catch (error) {
@@ -92,12 +55,12 @@ const LandingPage = () => {
     }
   };
 
-  if (!user) {
+  if (loading) {
     return (
       <div className="flex min-h-screen justify-center items-center bg-gray-100">
         <div className="text-center">
           <svg
-            className="animate-spin h-10 w-10 text-blue-600"
+            className="animate-spin h-10 w-10 text-blue-600 mx-auto"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -113,13 +76,33 @@ const LandingPage = () => {
             <path
               className="opacity-75"
               fill="currentColor"
-              d="M4 12a8 8 0 018-8v8H4z"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="text-gray-600 mt-4">Loading your profile...</p>
+          <p className="mt-3 text-gray-600">Loading...</p>
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen justify-center items-center bg-gray-100">
+        <div className="text-center text-red-600">
+          <p>{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -240,11 +223,6 @@ const LandingPage = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                     Homework
-                    {upcomingHomework.length > 0 && (
-                      <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                        {upcomingHomework.length}
-                      </span>
-                    )}
                   </Link>
                 </li>
                 <li>
@@ -257,23 +235,6 @@ const LandingPage = () => {
                 </li>
               </ul>
             </div>
-
-            {upcomingHomework.length > 0 && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-blue-700">
-                      You have {upcomingHomework.length} homework {upcomingHomework.length === 1 ? 'assignment' : 'assignments'} due in the next 3 days
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
