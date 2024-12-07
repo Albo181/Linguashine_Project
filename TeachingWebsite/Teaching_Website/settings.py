@@ -79,7 +79,7 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 # Database
 # Try to get the DATABASE_URL from environment, otherwise use default PostgreSQL settings
 DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL and not DEBUG:  # Only use Railway DB in production
+if DATABASE_URL:  # Only use Railway DB in production
     # Parse database URL
     import dj_database_url
     print("="*50)
@@ -88,6 +88,13 @@ if DATABASE_URL and not DEBUG:  # Only use Railway DB in production
     print(f"Database URL found: {bool(DATABASE_URL)}")
     
     try:
+        # Replace internal hostname with external one for local development
+        if 'postgres.railway.internal' in DATABASE_URL:
+            DATABASE_URL = DATABASE_URL.replace(
+                'postgres.railway.internal',
+                'autorack.proxy.rlwy.net'
+            )
+        
         db_config = dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
@@ -156,13 +163,15 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
     'https://attractive-upliftment-production.up.railway.app',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost:5174'
 ]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     'https://attractive-upliftment-production.up.railway.app',
-    'http://localhost:5173'
+    'http://localhost:5173',
+    'http://localhost:5174'
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [

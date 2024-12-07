@@ -59,6 +59,7 @@ psycopg2 = "*"
 django-environ = "*"
 python-magic-bin = "*"
 django-extensions = "*"
+dj-database-url = "*"
 
 [dev-packages]
 pytest = "*"

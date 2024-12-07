@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// In production, use relative paths to go through our proxy
-// In development, use localhost
-const baseURL = process.env.NODE_ENV === 'production' 
-  ? 'https://linguashineproject-production.up.railway.app'  // Use backend URL
-  : 'http://localhost:8000';
+// Always use the production URL when running locally
+const baseURL = 'https://linguashineproject-production.up.railway.app';
 
 console.log('API Client baseURL:', baseURL);
 
