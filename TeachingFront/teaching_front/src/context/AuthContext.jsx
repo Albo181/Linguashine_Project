@@ -32,7 +32,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
-      // Log detailed error information
       console.error('Auth check error details:', {
         message: error.message,
         response: error.response?.data,
@@ -40,15 +39,8 @@ export const AuthProvider = ({ children }) => {
         headers: error.response?.headers
       });
       
-      // 401/403 are expected when not logged in
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log('Not authenticated - this is normal for public pages');
-        setIsAuthenticated(false);
-        setUser(null);
-      } else {
-        console.error('Auth check error:', error);
-        // For other errors, maintain current auth state
-      }
+      setIsAuthenticated(false);
+      setUser(null);
     } finally {
       setIsLoading(false);
       setCheckInProgress(false);
@@ -66,30 +58,36 @@ export const AuthProvider = ({ children }) => {
       
       if (loginResponse.status === 200) {
         // If login successful, get user info
-        const userResponse = await apiClient.get('/users/me/');
-        if (userResponse.status === 200 && userResponse.data) {
-          setUser(userResponse.data);
-          setIsAuthenticated(true);
-          return true;
+        try {
+          const userResponse = await apiClient.get('/users/me/');
+          if (userResponse.status === 200 && userResponse.data) {
+            setUser(userResponse.data);
+            setIsAuthenticated(true);
+            return true;
+          }
+        } catch (userError) {
+          console.error('Failed to fetch user data after login:', userError);
+          throw userError;
         }
       }
+      return false;
     } catch (error) {
       console.error('Login failed:', error);
       setIsAuthenticated(false);
       setUser(null);
       throw error;
     }
-    return false;
   }, []);
 
   const logout = useCallback(async () => {
     try {
       await apiClient.post('/users/logout/');
-      setIsAuthenticated(false);
-      setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);
-      throw error;
+    } finally {
+      // Always clear the auth state, even if the logout request fails
+      setIsAuthenticated(false);
+      setUser(null);
     }
   }, []);
 
@@ -99,17 +97,17 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [checkAuth]);
 
-  const value = {
-    isAuthenticated,
-    user,
-    isLoading,
-    login,
-    logout,
-    checkAuth
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        isLoading,
+        login,
+        logout,
+        checkAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
