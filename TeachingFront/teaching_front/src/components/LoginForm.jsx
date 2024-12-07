@@ -27,11 +27,16 @@ const LoginForm = () => {
         password
       });
 
-      if (response.data.success) {
-        await login();
-        navigate('/landing');
+      if (response.status === 200) {
+        // If login is successful, call the login function from AuthContext
+        const success = await login(username, password);
+        if (success) {
+          navigate('/s_landing');
+        } else {
+          setError('Login failed. Please check your credentials.');
+        }
       } else {
-        setError(response.data.error || 'Login failed');
+        setError(response.data?.error || 'Login failed');
       }
     } catch (err) {
       console.error('Login error:', err);
