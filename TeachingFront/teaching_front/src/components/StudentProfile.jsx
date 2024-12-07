@@ -50,8 +50,9 @@ const StudentProfile = () => {
             setStudentData(data);
           }
 
-          if (data.profile_picture) {
-            setProfilePicturePreview(data.profile_picture);
+          // Handle profile picture URL
+          if (data.profile_picture_url) {
+            setProfilePicturePreview(data.profile_picture_url);
           }
         } else {
           console.error("Failed to fetch profile data:", response.status);
@@ -67,11 +68,20 @@ const StudentProfile = () => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setProfilePicture(file); // Separate state for file itself
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setErrorMessage('Please select an image file');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage('Image size should be less than 5MB');
+        return;
+      }
+      setProfilePicture(file); // Separate state for file itself
       setProfilePicturePreview(URL.createObjectURL(file));
-    } else {
-      setProfilePicturePreview('');
+      setErrorMessage('');
     }
   };
 
@@ -106,7 +116,9 @@ const StudentProfile = () => {
       
       // Append all student data fields
       Object.keys(studentData).forEach(key => {
-        formData.append(key, studentData[key]);
+        if (key !== 'profile_picture_url') {  // Don't send the URL back
+          formData.append(key, studentData[key]);
+        }
       });
       
       // Append profile picture if changed
@@ -144,11 +156,15 @@ const StudentProfile = () => {
           setGoals([]);
         }
 
-        if (data.profile_picture) {
-          setProfilePicturePreview(data.profile_picture);
+        // Update profile picture preview with the returned URL
+        if (data.profile_picture_url) {
+          setProfilePicturePreview(data.profile_picture_url);
         }
-        console.log("Profile updated successfully.");
-        setErrorMessage("Profile updated");
+        
+        setErrorMessage("Profile updated successfully");
+        
+        // Clear the file input
+        setProfilePicture(null);
       } else {
         console.error("Error updating profile:", response.status);
         setErrorMessage("Failed to update profile. Please try again.");
@@ -198,7 +214,7 @@ const StudentProfile = () => {
           {/* Error Message */}
           {errorMessage && (
             <div className={`mb-4 p-3 rounded-lg text-sm ${
-              errorMessage === "Profile updated" 
+              errorMessage === "Profile updated successfully" 
                 ? "bg-green-100 text-green-700" 
                 : "bg-red-100 text-red-700"
             }`}>
