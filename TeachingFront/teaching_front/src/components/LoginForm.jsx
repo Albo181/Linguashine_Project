@@ -31,7 +31,7 @@ const LoginForm = () => {
         // If login is successful, call the login function from AuthContext
         const success = await login(username, password);
         if (success) {
-          navigate('/s_landing');
+          navigate('/landing');
         } else {
           setError('Login failed. Please check your credentials.');
         }
