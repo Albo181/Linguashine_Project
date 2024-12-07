@@ -146,6 +146,11 @@ const StudentProfile = () => {
       });
       formData.append('bio', bioData);
 
+      console.log('Submitting form data:', {
+        ...Object.fromEntries(formData.entries()),
+        profile_picture: profilePicture ? profilePicture.name : 'no new picture'
+      });
+
       const response = await apiClient.put('/users/profile/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -154,16 +159,29 @@ const StudentProfile = () => {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log('Profile update response:', data);  
+        console.log('Profile update response:', data);
         
-        // Update profile picture preview with a cache-busting timestamp
-        if (data.profile_picture_url) {
-          const timestamp = new Date().getTime();
-          const url = data.profile_picture_url.includes('?') 
-            ? `${data.profile_picture_url}&t=${timestamp}`
-            : `${data.profile_picture_url}?t=${timestamp}`;
-          setProfilePicturePreview(url);
-          console.log('Updated profile picture URL:', url);
+        // Keep the current preview until we confirm the new URL works
+        const oldPreview = profilePicturePreview;
+        
+        // Update profile picture URL with full path
+        if (data.profile_picture) {
+          const newPictureUrl = data.profile_picture.startsWith('http') 
+            ? data.profile_picture 
+            : `${apiClient.defaults.baseURL}${data.profile_picture}`;
+            
+          // Test if the new URL is accessible
+          const img = new Image();
+          img.onload = () => {
+            setProfilePicturePreview(newPictureUrl);
+            setProfilePicture(null);
+            console.log('Successfully loaded new profile picture:', newPictureUrl);
+          };
+          img.onerror = () => {
+            console.error('Failed to load new profile picture URL:', newPictureUrl);
+            setProfilePicturePreview(oldPreview);
+          };
+          img.src = newPictureUrl;
         }
 
         try {
@@ -181,14 +199,8 @@ const StudentProfile = () => {
           }));
           setGoals([]);
         }
-
-        // Update profile picture preview
-        if (data.profile_picture_url) {
-          setProfilePicturePreview(data.profile_picture_url);
-        }
         
         setErrorMessage("Profile updated successfully");
-        setProfilePicture(null);
       } else {
         console.error("Error updating profile:", response.status);
         setErrorMessage("Failed to update profile. Please try again.");
