@@ -89,17 +89,29 @@ class StudentProfileView(RetrieveUpdateAPIView):
         return self.request.user
 
     def update(self, request, *args, **kwargs):
-        # Handle profile updates, including profile picture
-        user = self.get_object()  # Get the current logged-in user
+        user = self.get_object()
         serializer = self.get_serializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
-            # Save the changes to the user model (including profile picture if uploaded)
+            # Handle profile picture upload
+            if 'profile_picture' in request.FILES:
+                # Delete old profile picture if it exists
+                if user.profile_picture:
+                    user.profile_picture.delete(save=False)
+                
+                # Save new profile picture
+                user.profile_picture = request.FILES['profile_picture']
+            
+            # Save other profile data
             serializer.save()
 
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Return full URL for profile picture
+            response_data = serializer.data
+            if user.profile_picture:
+                response_data['profile_picture'] = request.build_absolute_uri(user.profile_picture.url)
+
+            return Response(response_data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginRateThrottle(AnonRateThrottle):

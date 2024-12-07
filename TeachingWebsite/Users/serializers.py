@@ -5,23 +5,39 @@ from django.templatetags.static import static
 
 #Access to ALL students' profiles (object list)
 class UserProfileSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.ImageField(required=False)  # Include the profile picture
+    profile_picture_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'telephone', 'bio', 'profile_picture', 'user_type']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'telephone', 'bio', 'profile_picture', 'profile_picture_url', 'user_type']
+        extra_kwargs = {
+            'profile_picture': {'write_only': True, 'required': False}
+        }
+
+    def get_profile_picture_url(self, obj):
+        if obj.profile_picture:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return settings.MEDIA_URL + str(obj.profile_picture)
+        return None
 
 
 class StudentAccessSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.ImageField(required=False)
+    profile_picture_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'telephone', 'bio', 'profile_picture', 'user_type', 'forum_access']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'telephone', 'bio', 'profile_picture', 'profile_picture_url', 'user_type', 'forum_access']
         read_only_fields = ['id', 'username', 'email', 'user_type', 'forum_access']
+        extra_kwargs = {
+            'profile_picture': {'write_only': True, 'required': False}
+        }
 
-    def get_profile_picture(self, obj):
+    def get_profile_picture_url(self, obj):
         if obj.profile_picture:
-            # Ensure that the full URL is being returned, including the media URL
-            return settings.MEDIA_URL + obj.profile_picture.url
-        return settings.STATIC_URL + 'Mascota.png'  # Fallback to static image if no profile picture is set
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return settings.MEDIA_URL + str(obj.profile_picture)
+        return None
