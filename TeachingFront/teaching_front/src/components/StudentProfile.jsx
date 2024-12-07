@@ -110,13 +110,14 @@ const StudentProfile = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setErrorMessage('');
     
     try {
       const formData = new FormData();
       
-      // Append all student data fields
+      // Append all student data fields except profile picture related fields
       Object.keys(studentData).forEach(key => {
-        if (key !== 'profile_picture_url') {  // Don't send the URL back
+        if (!['profile_picture', 'profile_picture_url'].includes(key)) {
           formData.append(key, studentData[key]);
         }
       });
@@ -142,28 +143,28 @@ const StudentProfile = () => {
       if (response.status === 200) {
         const data = response.data;
         
-        // Parse the bio field if it's JSON
         try {
           const bioData = JSON.parse(data.bio);
           setGoals(bioData.goals || []);
-          setStudentData({
+          setStudentData(prev => ({
+            ...prev,
             ...data,
             bio: bioData.notes || ''
-          });
+          }));
         } catch {
-          // If parsing fails, treat everything as notes
-          setStudentData(data);
+          setStudentData(prev => ({
+            ...prev,
+            ...data
+          }));
           setGoals([]);
         }
 
-        // Update profile picture preview with the returned URL
+        // Update profile picture preview
         if (data.profile_picture_url) {
           setProfilePicturePreview(data.profile_picture_url);
         }
         
         setErrorMessage("Profile updated successfully");
-        
-        // Clear the file input
         setProfilePicture(null);
       } else {
         console.error("Error updating profile:", response.status);
@@ -171,7 +172,7 @@ const StudentProfile = () => {
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setErrorMessage('Error updating profile');
+      setErrorMessage('Error updating profile. Please try again.');
     }
   };
 
@@ -210,17 +211,6 @@ const StudentProfile = () => {
               {studentData.user_type}
             </span>
           </div>
-
-          {/* Error Message */}
-          {errorMessage && (
-            <div className={`mb-4 p-3 rounded-lg text-sm ${
-              errorMessage === "Profile updated successfully" 
-                ? "bg-green-100 text-green-700" 
-                : "bg-red-100 text-red-700"
-            }`}>
-              {errorMessage}
-            </div>
-          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -359,7 +349,7 @@ const StudentProfile = () => {
                 <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                   Mis notas personales
                   <span className="block text-xs text-gray-500 mt-1">
-                    Este espacio es personal - solo tú puedes verlo. Utilízalo para tus notas adicionales y recordatorios.
+                    Este espacio es personal - solo tú puedes verlo. Utilízalo para tus notas adicionales y reflexiones.
                   </span>
                 </label>
                 <textarea
@@ -368,20 +358,32 @@ const StudentProfile = () => {
                   onChange={(e) => setStudentData({ ...studentData, bio: e.target.value })}
                   placeholder="Escribe aquí tus notas personales..."
                   rows="4"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none font-light"
-                />
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                ></textarea>
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-blue-700 transform hover:-translate-y-0.5 transition-all duration-200 shadow-md flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Guardar Cambios
-            </button>
+            <div className="flex flex-col items-center space-y-4">
+              <button
+                type="submit"
+                className="w-full md:w-auto px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Guardar cambios
+              </button>
+
+              {/* Success/Error Message moved below the button */}
+              {errorMessage && (
+                <div 
+                  className={`w-full p-3 rounded-lg text-sm text-center ${
+                    errorMessage === "Profile updated successfully" 
+                      ? "bg-green-100 text-green-700 border border-green-200" 
+                      : "bg-red-100 text-red-700 border border-red-200"
+                  }`}
+                >
+                  {errorMessage}
+                </div>
+              )}
+            </div>
           </form>
         </div>
       </div>

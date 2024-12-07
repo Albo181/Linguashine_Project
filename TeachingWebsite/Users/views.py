@@ -88,6 +88,11 @@ class StudentProfileView(RetrieveUpdateAPIView):
         # Automatically retrieve the logged-in user's profile
         return self.request.user
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def update(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(user, data=request.data, partial=True)
@@ -108,7 +113,7 @@ class StudentProfileView(RetrieveUpdateAPIView):
             # Return full URL for profile picture
             response_data = serializer.data
             if user.profile_picture:
-                response_data['profile_picture'] = request.build_absolute_uri(user.profile_picture.url)
+                response_data['profile_picture_url'] = request.build_absolute_uri(user.profile_picture.url)
 
             return Response(response_data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
