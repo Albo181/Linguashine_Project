@@ -14,6 +14,7 @@ const StudentProfile = () => {
   const [profilePicture, setProfilePicture] = useState(null); // Separate state for the picture file
   const [profilePicturePreview, setProfilePicturePreview] = useState(''); // Preview URL for display
   const [errorMessage, setErrorMessage] = useState('');
+  const [imageLoadRetries, setImageLoadRetries] = useState(0);  // Add retry counter
   const [goals, setGoals] = useState([]);
   const [newGoal, setNewGoal] = useState('');
   const [studentData, setStudentData] = useState({
@@ -209,11 +210,27 @@ const StudentProfile = () => {
                   alt="Profile"
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
                   onError={(e) => {
-                    console.error('Error loading profile picture:', e);
-                    // Try loading with cache-busting
-                    const url = new URL(profilePicturePreview);
-                    url.searchParams.set('t', new Date().getTime());
-                    e.target.src = url.toString();
+                    console.error('Error loading profile picture:', profilePicturePreview);
+                    
+                    // Only retry up to 2 times
+                    if (imageLoadRetries < 2) {
+                      setImageLoadRetries(prev => prev + 1);
+                      try {
+                        // Check if URL is valid before trying to modify it
+                        const currentUrl = new URL(profilePicturePreview);
+                        const newUrl = new URL(currentUrl.toString());
+                        newUrl.searchParams.set('t', new Date().getTime());
+                        e.target.src = newUrl.toString();
+                      } catch (error) {
+                        // If URL is invalid, try with base URL
+                        const fallbackUrl = `${apiClient.defaults.baseURL}${profilePicturePreview}?t=${new Date().getTime()}`;
+                        e.target.src = fallbackUrl;
+                      }
+                    } else {
+                      // After max retries, show default avatar
+                      e.target.style.display = 'none';
+                      setErrorMessage('Unable to load profile picture');
+                    }
                   }}
                 />
               ) : (
