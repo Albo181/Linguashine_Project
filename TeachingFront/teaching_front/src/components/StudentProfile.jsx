@@ -34,14 +34,16 @@ const StudentProfile = () => {
         const response = await apiClient.get('/users/profile/');
         if (response.status === 200) {
           const data = response.data;
-          console.log('Fetched profile data:', data);  // Debug log
+          console.log('Fetched profile data:', data);  
 
           setStudentData(data);
 
           // Set profile picture preview if available
-          if (data.profile_picture_url || data.profile_picture) {
-            const pictureUrl = data.profile_picture_url || `${apiClient.defaults.baseURL}${data.profile_picture}`;
-            console.log('Setting profile picture preview:', pictureUrl);  // Debug log
+          if (data.profile_picture) {
+            const pictureUrl = data.profile_picture.startsWith('http') 
+              ? data.profile_picture 
+              : `${apiClient.defaults.baseURL}${data.profile_picture}`;
+            console.log('Setting profile picture preview:', pictureUrl);
             setProfilePicturePreview(pictureUrl);
           }
 
@@ -72,7 +74,7 @@ const StudentProfile = () => {
       }
     };
 
-    fetchProfile();                                   // ensures render happens prior to data population
+    fetchProfile();                                  
   }, []);
 
   const handleFileChange = (event) => {
@@ -88,8 +90,8 @@ const StudentProfile = () => {
         setErrorMessage('Image size should be less than 5MB');
         return;
       }
-      console.log('Selected file:', file);  // Debug log
-      setProfilePicture(file); // Separate state for file itself
+      console.log('Selected file:', file);  
+      setProfilePicture(file); 
       setProfilePicturePreview(URL.createObjectURL(file));
       setErrorMessage('');
     }
@@ -152,7 +154,7 @@ const StudentProfile = () => {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log('Profile update response:', data);  // Add detailed logging
+        console.log('Profile update response:', data);  
         
         // Update profile picture preview with a cache-busting timestamp
         if (data.profile_picture_url) {
@@ -211,26 +213,9 @@ const StudentProfile = () => {
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
                   onError={(e) => {
                     console.error('Error loading profile picture:', profilePicturePreview);
-                    
-                    // Only retry up to 2 times
-                    if (imageLoadRetries < 2) {
-                      setImageLoadRetries(prev => prev + 1);
-                      try {
-                        // Check if URL is valid before trying to modify it
-                        const currentUrl = new URL(profilePicturePreview);
-                        const newUrl = new URL(currentUrl.toString());
-                        newUrl.searchParams.set('t', new Date().getTime());
-                        e.target.src = newUrl.toString();
-                      } catch (error) {
-                        // If URL is invalid, try with base URL
-                        const fallbackUrl = `${apiClient.defaults.baseURL}${profilePicturePreview}?t=${new Date().getTime()}`;
-                        e.target.src = fallbackUrl;
-                      }
-                    } else {
-                      // After max retries, show default avatar
-                      e.target.style.display = 'none';
-                      setErrorMessage('Unable to load profile picture');
-                    }
+                    // Don't hide the image, just show placeholder
+                    e.target.style.display = 'none';
+                    setProfilePicturePreview('');  
                   }}
                 />
               ) : (
