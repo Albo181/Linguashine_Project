@@ -66,14 +66,18 @@ export const fetchCSRFToken = async (retries = 3) => {
 apiClient.interceptors.request.use(
   async config => {
     try {
-      // Only add CSRF token for non-GET methods
-      if (config.method !== 'get') {
-        const csrfToken = await fetchCSRFToken();
-        if (csrfToken) {
-          config.headers['X-CSRFToken'] = csrfToken;
-          console.log('Added CSRF token to request headers:', csrfToken);
-        }
+      // Don't modify headers if it's a multipart/form-data request
+      if (config.headers['Content-Type'] === 'multipart/form-data') {
+        const token = await fetchCSRFToken();
+        config.headers['X-CSRFToken'] = token;
+        return config;
       }
+
+      // For other requests, proceed with default JSON content type
+      const token = await fetchCSRFToken();
+      config.headers['X-CSRFToken'] = token;
+      config.headers['Content-Type'] = 'application/json';
+      return config;
     } catch (error) {
       console.error('Failed to fetch CSRF token in interceptor:', error);
     }

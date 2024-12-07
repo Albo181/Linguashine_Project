@@ -142,7 +142,18 @@ const StudentProfile = () => {
 
       if (response.status === 200) {
         const data = response.data;
+        console.log('Profile update response:', data);  // Add detailed logging
         
+        // Update profile picture preview with a cache-busting timestamp
+        if (data.profile_picture_url) {
+          const timestamp = new Date().getTime();
+          const url = data.profile_picture_url.includes('?') 
+            ? `${data.profile_picture_url}&t=${timestamp}`
+            : `${data.profile_picture_url}?t=${timestamp}`;
+          setProfilePicturePreview(url);
+          console.log('Updated profile picture URL:', url);
+        }
+
         try {
           const bioData = JSON.parse(data.bio);
           setGoals(bioData.goals || []);
