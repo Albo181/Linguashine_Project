@@ -33,8 +33,16 @@ const StudentProfile = () => {
         const response = await apiClient.get('/users/profile/');
         if (response.status === 200) {
           const data = response.data;
+          console.log('Fetched profile data:', data);  // Debug log
 
-          setStudentData(data);                         // setters for general data and picture data
+          setStudentData(data);
+
+          // Set profile picture preview if available
+          if (data.profile_picture_url || data.profile_picture) {
+            const pictureUrl = data.profile_picture_url || `${apiClient.defaults.baseURL}${data.profile_picture}`;
+            console.log('Setting profile picture preview:', pictureUrl);  // Debug log
+            setProfilePicturePreview(pictureUrl);
+          }
 
           // Parse goals from bio if they exist
           try {
@@ -79,6 +87,7 @@ const StudentProfile = () => {
         setErrorMessage('Image size should be less than 5MB');
         return;
       }
+      console.log('Selected file:', file);  // Debug log
       setProfilePicture(file); // Separate state for file itself
       setProfilePicturePreview(URL.createObjectURL(file));
       setErrorMessage('');
@@ -199,6 +208,13 @@ const StudentProfile = () => {
                   src={profilePicturePreview}
                   alt="Profile"
                   className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                  onError={(e) => {
+                    console.error('Error loading profile picture:', e);
+                    // Try loading with cache-busting
+                    const url = new URL(profilePicturePreview);
+                    url.searchParams.set('t', new Date().getTime());
+                    e.target.src = url.toString();
+                  }}
                 />
               ) : (
                 <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl">
