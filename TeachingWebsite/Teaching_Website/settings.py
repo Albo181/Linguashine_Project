@@ -212,19 +212,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (User uploads)
-MEDIA_URL = 'media/' if DEBUG else 'https://linguashineproject-production.up.railway.app/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-# User model
-AUTH_USER_MODEL = 'Users.CustomUser'
-
-# Authentication backends
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+MEDIA_ROOT = BASE_DIR / 'media'  # Keep this for local development
+MEDIA_URL = 'media/'  # Default for local development
 
 # AWS S3 Configuration
 if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
@@ -242,3 +231,18 @@ if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
     AWS_S3_FILE_OVERWRITE = False
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_QUERYSTRING_AUTH = True
+
+    # Storage settings
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"  # This overrides the default MEDIA_URL in production
+
+# User model
+AUTH_USER_MODEL = 'Users.CustomUser'
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
