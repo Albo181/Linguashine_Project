@@ -32,7 +32,7 @@ const StudentProfile = () => {
     const fetchProfile = async () => {
       try {
         console.log('Fetching profile...');
-        const response = await apiClient.get('/users/profile/');
+        const response = await apiClient.get('/users/me/');
         console.log('Profile Response:', response);
         console.log('Profile Data:', response.data);
         

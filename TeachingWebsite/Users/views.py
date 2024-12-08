@@ -78,52 +78,24 @@ class AllUsersProfileView(generics.ListAPIView):
 
 
 @method_decorator(ensure_csrf_cookie, name='dispatch')
-class StudentProfileView(RetrieveUpdateAPIView):
+class StudentProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    queryset = CustomUser.objects.all()
-    serializer_class = StudentAccessSerializer
-    parser_classes = [MultiPartParser, FormParser]  # DRF - handles incoming file uploads
+    parser_classes = [MultiPartParser, FormParser]
 
-    def get_object(self):
-        try:
-            user = self.request.user
-            print("DEBUG - Profile View:")
-            print(f"User: {user.username}")
-            print(f"User authenticated: {user.is_authenticated}")
-            
-            # Get serialized data with error handling
-            try:
-                serialized_data = StudentAccessSerializer(
-                    user, 
-                    context={'request': self.request}
-                ).data
-                print(f"Serialized Data: {serialized_data}")
-                return user
-            except Exception as ser_error:
-                print(f"Serialization error: {str(ser_error)}")
-                raise
-                
-        except Exception as e:
-            print(f"Error in get_object: {str(e)}")
-            raise
+    def get(self, request):
+        user = request.user
+        serializer = StudentAccessSerializer(user, context={'request': request})
+        return Response(serializer.data)
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['request'] = self.request
-        return context
-
-    def update(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data, partial=True)
+    def put(self, request):
+        user = request.user
+        serializer = StudentAccessSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
             # Handle profile picture upload
             if 'profile_picture' in request.FILES:
-                # Delete old profile picture if it exists
                 if user.profile_picture:
                     user.profile_picture.delete(save=False)
-                
-                # Save new profile picture
                 user.profile_picture = request.FILES['profile_picture']
             
             # Save other profile data
