@@ -39,3 +39,25 @@ tzdata>=2024.2
 colorama>=0.4.6
 six>=1.16.0
 packaging>=24.2
+
+# Scientific & Data
+etelemetry>=0.3.1
+nibabel>=5.3.2
+nipype>=1.9.1
+scipy>=1.14.1
+
+# Configuration
+configobj>=5.0.9
+configparser>=7.1.0
+
+# File & Path
+pathlib>=1.0.1
+filelock>=3.16.1
+
+# Networking & Data
+certifi>=2024.8.30
+charset-normalizer>=3.4.0
+
+# Additional Utils
+click>=8.1.7
+importlib-resources>=6.4.5
