@@ -31,13 +31,16 @@ const StudentProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        console.log('Fetching profile...');
         const response = await apiClient.get('/users/profile/');
+        console.log('Profile Response:', response);
+        console.log('Profile Data:', response.data);
+        
         if (response.status === 200) {
           const data = response.data;
-          console.log('Fetched profile data:', data);  
-
+          console.log('Setting student data:', data);
           setStudentData(data);
-
+          
           // Set profile picture preview if available
           if (data.profile_picture) {
             const pictureUrl = data.profile_picture.startsWith('http') 
@@ -69,7 +72,8 @@ const StudentProfile = () => {
           console.error("Failed to fetch profile data:", response.status);
         }
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Profile Error:', error);
+        console.error('Error Response:', error.response?.data);
         setErrorMessage('Error loading profile data');
       }
     };
