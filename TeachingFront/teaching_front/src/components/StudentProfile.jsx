@@ -155,7 +155,7 @@ const StudentProfile = () => {
         profile_picture: profilePicture ? profilePicture.name : 'no new picture'
       });
 
-      const response = await apiClient.put('/users/profile/', formData, {
+      const response = await apiClient.put('/users/me/', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
