@@ -41,3 +41,12 @@ class StudentAccessSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.profile_picture.url)
             return settings.MEDIA_URL + str(obj.profile_picture)
         return None
+
+    def to_representation(self, instance):
+        try:
+            data = super().to_representation(instance)
+            print(f"Serializer data: {data}")
+            return data
+        except Exception as e:
+            print(f"Serializer error: {str(e)}")
+            raise

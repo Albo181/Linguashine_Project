@@ -85,11 +85,27 @@ class StudentProfileView(RetrieveUpdateAPIView):
     parser_classes = [MultiPartParser, FormParser]  # DRF - handles incoming file uploads
 
     def get_object(self):
-        user = self.request.user
-        print("DEBUG - Profile View:")
-        print(f"User: {user.username}")
-        print(f"Data: {StudentAccessSerializer(user, context={'request': self.request}).data}")
-        return user
+        try:
+            user = self.request.user
+            print("DEBUG - Profile View:")
+            print(f"User: {user.username}")
+            print(f"User authenticated: {user.is_authenticated}")
+            
+            # Get serialized data with error handling
+            try:
+                serialized_data = StudentAccessSerializer(
+                    user, 
+                    context={'request': self.request}
+                ).data
+                print(f"Serialized Data: {serialized_data}")
+                return user
+            except Exception as ser_error:
+                print(f"Serialization error: {str(ser_error)}")
+                raise
+                
+        except Exception as e:
+            print(f"Error in get_object: {str(e)}")
+            raise
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
