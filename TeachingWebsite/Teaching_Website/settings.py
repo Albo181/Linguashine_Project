@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'TeachingAPP',
     'Feedback_app',
     'Documents',
+    'storages',
 ]
 
 MIDDLEWARE = [
