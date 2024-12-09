@@ -3,6 +3,37 @@ import { Link, useNavigate } from 'react-router-dom';
 import './FileDashboard.css';
 import apiClient from '../api/apiClient';
 
+const OptimizedImage = ({ src, alt, className, style }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* Blur placeholder */}
+      <div 
+        className={`absolute inset-0 blur-xl scale-95 transform ${isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      {/* Main image */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={style}
+        onLoad={() => setIsLoaded(true)}
+        onError={(e) => {
+          console.error('Error loading profile picture:', e.target.src);
+          e.target.style.display = 'none';
+        }}
+      />
+    </div>
+  );
+};
+
 const LandingPage = () => {
   const [user, setUser] = useState(null);
   const [receiveNotifications, setReceiveNotifications] = useState(false);
@@ -113,15 +144,11 @@ const LandingPage = () => {
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user.profile_picture && (
-                <img
-                  src={user.profile_picture_url}
+                <OptimizedImage
+                  src={user.profile_picture}
                   alt={`${user.first_name}'s profile picture`}
                   className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
                   style={{ aspectRatio: '1/1' }}
-                  onError={(e) => {
-                    console.error('Error loading profile picture:', e.target.src);
-                    e.target.style.display = 'none';
-                  }}
                 />
               )}
             </div>
