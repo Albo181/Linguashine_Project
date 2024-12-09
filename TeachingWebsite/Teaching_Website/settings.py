@@ -224,11 +224,10 @@ AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-south-2')
 # S3 URL Configuration
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 
-# S3 CORS and Security Settings
+# S3 Security Settings
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
-AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_FILE_OVERWRITE = False
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_QUERYSTRING_AUTH = False  # Disable query parameter authentication
