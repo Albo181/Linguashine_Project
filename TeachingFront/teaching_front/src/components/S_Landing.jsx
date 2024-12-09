@@ -114,13 +114,13 @@ const LandingPage = () => {
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user.profile_picture && (
                 <img
-                  src={user.profile_picture_url || `${apiClient.defaults.baseURL}${user.profile_picture}`}
+                  src={user.profile_picture_url}
                   alt={`${user.first_name}'s profile picture`}
                   className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
                   style={{ aspectRatio: '1/1' }}
                   onError={(e) => {
-                    console.error('Error loading profile picture:', e);
-                    e.target.src = `${apiClient.defaults.baseURL}${user.profile_picture}?t=${new Date().getTime()}`;
+                    console.error('Error loading profile picture:', e.target.src);
+                    e.target.style.display = 'none';
                   }}
                 />
               )}
