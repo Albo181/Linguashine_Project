@@ -209,11 +209,24 @@ class UserInfoView(APIView):
 #Gets user data from backend
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request):
         user = request.user
         serializer = StudentAccessSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        serializer = StudentAccessSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            if 'profile_picture' in request.FILES:
+                if user.profile_picture:
+                    user.profile_picture.delete(save=False)
+                user.profile_picture = request.FILES['profile_picture']
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
 
 def test_db_connection(request):
