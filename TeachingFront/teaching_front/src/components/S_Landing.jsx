@@ -182,25 +182,13 @@ const LandingPage = () => {
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user?.profile_picture_url && (
-                <div className="relative w-full h-full">
-                  <img
-                    src={user.profile_picture_url}
-                    alt={`${user.first_name}'s profile picture`}
-                    className="absolute inset-0 w-full h-full object-cover rounded-full border-4 border-white shadow-xl z-10 transition-opacity duration-300"
-                    style={{ 
-                      aspectRatio: '1/1',
-                      opacity: '0'
-                    }}
-                    onLoad={(e) => {
-                      console.log('Profile image loaded in component:', e.target.src);
-                      e.target.style.opacity = '1';
-                    }}
-                    onError={(e) => {
-                      console.error('Error loading profile image in component:', e.target.src);
-                      console.error('Error details:', e);
-                    }}
-                  />
-                </div>
+                <div 
+                  className="absolute inset-0 rounded-full border-4 border-white shadow-xl z-10 bg-cover bg-center"
+                  style={{ 
+                    backgroundImage: `url(${user.profile_picture_url})`,
+                    opacity: 1
+                  }}
+                />
               )}
             </div>
           </div>
