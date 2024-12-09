@@ -75,20 +75,25 @@ const LandingPage = () => {
         
         if (userResponse.status === 200) {
           console.log('User data received:', userResponse.data);
-          console.log('Profile picture URL:', userResponse.data.profile_picture_url);
-          
-          // Preload the image
           if (userResponse.data.profile_picture_url) {
-            const img = new Image();
-            img.onload = () => {
-              console.log('Profile image preloaded successfully');
-            };
-            img.onerror = (e) => {
-              console.error('Error preloading profile image:', e);
-            };
-            img.src = userResponse.data.profile_picture_url;
+            // Validate the image URL
+            try {
+              const imageResponse = await fetch(userResponse.data.profile_picture_url, {
+                mode: 'cors',
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache'
+                }
+              });
+              if (!imageResponse.ok) {
+                console.error('Image validation failed:', imageResponse.status);
+              } else {
+                console.log('Image URL validated successfully');
+              }
+            } catch (error) {
+              console.error('Error validating image:', error);
+            }
           }
-          
           setUser(userResponse.data);
           setReceiveNotifications(userResponse.data.receive_email_notifications || false);
         }
@@ -182,11 +187,27 @@ const LandingPage = () => {
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user?.profile_picture_url && (
-                <div 
-                  className="absolute inset-0 rounded-full border-4 border-white shadow-xl z-10 bg-cover bg-center"
-                  style={{ 
-                    backgroundImage: `url(${user.profile_picture_url})`,
-                    opacity: 1
+                <img
+                  src={user.profile_picture_url}
+                  alt={`${user.first_name}'s profile picture`}
+                  className="absolute inset-0 w-full h-full object-cover rounded-full border-4 border-white shadow-xl z-10"
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
+                  loading="eager"
+                  onLoad={(e) => {
+                    console.log('Profile image loaded successfully:', e.target.src);
+                    e.target.style.opacity = '1';
+                  }}
+                  onError={(e) => {
+                    console.error('Error loading profile image:', e.target.src);
+                    // Try reloading the image with a cache-busting query parameter
+                    const newSrc = `${e.target.src}?t=${Date.now()}`;
+                    console.log('Retrying with:', newSrc);
+                    e.target.src = newSrc;
+                  }}
+                  style={{
+                    opacity: 0,
+                    transition: 'opacity 0.3s ease-in-out'
                   }}
                 />
               )}
