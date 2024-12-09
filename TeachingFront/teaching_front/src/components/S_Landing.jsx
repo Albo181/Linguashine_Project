@@ -167,22 +167,22 @@ const LandingPage = () => {
         <header className="text-center mb-12 relative">
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
-              {console.log('Rendering profile section, user:', user)}
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
-              {user?.profile_picture_url ? (
-                <>
-                  {console.log('Profile URL exists, attempting to render:', user.profile_picture_url)}
-                  <div className="relative z-10 w-full h-full">
-                    <OptimizedImage
-                      src={user.profile_picture_url}
-                      alt={`${user.first_name}'s profile picture`}
-                      className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl"
-                      style={{ aspectRatio: '1/1' }}
-                    />
-                  </div>
-                </>
-              ) : (
-                console.log('No profile picture URL found in user data:', user)
+              {user?.profile_picture_url && (
+                <img
+                  src={user.profile_picture_url}
+                  alt={`${user.first_name}'s profile picture`}
+                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
+                  style={{ aspectRatio: '1/1' }}
+                  onLoad={(e) => {
+                    console.log('Image loaded successfully:', e.target.src);
+                    e.target.style.opacity = '1';
+                  }}
+                  onError={(e) => {
+                    console.error('Error loading image:', e.target.src);
+                    e.target.style.display = 'none';
+                  }}
+                />
               )}
             </div>
           </div>
