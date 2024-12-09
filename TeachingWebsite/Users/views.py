@@ -217,16 +217,46 @@ class CurrentUserView(APIView):
         return Response(serializer.data)
 
     def put(self, request):
-        user = request.user
-        serializer = StudentAccessSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            if 'profile_picture' in request.FILES:
-                if user.profile_picture:
-                    user.profile_picture.delete(save=False)
-                user.profile_picture = request.FILES['profile_picture']
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        try:
+            user = request.user
+            serializer = StudentAccessSerializer(user, data=request.data, partial=True)
+            
+            if serializer.is_valid():
+                if 'profile_picture' in request.FILES:
+                    try:
+                        # Delete old picture if it exists
+                        if user.profile_picture:
+                            try:
+                                user.profile_picture.delete(save=False)
+                            except Exception as e:
+                                print(f"Error deleting old profile picture: {str(e)}")
+                        
+                        # Save new picture
+                        user.profile_picture = request.FILES['profile_picture']
+                        print(f"New profile picture assigned: {user.profile_picture}")
+                    except Exception as e:
+                        print(f"Error handling profile picture: {str(e)}")
+                        return Response(
+                            {"error": f"Error processing profile picture: {str(e)}"},
+                            status=500
+                        )
+                
+                try:
+                    serializer.save()
+                    return Response(serializer.data)
+                except Exception as e:
+                    print(f"Error saving serializer: {str(e)}")
+                    return Response(
+                        {"error": f"Error saving profile: {str(e)}"},
+                        status=500
+                    )
+            return Response(serializer.errors, status=400)
+        except Exception as e:
+            print(f"Unexpected error in profile update: {str(e)}")
+            return Response(
+                {"error": f"Unexpected error: {str(e)}"},
+                status=500
+            )
 
 
 def test_db_connection(request):
