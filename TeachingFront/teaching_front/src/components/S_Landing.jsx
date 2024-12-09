@@ -7,36 +7,52 @@ const OptimizedImage = ({ src, alt, className, style }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  console.log('OptimizedImage rendering with src:', src);
+  useEffect(() => {
+    console.log('OptimizedImage mounted with src:', src);
+    // Preload the image
+    const img = new Image();
+    img.src = src;
+    img.onload = () => {
+      console.log('Image preloaded successfully:', src);
+      setIsLoaded(true);
+    };
+    img.onerror = (e) => {
+      console.error('Error preloading image:', src, e);
+      setHasError(true);
+    };
+  }, [src]);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden w-full h-full">
       {/* Blur placeholder */}
-      <div 
-        className={`absolute inset-0 blur-xl scale-95 transform ${isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
-        style={{
-          backgroundImage: `url(${src})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      />
+      {!hasError && (
+        <div 
+          className={`absolute inset-0 blur-xl scale-95 transform ${isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+          style={{
+            backgroundImage: `url(${src})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+      )}
       {/* Main image */}
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className={`${className} transition-opacity duration-500 ${isLoaded && !hasError ? 'opacity-100' : 'opacity-0'}`}
-        style={style}
-        onLoad={() => {
-          console.log('Image loaded successfully:', src);
-          setIsLoaded(true);
-        }}
-        onError={(e) => {
-          console.error('Error loading image:', src, e);
-          setHasError(true);
-          setIsLoaded(false);
-        }}
-      />
+      {!hasError && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          style={style}
+          onLoad={() => {
+            console.log('Main image loaded successfully:', src);
+            setIsLoaded(true);
+          }}
+          onError={(e) => {
+            console.error('Error loading main image:', src, e);
+            setHasError(true);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -151,19 +167,22 @@ const LandingPage = () => {
         <header className="text-center mb-12 relative">
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
+              {console.log('Rendering profile section, user:', user)}
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user?.profile_picture_url ? (
                 <>
-                  {console.log('Attempting to render profile picture with URL:', user.profile_picture_url)}
-                  <OptimizedImage
-                    src={user.profile_picture_url}
-                    alt={`${user.first_name}'s profile picture`}
-                    className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
-                    style={{ aspectRatio: '1/1' }}
-                  />
+                  {console.log('Profile URL exists, attempting to render:', user.profile_picture_url)}
+                  <div className="relative z-10 w-full h-full">
+                    <OptimizedImage
+                      src={user.profile_picture_url}
+                      alt={`${user.first_name}'s profile picture`}
+                      className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl"
+                      style={{ aspectRatio: '1/1' }}
+                    />
+                  </div>
                 </>
               ) : (
-                console.log('No profile picture URL found in user data')
+                console.log('No profile picture URL found in user data:', user)
               )}
             </div>
           </div>
