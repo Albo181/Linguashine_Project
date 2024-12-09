@@ -76,6 +76,19 @@ const LandingPage = () => {
         if (userResponse.status === 200) {
           console.log('User data received:', userResponse.data);
           console.log('Profile picture URL:', userResponse.data.profile_picture_url);
+          
+          // Preload the image
+          if (userResponse.data.profile_picture_url) {
+            const img = new Image();
+            img.onload = () => {
+              console.log('Profile image preloaded successfully');
+            };
+            img.onerror = (e) => {
+              console.error('Error preloading profile image:', e);
+            };
+            img.src = userResponse.data.profile_picture_url;
+          }
+          
           setUser(userResponse.data);
           setReceiveNotifications(userResponse.data.receive_email_notifications || false);
         }
@@ -169,20 +182,25 @@ const LandingPage = () => {
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
               {user?.profile_picture_url && (
-                <img
-                  src={user.profile_picture_url}
-                  alt={`${user.first_name}'s profile picture`}
-                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
-                  style={{ aspectRatio: '1/1' }}
-                  onLoad={(e) => {
-                    console.log('Image loaded successfully:', e.target.src);
-                    e.target.style.opacity = '1';
-                  }}
-                  onError={(e) => {
-                    console.error('Error loading image:', e.target.src);
-                    e.target.style.display = 'none';
-                  }}
-                />
+                <div className="relative w-full h-full">
+                  <img
+                    src={user.profile_picture_url}
+                    alt={`${user.first_name}'s profile picture`}
+                    className="absolute inset-0 w-full h-full object-cover rounded-full border-4 border-white shadow-xl z-10 transition-opacity duration-300"
+                    style={{ 
+                      aspectRatio: '1/1',
+                      opacity: '0'
+                    }}
+                    onLoad={(e) => {
+                      console.log('Profile image loaded in component:', e.target.src);
+                      e.target.style.opacity = '1';
+                    }}
+                    onError={(e) => {
+                      console.error('Error loading profile image in component:', e.target.src);
+                      console.error('Error details:', e);
+                    }}
+                  />
+                </div>
               )}
             </div>
           </div>
