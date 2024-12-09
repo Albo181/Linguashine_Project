@@ -62,6 +62,7 @@ const LandingPage = () => {
   const [receiveNotifications, setReceiveNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,32 +71,18 @@ const LandingPage = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch user data using apiClient
         const userResponse = await apiClient.get('/users/me/');
         
         if (userResponse.status === 200) {
           console.log('User data received:', userResponse.data);
-          if (userResponse.data.profile_picture_url) {
-            // Validate the image URL
-            try {
-              const imageResponse = await fetch(userResponse.data.profile_picture_url, {
-                mode: 'cors',
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache'
-                }
-              });
-              if (!imageResponse.ok) {
-                console.error('Image validation failed:', imageResponse.status);
-              } else {
-                console.log('Image URL validated successfully');
-              }
-            } catch (error) {
-              console.error('Error validating image:', error);
-            }
-          }
           setUser(userResponse.data);
           setReceiveNotifications(userResponse.data.receive_email_notifications || false);
+          
+          // Set profile picture if available
+          if (userResponse.data.profile_picture_url) {
+            console.log('Setting profile picture:', userResponse.data.profile_picture_url);
+            setProfilePicturePreview(userResponse.data.profile_picture_url);
+          }
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -186,35 +173,28 @@ const LandingPage = () => {
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
-              {user?.profile_picture_url && (
+              {profilePicturePreview ? (
                 <img
-                  src={user.profile_picture_url}
-                  alt={`${user.first_name}'s profile picture`}
-                  className="absolute inset-0 w-full h-full object-cover rounded-full border-4 border-white shadow-xl z-10"
-                  crossOrigin="anonymous"
-                  referrerPolicy="no-referrer"
-                  loading="eager"
-                  onLoad={(e) => {
-                    console.log('Profile image loaded successfully:', e.target.src);
-                    e.target.style.opacity = '1';
-                  }}
+                  src={profilePicturePreview}
+                  alt={`${user?.first_name}'s profile picture`}
+                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
                   onError={(e) => {
-                    console.error('Error loading profile image:', e.target.src);
-                    // Try reloading the image with a cache-busting query parameter
-                    const newSrc = `${e.target.src}?t=${Date.now()}`;
-                    console.log('Retrying with:', newSrc);
-                    e.target.src = newSrc;
-                  }}
-                  style={{
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease-in-out'
+                    console.error('Error loading profile picture:', profilePicturePreview);
+                    e.target.style.display = 'none';
+                    setProfilePicturePreview('');
                   }}
                 />
+              ) : (
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl relative z-10">
+                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
               )}
             </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Welcome Back, {user.first_name}!
+            Welcome Back, {user?.first_name}!
           </h1>
           <p className="text-lg text-gray-500">Here's your personalized dashboard.</p>
         </header>
