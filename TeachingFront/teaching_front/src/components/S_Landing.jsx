@@ -58,6 +58,8 @@ const OptimizedImage = ({ src, alt, className, style }) => {
 };
 
 const LandingPage = () => {
+  console.log('LandingPage component rendering');
+
   const [user, setUser] = useState(null);
   const [receiveNotifications, setReceiveNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -66,16 +68,22 @@ const LandingPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('LandingPage useEffect running');
     const fetchData = async () => {
       try {
+        console.log('Starting to fetch data');
         setLoading(true);
         setError(null);
         
         const userResponse = await apiClient.get('/users/me/');
+        console.log('Raw user response:', userResponse);
         
         if (userResponse.status === 200) {
           const data = userResponse.data;
           console.log('User data received:', data);
+          console.log('Profile picture URL:', data.profile_picture_url);
+          console.log('Profile picture:', data.profile_picture);
+          
           setUser(data);
           setReceiveNotifications(data.receive_email_notifications || false);
           
@@ -105,6 +113,8 @@ const LandingPage = () => {
     fetchData();
   }, [navigate]);
 
+  console.log('Current state:', { user, profilePicturePreview, loading });
+
   // Handle checkbox change
   const handleCheckboxChange = async (e) => {
     const isChecked = e.target.checked;
@@ -124,6 +134,7 @@ const LandingPage = () => {
   };
 
   if (loading) {
+    console.log('Rendering loading state');
     return (
       <div className="flex min-h-screen justify-center items-center bg-gray-100">
         <div className="text-center">
@@ -154,6 +165,7 @@ const LandingPage = () => {
   }
 
   if (error) {
+    console.log('Rendering error state:', error);
     return (
       <div className="flex min-h-screen justify-center items-center bg-gray-100">
         <div className="text-center text-red-600">
@@ -170,8 +182,11 @@ const LandingPage = () => {
   }
 
   if (!user) {
+    console.log('No user data available');
     return null;
   }
+
+  console.log('Rendering main component with:', { user, profilePicturePreview });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 p-6 pt-28 pb-20">
