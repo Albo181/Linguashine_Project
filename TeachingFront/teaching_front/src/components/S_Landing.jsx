@@ -5,6 +5,9 @@ import apiClient from '../api/apiClient';
 
 const OptimizedImage = ({ src, alt, className, style }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  console.log('OptimizedImage rendering with src:', src);
 
   return (
     <div className="relative overflow-hidden">
@@ -22,12 +25,16 @@ const OptimizedImage = ({ src, alt, className, style }) => {
         src={src}
         alt={alt}
         loading="lazy"
-        className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`${className} transition-opacity duration-500 ${isLoaded && !hasError ? 'opacity-100' : 'opacity-0'}`}
         style={style}
-        onLoad={() => setIsLoaded(true)}
+        onLoad={() => {
+          console.log('Image loaded successfully:', src);
+          setIsLoaded(true);
+        }}
         onError={(e) => {
-          console.error('Error loading profile picture:', e.target.src);
-          e.target.style.display = 'none';
+          console.error('Error loading image:', src, e);
+          setHasError(true);
+          setIsLoaded(false);
         }}
       />
     </div>
@@ -51,6 +58,8 @@ const LandingPage = () => {
         const userResponse = await apiClient.get('/users/me/');
         
         if (userResponse.status === 200) {
+          console.log('User data received:', userResponse.data);
+          console.log('Profile picture URL:', userResponse.data.profile_picture_url);
           setUser(userResponse.data);
           setReceiveNotifications(userResponse.data.receive_email_notifications || false);
         }
@@ -143,13 +152,18 @@ const LandingPage = () => {
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
-              {user.profile_picture_url && (
-                <OptimizedImage
-                  src={user.profile_picture_url}
-                  alt={`${user.first_name}'s profile picture`}
-                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
-                  style={{ aspectRatio: '1/1' }}
-                />
+              {user?.profile_picture_url ? (
+                <>
+                  {console.log('Attempting to render profile picture with URL:', user.profile_picture_url)}
+                  <OptimizedImage
+                    src={user.profile_picture_url}
+                    alt={`${user.first_name}'s profile picture`}
+                    className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
+                    style={{ aspectRatio: '1/1' }}
+                  />
+                </>
+              ) : (
+                console.log('No profile picture URL found in user data')
               )}
             </div>
           </div>
