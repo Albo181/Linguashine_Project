@@ -74,14 +74,21 @@ const LandingPage = () => {
         const userResponse = await apiClient.get('/users/me/');
         
         if (userResponse.status === 200) {
-          console.log('User data received:', userResponse.data);
-          setUser(userResponse.data);
-          setReceiveNotifications(userResponse.data.receive_email_notifications || false);
+          const data = userResponse.data;
+          console.log('User data received:', data);
+          setUser(data);
+          setReceiveNotifications(data.receive_email_notifications || false);
           
-          // Set profile picture if available
-          if (userResponse.data.profile_picture_url) {
-            console.log('Setting profile picture:', userResponse.data.profile_picture_url);
-            setProfilePicturePreview(userResponse.data.profile_picture_url);
+          // Handle both profile_picture and profile_picture_url fields
+          if (data.profile_picture) {
+            const pictureUrl = data.profile_picture.startsWith('http') 
+              ? data.profile_picture 
+              : `${apiClient.defaults.baseURL}${data.profile_picture}`;
+            console.log('Setting profile picture from profile_picture:', pictureUrl);
+            setProfilePicturePreview(pictureUrl);
+          } else if (data.profile_picture_url) {
+            console.log('Setting profile picture from profile_picture_url:', data.profile_picture_url);
+            setProfilePicturePreview(data.profile_picture_url);
           }
         }
       } catch (error) {
