@@ -65,11 +65,12 @@ export const fetchCSRFToken = async (retries = 3) => {
 // Add request interceptor to handle CSRF token
 apiClient.interceptors.request.use(
   async config => {
-    // Add debugging logs
-    console.log('🔍 Request Before:', {
+    // Add detailed request logging
+    console.log('🔍 Request Details:', {
       url: config.url,
       method: config.method,
-      headers: config.headers
+      headers: config.headers,
+      data: config.data
     });
 
     try {
@@ -77,7 +78,6 @@ apiClient.interceptors.request.use(
       if (config.headers['Content-Type'] === 'multipart/form-data') {
         const token = await fetchCSRFToken();
         config.headers['X-CSRFToken'] = token;
-        console.log('📝 Multipart Form Data Request:', config.url);
         return config;
       }
 
@@ -85,23 +85,15 @@ apiClient.interceptors.request.use(
       const token = await fetchCSRFToken();
       config.headers['X-CSRFToken'] = token;
       config.headers['Content-Type'] = 'application/json';
-      
-      // Add debugging log
-      console.log('🔍 Request After:', {
-        url: config.url,
-        method: config.method,
-        headers: config.headers
-      });
-      
       return config;
     } catch (error) {
-      console.error('❌ Failed to fetch CSRF token in interceptor:', error);
+      console.error('Failed to fetch CSRF token in interceptor:', error);
     }
 
     return config;
   },
   error => {
-    console.error('❌ Request interceptor error:', error);
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
