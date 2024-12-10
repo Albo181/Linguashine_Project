@@ -359,7 +359,7 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleFileDownload = async (fileId, fileName, fileType, originalExtension) => {
+  const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
       // Construct the correct download URL based on file type
       let downloadUrl = '';
@@ -381,86 +381,39 @@ const FileDashboard = () => {
           return;
       }
 
-      console.log('Starting download:', { fileId, fileName, fileType, originalExtension });
+      console.log('Starting download:', { fileId, fileName, fileType });
 
       const response = await apiClient.get(downloadUrl, {
-        responseType: 'blob',
-        headers: {
-          'X-CSRFToken': getCsrfToken(),
-        }
+        responseType: 'blob'
       });
 
-      // Get content type and original extension from response headers
+      // Get content type and original filename from response headers
       const contentType = response.headers['content-type'];
       const contentDisposition = response.headers['content-disposition'];
-      let finalFileName = fileName;
-
-      // Try to get the original filename from Content-Disposition header
+      
+      // Extract filename from Content-Disposition header or use provided filename
+      let downloadFileName = fileName;
       const matches = /filename="(.+)"/.exec(contentDisposition);
       if (matches && matches[1]) {
-        finalFileName = matches[1];
-      } else {
-        // If no Content-Disposition, use original extension or determine from content type
-        const contentTypeMap = {
-          // Audio formats
-          'audio/mpeg': '.mp3',
-          'audio/mp3': '.mp3',
-          'audio/wav': '.wav',
-          'audio/wave': '.wav',
-          'audio/x-wav': '.wav',
-          'audio/webm': '.webm',
-          'audio/ogg': '.ogg',
-          'audio/aac': '.aac',
-          'audio/m4a': '.m4a',
-          // Video formats
-          'video/mp4': '.mp4',
-          'video/webm': '.webm',
-          'video/quicktime': '.mov',
-          'video/x-matroska': '.mkv',
-          'video/avi': '.avi',
-          'video/mpeg': '.mpeg',
-          // Image formats
-          'image/jpeg': '.jpg',
-          'image/jpg': '.jpg',
-          'image/png': '.png',
-          'image/gif': '.gif',
-          'image/webp': '.webp',
-          'image/svg+xml': '.svg',
-          // Document formats
-          'application/pdf': '.pdf',
-          'application/msword': '.doc',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-          'text/plain': '.txt',
-          'application/rtf': '.rtf',
-          'application/vnd.oasis.opendocument.text': '.odt'
-        };
-
-        // First try to use the original extension if we have it
-        if (originalExtension && originalExtension.startsWith('.')) {
-          if (!fileName.toLowerCase().endsWith(originalExtension.toLowerCase())) {
-            finalFileName += originalExtension;
-          }
-        } else if (!fileName.includes('.')) {
-          // If no original extension and filename doesn't have one, try to determine from content type
-          const extension = contentTypeMap[contentType];
-          if (extension) {
-            finalFileName += extension;
-          }
-        }
+        downloadFileName = matches[1];
+      } else if (fileName.includes('/')) {
+        // If it's a URL, get just the filename part
+        downloadFileName = fileName.split('/').pop();
+        // Remove any URL encoding
+        downloadFileName = decodeURIComponent(downloadFileName);
       }
 
       console.log('Downloading file:', {
         originalName: fileName,
-        finalName: finalFileName,
-        contentType: contentType,
-        originalExtension: originalExtension
+        finalName: downloadFileName,
+        contentType: contentType
       });
 
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', finalFileName);
+      link.setAttribute('download', downloadFileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -632,7 +585,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleFileDownload(file.id, file.title, file.type, file.originalExtension)}
+                    onDownload={() => handleFileDownload(file.id, file.title, file.type)}
                     onDelete={handleDeleteFile}  // Pass the function directly
                   />
                 );

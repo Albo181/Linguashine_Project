@@ -255,14 +255,18 @@ const FeedbackForm = () => {
     };
 
     const resetForm = () => {
-        setSelectedStudent('');
-        setSelectedTeacher('');
+        setSendTo('');
         setTaskType('');
-        setDocument(null);
-        setTeacherNotes('');
-        setStudentNotes('');
         setGradeAwarded('');
         setGradeTotal('');
+        setGradePercent(null);
+        setGradeSpanish(null);
+        setStudentNotes('');
+        setTeacherNotes('');
+        setDocumentArea(null);
+        setPreviewUrl(null);
+        setError(null);
+        setIsSubmitting(false);
     };
 
     if (isLoading) {
