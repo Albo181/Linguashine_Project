@@ -359,60 +359,36 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleFileDownload = async (fileId, fileName, fileType) => {
+  const handleDownload = async (fileId, fileName) => {
     try {
-      // Construct the correct download URL based on file type
-      let downloadUrl = '';
-      switch (fileType) {
-        case 'document':
-          downloadUrl = `/files/private/documents/${fileId}/`;
-          break;
-        case 'image':
-          downloadUrl = `/files/private/images/${fileId}/`;
-          break;
-        case 'audio':
-          downloadUrl = `/files/private/audio/${fileId}/`;
-          break;
-        case 'video':
-          downloadUrl = `/files/private/video/${fileId}/`;
-          break;
-        default:
-          console.error('Unknown file type for download');
-          return;
-      }
+        // Make the request with responseType blob
+        const response = await apiClient.get(`/api/files/${fileId}/download/`, {
+            responseType: 'blob'
+        });
 
-      const response = await apiClient.get(downloadUrl, {
-        responseType: "blob"
-      });
-
-      // Extract original filename from the URL or use the title
-      let downloadFileName = fileName;
-      if (fileName.includes('/')) {
-        // If it's a URL, get just the filename part
-        downloadFileName = fileName.split('/').pop();
-        // Remove any URL encoding
-        downloadFileName = decodeURIComponent(downloadFileName);
-      }
-
-      // Get content type and extension
-      const contentType = response.headers["content-type"];
-      const contentDisposition = response.headers["content-disposition"];
-      const matches = /filename="(.+)"/.exec(contentDisposition);
-      
-      // Use server provided filename if available, otherwise use our processed filename
-      const finalFileName = matches && matches[1] ? matches[1] : downloadFileName;
-
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: contentType }));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", finalFileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+        // Create a blob from the response data
+        const blob = new Blob([response.data]);
+        
+        // Create a temporary URL for the blob
+        const url = window.URL.createObjectURL(blob);
+        
+        // Create a temporary anchor element
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Set the download attribute with original filename
+        link.setAttribute('download', fileName);
+        
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL
+        window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
-      alert("Error downloading file. Please try again.");
+        console.error('Error downloading file:', error);
+        // Handle error appropriately
     }
   };
 
@@ -571,7 +547,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleFileDownload(file.id, file.title, file.type)}
+                    onDownload={() => handleDownload(file.id, file.title)}
                     onDelete={handleDeleteFile}  // Pass the function directly
                   />
                 );
