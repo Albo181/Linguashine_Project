@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -55,7 +54,6 @@ export const AuthProvider = ({ children }) => {
       }
       return false;
     } catch (error) {
-      console.error('Login failed:', error);
       setIsAuthenticated(false);
       setUser(null);
       throw error;
@@ -66,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await apiClient.post('/users/logout/');
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Silently handle logout errors
     } finally {
       setIsAuthenticated(false);
       setUser(null);

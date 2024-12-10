@@ -381,52 +381,38 @@ const FileDashboard = () => {
           return;
       }
 
-      console.log('Starting download:', { fileId, fileName, fileType });
-
       const response = await apiClient.get(downloadUrl, {
-        responseType: 'blob'
+        responseType: "blob"
       });
 
-      // Get content type and original filename from response headers
-      const contentType = response.headers['content-type'];
-      const contentDisposition = response.headers['content-disposition'];
-      
-      // Extract filename from Content-Disposition header or use provided filename
+      // Extract original filename from the URL or use the title
       let downloadFileName = fileName;
-      const matches = /filename="(.+)"/.exec(contentDisposition);
-      if (matches && matches[1]) {
-        downloadFileName = matches[1];
-      } else if (fileName.includes('/')) {
+      if (fileName.includes('/')) {
         // If it's a URL, get just the filename part
         downloadFileName = fileName.split('/').pop();
         // Remove any URL encoding
         downloadFileName = decodeURIComponent(downloadFileName);
       }
 
-      console.log('Downloading file:', {
-        originalName: fileName,
-        finalName: downloadFileName,
-        contentType: contentType
-      });
+      // Get content type and extension
+      const contentType = response.headers["content-type"];
+      const contentDisposition = response.headers["content-disposition"];
+      const matches = /filename="(.+)"/.exec(contentDisposition);
+      
+      // Use server provided filename if available, otherwise use our processed filename
+      const finalFileName = matches && matches[1] ? matches[1] : downloadFileName;
 
-      const blob = new Blob([response.data], { type: contentType });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: contentType }));
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', downloadFileName);
+      link.setAttribute("download", finalFileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
-      if (error.response?.status === 403) {
-        alert('Access denied. Please check your permissions or try logging in again.');
-      } else if (error.response?.status === 500) {
-        alert('Server error. Please try again later or contact support.');
-      } else {
-        alert('Error downloading file. Please try again.');
-      }
+      console.error("Error downloading file:", error);
+      alert("Error downloading file. Please try again.");
     }
   };
 

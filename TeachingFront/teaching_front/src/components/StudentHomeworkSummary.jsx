@@ -230,22 +230,22 @@ const StudentHomeworkSummary = () => {
                 ? `/api/student/homework/submitted/${submissionId}/`
                 : `/api/student/homework/received/${submissionId}/`;
             
-            console.log('Deleting submission at endpoint:', endpoint);
+            console.log('Hiding submission at endpoint:', endpoint);
             const response = await apiClient.delete(endpoint);
             
             if (response.status === 204 || response.status === 200) {
-                // Update the state to remove the hidden submission
+                // Update the state to remove the hidden submission from view (but file remains on server)
                 if (!isInbox) {
                     setSentSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
                 } else {
                     setReceivedSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
                 }
+                // Show success message
+                alert('Submission hidden successfully. The file remains stored on the server.');
             }
         } catch (error) {
             console.error('Error hiding submission:', error);
-            // Optionally show an error message to the user
-            setError('Failed to hide submission. Please try again.');
-            setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
+            alert('Failed to hide submission. Please try again.');
         }
     };
 
@@ -270,22 +270,60 @@ const StudentHomeworkSummary = () => {
 
     const handleDownload = async (documentUrl) => {
         try {
-            console.log('Attempting to download:', documentUrl);
-            const response = await apiClient.get(documentUrl, {
-                responseType: 'blob'
+            if (!documentUrl) {
+                console.error('No document URL provided');
+                alert('Error: No document URL available');
+                return;
+            }
+
+            console.log('Attempting to download from:', documentUrl);
+
+            const response = await apiClient.get(documentUrl, { 
+                responseType: 'blob',
+                headers: {
+                    'Accept': '*/*'  // Accept any content type
+                }
             });
+
+            // Get content type and original filename from response headers
+            const contentType = response.headers['content-type'];
+            const contentDisposition = response.headers['content-disposition'];
             
-            const blob = response.data;
+            // Extract filename from Content-Disposition header or URL
+            let filename = documentUrl.split('/').pop();
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            // Decode the filename
+            filename = decodeURIComponent(filename);
+
+            console.log('Download details:', {
+                filename,
+                contentType,
+                contentDisposition
+            });
+
+            // Create and trigger download
+            const blob = new Blob([response.data], { 
+                type: contentType || 'application/octet-stream' 
+            });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = documentUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+
+            console.log('Download completed:', filename);
         } catch (error) {
             console.error('Error downloading file:', error);
+            alert('Error downloading file. Please try again.');
         }
     };
 

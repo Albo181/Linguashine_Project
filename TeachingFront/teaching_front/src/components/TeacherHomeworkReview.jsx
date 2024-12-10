@@ -215,17 +215,53 @@ const TeacherHomeworkReview = () => {
 
     const handleDownload = async (documentUrl) => {
         try {
-            const response = await apiClient.get(documentUrl, { responseType: 'blob' });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
+            if (!documentUrl) {
+                console.error('No document URL provided');
+                alert('Error: No document URL available');
+                return;
+            }
+
+            console.log('Attempting to download from:', documentUrl);
+
+            const response = await apiClient.get(documentUrl, { 
+                responseType: 'blob',
+                headers: {
+                    'Accept': '*/*'  // Accept any content type
+                }
+            });
+
+            // Get the filename from the URL first
+            let filename = documentUrl.split('/').pop();
+            
+            // Try to get a better filename from Content-Disposition if available
+            const contentDisposition = response.headers['content-disposition'];
+            if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            // Decode the filename
+            filename = decodeURIComponent(filename);
+
+            // Create and trigger download
+            const blob = new Blob([response.data], { 
+                type: response.headers['content-type'] || 'application/octet-stream' 
+            });
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', documentUrl.split('/').pop());
+            link.setAttribute('download', filename);
             document.body.appendChild(link);
             link.click();
-            link.remove();
+            document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
+
+            console.log('Download completed:', filename);
         } catch (error) {
             console.error('Error downloading file:', error);
+            alert('Error downloading file. Please try again.');
         }
     };
 
