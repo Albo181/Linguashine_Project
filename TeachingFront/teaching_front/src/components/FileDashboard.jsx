@@ -155,24 +155,26 @@ const FileDashboard = () => {
     }
   };
 
-  // Fetch user data
+  // Fetch user data and set initial student
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await apiClient.get('/users/me/');
         if (response.status === 200) {
           const data = response.data;
-          console.log('User data received:', data);
           
           // Handle profile picture URL
           if (data.profile_picture_url) {
-            // Use the full URL from the backend
             data.profile_picture = data.profile_picture_url;
           }
           
           setUser(data);
-        } else {
-          console.error('Failed to fetch user data:', response.statusText);
+          
+          // If user is a teacher, set their ID as the initial selected student
+          if (data.user_type === 'teacher') {
+            setSelectedStudentId(data.id);
+            setSelectedStudentName(`${data.first_name} ${data.last_name}`);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch user data:', error.response?.data || error.message);
@@ -182,7 +184,7 @@ const FileDashboard = () => {
     fetchUserData();
   }, []);
 
-  // Fetch students
+  // Fetch students with proper filtering
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -192,18 +194,29 @@ const FileDashboard = () => {
           },
           credentials: 'include',
         });
-        setStudents(response.data);
+        
+        // Filter out any invalid student entries
+        const validStudents = response.data.filter(student => 
+          student && student.id && student.first_name && student.last_name
+        );
+        
+        setStudents(validStudents);
 
-        if (response.data.length > 0) {
-          const firstStudent = response.data[0];
+        // Only set first student as default for non-teacher users
+        if (validStudents.length > 0 && user && user.user_type !== 'teacher') {
+          const firstStudent = validStudents[0];
           setSelectedStudentId(firstStudent.id);
+          setSelectedStudentName(`${firstStudent.first_name} ${firstStudent.last_name}`);
         }
       } catch (error) {
         console.error("Error fetching students:", error);
       }
     };
-    fetchStudents();
-  }, []);
+    
+    if (user) {
+      fetchStudents();
+    }
+  }, [user]);
 
   // Re-fetch files when the selected student changes
   useEffect(() => {
@@ -345,26 +358,21 @@ const FileDashboard = () => {
     }
   };
 
-  // File download handler
+  // File download handler with proper error handling
   const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      console.log('Starting download for file:', { fileId, fileName, fileType });
       const response = await apiClient.get(`/files/download/${fileId}/`, {
         responseType: 'blob',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+        }
       });
 
-      // Get the content type and original extension
       const contentType = response.headers['content-type'];
-      console.log('Server content type:', contentType);
-      console.log('Original filename:', fileName);
-
-      // Get the extension from the original filename
       const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
       
-      // Use the original extension if available, otherwise determine from content type
       let finalFileName = fileName;
       if (!finalFileName.includes('.')) {
-        // If no extension, determine based on content type and file type
         if (contentType === 'video/webm') {
           finalFileName += '.webm';
         } else {
@@ -373,12 +381,7 @@ const FileDashboard = () => {
               finalFileName += originalExt || '.wav';
               break;
             case 'video':
-              // Check content type for video files
-              if (contentType === 'video/webm') {
-                finalFileName += '.webm';
-              } else {
-                finalFileName += originalExt || '.mp4';
-              }
+              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
               break;
             case 'image':
               finalFileName += originalExt || '.jpg';
@@ -391,33 +394,26 @@ const FileDashboard = () => {
         }
       }
 
-      console.log('Final filename:', finalFileName, 'Content-Type:', contentType);
-
-      // Create blob with proper content type
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
-
-      // Create download link
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', finalFileName);
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('Error downloading file. Please try again.');
+      if (error.response?.status === 403) {
+        alert('Access denied. Please check your permissions or try logging in again.');
+      } else if (error.response?.status === 500) {
+        alert('Server error. Please try again later or contact support.');
+      } else {
+        alert('Error downloading file. Please try again.');
+      }
     }
   };
-
-  // Fetch selected student's full name
-  useEffect(() => {
-    const student = students.find((student) => student.id === selectedStudentId);
-    setSelectedStudentName(student ? `${student.first_name} ${student.last_name}` : '');
-  }, [selectedStudentId, students]);
 
   // Delete file handler
   const handleDeleteFile = async (file) => {
@@ -500,15 +496,13 @@ const FileDashboard = () => {
       <div className="file-dashboard-container mt-20 mb-2">
         <h1 className="dashboard-title">
           <div className="flex items-center ml-20">
-            {/* User Profile Picture */}
             <div className="w-24 h-24 relative mr-6">
               <ProfileImage 
-                src={user.profile_picture}
-                userName={user.first_name}
+                src={user?.profile_picture}
+                userName={user?.first_name}
               />
             </div>
-            {/* Displaying Student's Dashboard Title */}
-            {selectedStudentName ? `${selectedStudentName}'s Dashboard` : 'Student File Dashboard'}
+            {selectedStudentName ? `${selectedStudentName}'s Dashboard` : 'File Dashboard'}
             <div className="flex items-center pl-40 italic">
               <p className="text-lg">(INSTRUCTIONS: Here you can exchange general files with your teacher)</p>
             </div>
@@ -583,26 +577,40 @@ const FileDashboard = () => {
           </main>
         </div>
 
-        {/* Student Selection */}
-        <label htmlFor="studentSelect" className="mt-3">Select Student</label>
-        <select
-          id="studentSelect"
-          onChange={(e) => setSelectedStudentId(e.target.value)}
-          value={selectedStudentId || ""}
-          className="mt-1"
-        >
-          {students.length > 0 ? (
-            students.map((student) => (
-              <option key={student.id} value={student.id}>
-                {`${student.first_name} ${student.last_name}`}
-              </option>
-            ))
-          ) : (
-            <option value="">No students available</option>
-          )}
-        </select>
+        {/* Only show student selection for teachers */}
+        {user?.user_type === 'teacher' && (
+          <div className="mt-3">
+            <label htmlFor="studentSelect" className="block text-sm font-medium text-gray-700 mb-1">
+              Select Dashboard to View
+            </label>
+            <select
+              id="studentSelect"
+              onChange={(e) => {
+                const student = students.find(s => s.id === Number(e.target.value));
+                setSelectedStudentId(Number(e.target.value));
+                setSelectedStudentName(student ? `${student.first_name} ${student.last_name}` : '');
+              }}
+              value={selectedStudentId || ""}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+              {/* Add teacher as first option */}
+              {user && (
+                <option value={user.id}>
+                  My Dashboard
+                </option>
+              )}
+              {students
+                .filter(student => student && student.id && student.first_name && student.last_name)
+                .map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {`${student.first_name} ${student.last_name}`}
+                  </option>
+                ))
+              }
+            </select>
+          </div>
+        )}
       </div>
-
     );
   }
 
