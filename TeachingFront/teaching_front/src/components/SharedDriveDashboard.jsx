@@ -270,7 +270,7 @@ useEffect(() => {
           {/* Shared Files Section */}
           <section className="backdrop-blur-sm bg-gradient-to-br from-teal-100/95 via-white/90 to-emerald-100/95 rounded-lg p-6 shadow-xl border border-white/50">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-              <span className="text-3xl mr-2">����</span>
+              <span className="text-3xl mr-2">📁</span>
               <span>Shared Files</span>
             </h2>
             {userRole === "teacher" && (

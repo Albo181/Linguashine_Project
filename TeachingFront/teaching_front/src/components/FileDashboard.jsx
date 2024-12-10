@@ -388,34 +388,44 @@ const FileDashboard = () => {
         }
       });
 
+      // Get content type and original extension
       const contentType = response.headers['content-type'];
+      let finalFileName = fileName;
       
-      // Get original extension from filename or content type
-      let originalExt = '';
-      if (fileName.includes('.')) {
-        originalExt = '.' + fileName.split('.').pop().toLowerCase();
-      } else {
-        // Map content types to extensions
-        const contentTypeToExt = {
-          'video/webm': '.webm',
-          'video/mp4': '.mp4',
-          'video/quicktime': '.mov',
+      // If filename doesn't have extension, add it based on content type
+      if (!fileName.includes('.')) {
+        const contentTypeMap = {
           'audio/mpeg': '.mp3',
+          'audio/mp3': '.mp3',
           'audio/wav': '.wav',
+          'audio/wave': '.wav',
+          'audio/x-wav': '.wav',
           'audio/webm': '.weba',
+          'video/mp4': '.mp4',
+          'video/webm': '.webm',
+          'video/quicktime': '.mov',
           'image/jpeg': '.jpg',
+          'image/jpg': '.jpg',
           'image/png': '.png',
           'image/gif': '.gif',
           'application/pdf': '.pdf',
           'application/msword': '.doc',
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
         };
-        originalExt = contentTypeToExt[contentType] || '';
-      }
-      
-      let finalFileName = fileName;
-      if (!finalFileName.includes('.')) {
-        finalFileName += originalExt;
+
+        const extension = contentTypeMap[contentType];
+        if (extension) {
+          finalFileName += extension;
+        } else {
+          // Fallback extensions based on file type
+          const fallbackExt = {
+            'document': '.pdf',
+            'image': '.jpg',
+            'audio': '.mp3',
+            'video': '.mp4'
+          };
+          finalFileName += fallbackExt[fileType] || '';
+        }
       }
 
       const blob = new Blob([response.data], { type: contentType });

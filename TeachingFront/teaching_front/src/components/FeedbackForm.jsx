@@ -167,12 +167,24 @@ const FeedbackForm = () => {
         setError(null);
 
         try {
+            // Validate required fields
+            if (!selectedStudent) {
+                throw new Error('Please select a student');
+            }
+            if (!selectedTeacher) {
+                throw new Error('Please select a teacher');
+            }
+            if (!taskType) {
+                throw new Error('Please select a task type');
+            }
+            if (!document) {
+                throw new Error('Please upload a document');
+            }
+
             const formData = new FormData();
             
-            // Add the file
-            if (document) {
-                formData.append('document_area', document);
-            }
+            // Add the file with correct field name
+            formData.append('document_area', document);
 
             // Add other form fields
             formData.append('student_name', selectedStudent);
@@ -188,6 +200,16 @@ const FeedbackForm = () => {
                 if (studentNotes) formData.append('student_notes', studentNotes);
             }
 
+            // Log FormData contents for debugging
+            console.log('Submitting form with data:');
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`${key}: File - ${value.name} (${value.type}, ${value.size} bytes)`);
+                } else {
+                    console.log(`${key}: ${value}`);
+                }
+            }
+
             const response = await apiClient.post('/feedback/upload/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -200,13 +222,26 @@ const FeedbackForm = () => {
             }
 
             setSuccess(true);
+            alert('Feedback submitted successfully!');
             resetForm();
         } catch (err) {
             console.error('Error submitting feedback:', err);
             setError(err.response?.data?.error || err.message || 'Error submitting feedback');
+            alert(err.response?.data?.error || err.message || 'Error submitting feedback');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const resetForm = () => {
+        setSelectedStudent('');
+        setSelectedTeacher('');
+        setTaskType('');
+        setDocument(null);
+        setTeacherNotes('');
+        setStudentNotes('');
+        setGradeAwarded('');
+        setGradeTotal('');
     };
 
     if (isLoading) {
