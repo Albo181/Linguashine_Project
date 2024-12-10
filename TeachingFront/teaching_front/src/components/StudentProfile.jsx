@@ -216,10 +216,10 @@ const StudentProfile = () => {
         formData.append('profile_picture', profilePicture);
       }
       
-      // Append goals
+      // Append goals and notes separately
       const bioData = JSON.stringify({
         goals: goals,
-        notes: studentData.bio
+        notes: studentData.bio || ''  // Ensure we have a string value
       });
       formData.append('bio', bioData);
 
@@ -236,45 +236,39 @@ const StudentProfile = () => {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log('Profile update response:', data);
         
-        // Keep the current preview until we confirm the new URL works
-        const oldPreview = profilePicturePreview;
-        
-        // Update profile picture URL with full path
+        // Handle profile picture update
         if (data.profile_picture) {
           const newPictureUrl = data.profile_picture.startsWith('http') 
             ? data.profile_picture 
             : `${apiClient.defaults.baseURL}${data.profile_picture}`;
             
-          // Test if the new URL is accessible
           const img = new Image();
           img.onload = () => {
             setProfilePicturePreview(newPictureUrl);
             setProfilePicture(null);
-            console.log('Successfully loaded new profile picture:', newPictureUrl);
           };
           img.onerror = () => {
-            console.error('Failed to load new profile picture URL:', newPictureUrl);
             setProfilePicturePreview(oldPreview);
           };
           img.src = newPictureUrl;
         }
 
+        // Parse and set goals and notes separately
         try {
-          const bioData = JSON.parse(data.bio);
-          setGoals(bioData.goals || []);
+          const parsedBioData = JSON.parse(data.bio);
+          setGoals(parsedBioData.goals || []);
           setStudentData(prev => ({
             ...prev,
             ...data,
-            bio: bioData.notes || ''
+            bio: parsedBioData.notes || ''  // Set only the notes part to bio
           }));
-        } catch {
+        } catch (error) {
+          // If parsing fails, keep existing goals and set bio as is
           setStudentData(prev => ({
             ...prev,
             ...data
           }));
-          setGoals([]);
         }
         
         setErrorMessage("Profile updated successfully");
