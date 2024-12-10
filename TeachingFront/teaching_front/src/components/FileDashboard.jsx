@@ -391,23 +391,31 @@ const FileDashboard = () => {
       // Get content type and original extension
       const contentType = response.headers['content-type'];
       let finalFileName = fileName;
-      
-      // If filename doesn't have extension, add it based on content type
-      if (!fileName.includes('.')) {
+
+      // First try to get extension from original filename
+      if (fileName.includes('.')) {
+        // Keep the original extension
+        finalFileName = fileName;
+      } else {
+        // If no extension in filename, use content type to determine extension
         const contentTypeMap = {
+          // Audio formats
           'audio/mpeg': '.mp3',
           'audio/mp3': '.mp3',
           'audio/wav': '.wav',
           'audio/wave': '.wav',
           'audio/x-wav': '.wav',
-          'audio/webm': '.weba',
+          'audio/webm': '.webm',
+          // Video formats
           'video/mp4': '.mp4',
           'video/webm': '.webm',
           'video/quicktime': '.mov',
+          // Image formats
           'image/jpeg': '.jpg',
           'image/jpg': '.jpg',
           'image/png': '.png',
           'image/gif': '.gif',
+          // Document formats
           'application/pdf': '.pdf',
           'application/msword': '.doc',
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
@@ -417,7 +425,7 @@ const FileDashboard = () => {
         if (extension) {
           finalFileName += extension;
         } else {
-          // Fallback extensions based on file type
+          // Only use fallback if we can't determine from content type
           const fallbackExt = {
             'document': '.pdf',
             'image': '.jpg',
@@ -427,6 +435,13 @@ const FileDashboard = () => {
           finalFileName += fallbackExt[fileType] || '';
         }
       }
+
+      console.log('Downloading file:', {
+        originalName: fileName,
+        finalName: finalFileName,
+        contentType: contentType,
+        fileType: fileType
+      });
 
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);

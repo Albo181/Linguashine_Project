@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button, TextField, MenuItem, Typography, Box, CircularProgress } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { useAuth } from '../context/AuthContext';
 
 const FeedbackForm = () => {
     const navigate = useNavigate();
@@ -34,6 +35,10 @@ const FeedbackForm = () => {
     const [userId, setUserId] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const { user } = useAuth();
+    const isTeacher = user?.user_type === 'teacher';
 
     // Add session check
     useEffect(() => {
@@ -166,29 +171,32 @@ const FeedbackForm = () => {
         setIsSubmitting(true);
         setError(null);
 
+        if (!userId) {
+            alert("User ID not found. Please log in again.");
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
             // Validate required fields
-            if (!selectedStudent) {
-                throw new Error('Please select a student');
-            }
-            if (!selectedTeacher) {
-                throw new Error('Please select a teacher');
+            if (!sendTo) {
+                throw new Error(currentUser?.user_type === 'teacher' ? 'Please select a student' : 'Please select a teacher');
             }
             if (!taskType) {
                 throw new Error('Please select a task type');
             }
-            if (!document) {
+            if (!documentArea) {
                 throw new Error('Please upload a document');
             }
 
             const formData = new FormData();
             
             // Add the file with correct field name
-            formData.append('document_area', document);
+            formData.append('document_area', documentArea);
 
             // Add other form fields
-            formData.append('student_name', selectedStudent);
-            formData.append('send_to', selectedTeacher);
+            formData.append('student_name', currentUser?.user_type === 'teacher' ? sendTo : userId.toString());
+            formData.append('send_to', sendTo);
             formData.append('task_type', taskType);
 
             // Add teacher-specific fields
@@ -224,10 +232,15 @@ const FeedbackForm = () => {
             setSuccess(true);
             alert('Feedback submitted successfully!');
             resetForm();
-        } catch (err) {
-            console.error('Error submitting feedback:', err);
-            setError(err.response?.data?.error || err.message || 'Error submitting feedback');
-            alert(err.response?.data?.error || err.message || 'Error submitting feedback');
+        } catch (error) {
+            console.error("Error during submission:", error);
+            console.error("Error response data:", error.response?.data);
+            const errorMessage = error.response?.data?.detail || 
+                               error.response?.data?.error || 
+                               error.response?.data?.message || 
+                               error.message || 
+                               "Error submitting work. Please try again.";
+            alert(errorMessage);
         } finally {
             setIsSubmitting(false);
         }

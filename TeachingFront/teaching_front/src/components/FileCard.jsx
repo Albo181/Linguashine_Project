@@ -129,23 +129,27 @@ const FileCard = ({ file, onDownload, onDelete }) => {
         ✖
       </button> 
 
-      <div className="file-info flex items-center space-x-4 p-4">
-        {renderFilePreview()}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-800">{file.title}</h3>
-          <p className="text-sm text-gray-500">
+      <div className="file-info flex items-start space-x-4 p-4">
+        <div className="flex-shrink-0">
+          {renderFilePreview()}
+        </div>
+        <div className="flex-grow min-w-0">
+          <div className="max-h-24 overflow-y-auto pr-2 custom-scrollbar">
+            <h3 className="text-xl font-semibold text-gray-800 break-words">{file.title}</h3>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
             {file.type} | {formatDateTime(file.uploaded_at)}
           </p>
         </div>
       </div>
 
-      <div className="file-actions p-4 flex justify-between items-center">
-        <span className="text-sm text-blue-400">
+      <div className="file-actions p-4 flex justify-between items-center border-t border-gray-200">
+        <span className="text-sm text-blue-400 truncate max-w-[50%]">
           Sender: {formatSenderName(file.sender)}
         </span>
         <button
           onClick={onDownload}
-          className="mt-6 download-button text-blue-600 bg-blue-100 border border-blue-300 hover:bg-blue-200 transition-colors duration-200 font-semibold px-4 py-2 rounded"
+          className="download-button text-blue-600 bg-blue-100 border border-blue-300 hover:bg-blue-200 transition-colors duration-200 font-semibold px-4 py-2 rounded"
         >
           Download
         </button>
