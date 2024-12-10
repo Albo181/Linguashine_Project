@@ -3,28 +3,27 @@ import apiClient from '../api/apiClient';
 
 const AuthContext = createContext(null);
 
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [checkInProgress, setCheckInProgress] = useState(false);
 
   const checkAuth = useCallback(async () => {
-    if (checkInProgress) {
-      console.log('Auth check already in progress, skipping...');
-      return;
-    }
-
     try {
-      setCheckInProgress(true);
-      console.log('Starting auth check...');
-      
-      // Try to get user info - if successful, we're authenticated
-      const response = await apiClient.get('/users/me/');
-      console.log('Auth check response:', response.data);
-      
-      if (response.status === 200 && response.data) {
-        setUser(response.data);
+      const response = await apiClient.get('/users/check-auth/');
+      if (response.data.logged_in) {
+        if (!user) {
+          const userResponse = await apiClient.get('/users/me/');
+          setUser(userResponse.data);
+        }
         setIsAuthenticated(true);
         return true;
       } else {
@@ -32,43 +31,26 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
-      console.error('Auth check error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers
-      });
-      
+      console.error('Auth check failed:', error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
       setIsLoading(false);
-      setCheckInProgress(false);
     }
     return false;
-  }, []);
+  }, [user]);
 
   const login = useCallback(async (username, password) => {
     try {
-      // First, make the login request
       const loginResponse = await apiClient.post('/users/login/', {
         username,
         password
       });
       
       if (loginResponse.status === 200) {
-        // If login successful, get user info
-        try {
-          const userResponse = await apiClient.get('/users/me/');
-          if (userResponse.status === 200 && userResponse.data) {
-            setUser(userResponse.data);
-            setIsAuthenticated(true);
-            return true;
-          }
-        } catch (userError) {
-          console.error('Failed to fetch user data after login:', userError);
-          throw userError;
-        }
+        setUser(loginResponse.data);
+        setIsAuthenticated(true);
+        return true;
       }
       return false;
     } catch (error) {
@@ -85,17 +67,17 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
-      // Always clear the auth state, even if the logout request fails
       setIsAuthenticated(false);
       setUser(null);
     }
   }, []);
 
-  // Only check auth once when the provider mounts
+  // Only check auth once on initial mount
   React.useEffect(() => {
-    console.log('AuthProvider mounted, checking auth...');
-    checkAuth();
-  }, [checkAuth]);
+    if (!isAuthenticated && !user) {
+      checkAuth();
+    }
+  }, [checkAuth, isAuthenticated, user]);
 
   return (
     <AuthContext.Provider
@@ -111,14 +93,6 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
 
 export default AuthContext;

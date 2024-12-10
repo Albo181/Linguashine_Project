@@ -40,6 +40,8 @@ class Feedback(models.Model):
     student_notes = models.TextField(blank=True)   
     teacher_notes = models.TextField(blank=True)  
     document_area = models.FileField(upload_to="student_work/")
+    hidden_from_student = models.BooleanField(default=False)
+    hidden_from_teacher = models.BooleanField(default=False)
     
     def save(self, *args, **kwargs):
         # Calculate grade percentage if both grade values are provided

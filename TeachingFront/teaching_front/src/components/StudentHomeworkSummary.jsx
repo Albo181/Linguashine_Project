@@ -1,5 +1,83 @@
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Card, CardContent, CardActions, Button, Divider, Pagination, Grid, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import React, { useEffect, useState, useMemo } from "react";
+import { Box, Typography, Card, CardContent, CardActions, Button, Divider, Pagination, Grid, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel, CircularProgress, Avatar } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
+import apiClient from '../api/apiClient';
+
+const ProfileImage = React.memo(({ profilePicture, firstName }) => {
+    const [imageError, setImageError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Construct the full URL based on whether it's a local or production URL
+    const fullImageUrl = useMemo(() => {
+        if (!profilePicture) return null;
+        
+        if (profilePicture.startsWith('http')) {
+            return profilePicture;
+        }
+        
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        return `${cleanBaseUrl}${profilePicture}`;
+    }, [profilePicture]);
+
+    useEffect(() => {
+        setImageError(false);
+        setIsLoading(true);
+        
+        if (!fullImageUrl) {
+            setImageError(true);
+            setIsLoading(false);
+            return;
+        }
+
+        console.log('Attempting to load image from:', fullImageUrl);
+
+        // Test image loading
+        const img = new Image();
+        img.onload = () => {
+            console.log('Successfully loaded image:', fullImageUrl);
+            setIsLoading(false);
+            setImageError(false);
+        };
+        img.onerror = (e) => {
+            console.error('Failed to load image:', fullImageUrl, e);
+            setImageError(true);
+            setIsLoading(false);
+        };
+        img.src = fullImageUrl;
+
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
+    }, [fullImageUrl]);
+
+    if (imageError || !fullImageUrl) {
+        return (
+            <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative w-[60px] h-[60px]">
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-full">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                </div>
+            )}
+            <img
+                src={fullImageUrl}
+                alt={`${firstName}'s profile`}
+                className={`w-full h-full rounded-full object-cover border-4 border-white shadow-xl ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                onError={() => setImageError(true)}
+            />
+        </div>
+    );
+});
 
 const StudentHomeworkSummary = () => {
 
@@ -20,6 +98,8 @@ const StudentHomeworkSummary = () => {
     const [isInbox, setIsInbox] = useState(true);
     const [sentSort, setSentSort] = useState('newest');
     const [receivedSort, setReceivedSort] = useState('newest');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const cardsPerPage = 9;
 
@@ -31,50 +111,66 @@ const StudentHomeworkSummary = () => {
     };
 
     useEffect(() => {
-        const fetchSent = async () => {
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
             try {
-                const response = await fetch('/api/student/homework/submitted/', {
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error("Failed to fetch sent submissions");
-                const data = await response.json();
-                setSentSubmissions(data);
+                const [sentResponse, receivedResponse, usersResponse] = await Promise.all([
+                    apiClient.get('/api/student/homework/submitted/'),
+                    apiClient.get('/api/student/homework/received/'),
+                    apiClient.get('/users/all-users/')
+                ]);
+
+                setSentSubmissions(sentResponse.data);
+                setReceivedSubmissions(receivedResponse.data);
+                setAllUsers(usersResponse.data);
             } catch (error) {
-                console.error(error);
+                console.error('Error fetching data:', error);
+                setError('Failed to load data. Please try again.');
+            } finally {
+                setLoading(false);
             }
         };
 
-        const fetchReceived = async () => {
-            try {
-                const response = await fetch('/api/student/homework/received/', {
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error("Failed to fetch received submissions");
-                const data = await response.json();
-                console.log('Received submissions:', data);
-                setReceivedSubmissions(data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        const fetchAllUsers = async () => {
-            try {
-                const response = await fetch('/users/all-users/', {
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error("Failed to fetch all users");
-                const data = await response.json();
-                setAllUsers(data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchSent();
-        fetchReceived();
-        fetchAllUsers();
+        fetchData();
     }, []);
+
+    if (loading) {
+        return (
+            <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '100vh',
+                flexDirection: 'column',
+                gap: 2
+            }}>
+                <CircularProgress />
+                <Typography>Loading your homework submissions...</Typography>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '100vh',
+                flexDirection: 'column',
+                gap: 2
+            }}>
+                <Typography color="error">{error}</Typography>
+                <Button 
+                    variant="contained" 
+                    onClick={() => window.location.reload()}
+                >
+                    Retry
+                </Button>
+            </Box>
+        );
+    }
 
     const formatDateTime = (dateTime) => {
         if (!dateTime) return "Date not available";
@@ -105,8 +201,17 @@ const StudentHomeworkSummary = () => {
     };
 
     const getUserProfilePicture = (userId) => {
-        const user = allUsers.find((user) => user.id === userId);
-        return user ? getFullImageUrl(user.profile_picture) : "/placeholder-profile.png";
+        const user = allUsers.find(user => user.id === userId);
+        if (user) {
+            const pictureUrl = user.profile_picture_url || user.profile_picture || user.profilePicture;
+            if (pictureUrl && pictureUrl.startsWith('/media')) {
+                const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+                const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+                return `${cleanBaseUrl}${pictureUrl}`;
+            }
+            return pictureUrl;
+        }
+        return "/placeholder-profile.png";
     };
 
     const truncateText = (text, maxLength = 50) => {
@@ -118,33 +223,29 @@ const StudentHomeworkSummary = () => {
         return typeof percent === 'number' ? percent.toFixed(2) : '0.00';
     };
 
-    const handleDelete = async (submissionId, isSent) => {
+    const handleDelete = async (submissionId, isInbox) => {
         try {
-            const endpoint = isSent 
+            // Note: isInbox is true for received submissions, false for sent submissions
+            const endpoint = !isInbox 
                 ? `/api/student/homework/submitted/${submissionId}/`
                 : `/api/student/homework/received/${submissionId}/`;
             
-            const response = await fetch(endpoint, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
-                },
-            });
-            if (response.ok) {
-                // Update the state to remove the deleted submission
-                if (isSent) {
+            console.log('Deleting submission at endpoint:', endpoint);
+            const response = await apiClient.delete(endpoint);
+            
+            if (response.status === 204 || response.status === 200) {
+                // Update the state to remove the hidden submission
+                if (!isInbox) {
                     setSentSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
                 } else {
                     setReceivedSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
                 }
-            } else {
-                const errorText = await response.text();
-                console.error('Server response:', errorText);
-                console.error('Failed to delete submission');
             }
         } catch (error) {
-            console.error('Error deleting submission:', error);
+            console.error('Error hiding submission:', error);
+            // Optionally show an error message to the user
+            setError('Failed to hide submission. Please try again.');
+            setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
         }
     };
 
@@ -170,14 +271,11 @@ const StudentHomeworkSummary = () => {
     const handleDownload = async (documentUrl) => {
         try {
             console.log('Attempting to download:', documentUrl);
-            const response = await fetch(documentUrl);
-            console.log('Download response status:', response.status);
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', errorText);
-                throw new Error('Download failed');
-            }
-            const blob = await response.blob();
+            const response = await apiClient.get(documentUrl, {
+                responseType: 'blob'
+            });
+            
+            const blob = response.data;
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -215,6 +313,11 @@ const StudentHomeworkSummary = () => {
     const handleReceivedSortChange = (event) => {
         setReceivedSort(event.target.value);
         setReceivedPage(1);
+    };
+
+    const getProfilePicture = (user) => {
+        if (!user || !user.profile_picture) return "/placeholder-profile.png";
+        return user.profile_picture;
     };
 
     console.log("Sent submission example:", sentSubmissions[0]);
@@ -289,147 +392,106 @@ const StudentHomeworkSummary = () => {
                     </FormControl>
                 </Box>
                 <Grid container spacing={3}>
-                    {paginateReceived(sortSubmissions(receivedSubmissions, receivedSort)).map((submission) => {
-                        console.log('Received submission document URL:', submission.document_area);
-                        return (
-                            <Grid item xs={12} sm={6} md={4} key={submission.id}>
-                                <Card
-                                    variant="outlined"
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        borderRadius: '8px',
-                                        position: 'relative',
-                                        backgroundColor: '#fafafa',
-                                        background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
-                                        backgroundSize: '40px 40px',
-                                        backgroundOpacity: 0.3,
-                                        border: '0.5px solid #eaeaea',
-                                        overflow: 'hidden',
-                                        '&:hover': {
-                                            transform: 'translateY(-4px)',
-                                            boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
-                                            transition: 'all 0.3s ease'
-                                        },
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
-                                    <IconButton
-                                        onClick={() => handleDeleteClick(submission.id, false)}
-                                        sx={{
-                                            position: 'absolute',
-                                            right: 8,
-                                            top: 8,
-                                            zIndex: 3,
-                                            color: 'rgba(0, 0, 0, 0.54)',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                            '&:hover': {
-                                                color: 'rgba(0, 0, 0, 0.87)',
-                                                backgroundColor: 'rgba(255, 255, 255, 1)'
-                                            },
-                                            padding: '4px',
-                                            minWidth: '32px',
-                                            minHeight: '32px'
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
-                                    </IconButton>
-                                    <CardContent sx={{ 
-                                        flexGrow: 1, 
-                                        overflow: 'hidden', 
-                                        p: 1.5,
-                                        pt: 3,
-                                        borderRadius: '0 0 8px 8px',
-                                        position: 'relative'
-                                    }}>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            mb: 1,
-                                            position: 'relative',
-                                            zIndex: 2
-                                        }}>
-                                            <img
-                                                src={getUserProfilePicture(submission.send_to?.id)}
-                                                alt="Profile"
-                                                style={{
-                                                    height: "40px",
-                                                    width: "40px",
-                                                    borderRadius: "50%",
-                                                    objectFit: "cover",
-                                                    border: "2px solid #3f51b5",
-                                                }}
-                                            />
-                                            <Box sx={{ ml: 1 }}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                                    {submission.send_to?.username || 'Unknown Teacher'}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                    {submission.send_to?.email}
-                                                </Typography>
-                                            </Box>
+                    {paginateReceived(sortSubmissions(receivedSubmissions, receivedSort)).map((submission) => (
+                        <Grid item xs={12} sm={6} md={4} key={submission.id}>
+                            <Card sx={{
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                borderRadius: '8px',
+                                backgroundColor: '#fafafa',
+                                background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
+                                backgroundSize: '40px 40px',
+                                backgroundOpacity: 0.3,
+                                border: '0.5px solid #eaeaea',
+                                '&:hover': {
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
+                                    transition: 'all 0.3s ease'
+                                },
+                                transition: 'all 0.3s ease'
+                            }}>
+                                <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <ProfileImage 
+                                            profilePicture={getUserProfilePicture(submission.send_to?.id)}
+                                            firstName={submission.send_to?.first_name}
+                                        />
+                                        <Box sx={{ ml: 2 }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                                {submission.task_type}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                From: {submission.send_to?.first_name} {submission.send_to?.last_name}
+                                            </Typography>
                                         </Box>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Task: {submission.task_type}
+                                    </Box>
+                                    
+                                    {submission.grade_awarded !== null && (
+                                        <Typography 
+                                            variant="body1" 
+                                            sx={{ 
+                                                color: "#2196f3",
+                                                fontWeight: 500,
+                                                mt: 1,
+                                                mb: 2,
+                                                backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                                padding: '4px 8px',
+                                                borderRadius: '4px',
+                                                display: 'inline-block'
+                                            }}
+                                        >
+                                            Grade: {submission.grade_awarded}/{submission.grade_total} ({((submission.grade_awarded / submission.grade_total) * 100).toFixed(1)}%)
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            From: {submission.student_name?.first_name} {submission.student_name?.last_name}
-                                        </Typography>
-                                        {(submission.grade_awarded !== null && submission.grade_awarded !== undefined) && (
+                                    )}
+
+                                    {/* Teacher's notes in received work */}
+                                    {submission.teacher_notes && (
+                                        <Box sx={{ mt: 1 }}>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                                Teacher Notes:
+                                            </Typography>
                                             <Typography 
-                                                variant="body1" 
+                                                variant="body2" 
                                                 sx={{ 
-                                                    color: "#2196f3",
-                                                    fontWeight: 500,
-                                                    mt: 1,
-                                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                                                    padding: '4px 8px',
+                                                    backgroundColor: '#e3f2fd',
+                                                    padding: '8px 12px',
                                                     borderRadius: '4px',
-                                                    display: 'inline-block'
+                                                    whiteSpace: 'pre-wrap',
+                                                    maxHeight: '60px',
+                                                    overflow: 'auto',
+                                                    border: '1px solid rgba(33, 150, 243, 0.1)',
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                                                 }}
                                             >
-                                                Grade: {submission.grade_awarded}/{submission.grade_total} ({((submission.grade_awarded / submission.grade_total) * 100).toFixed(1)}%)
+                                                {truncateText(submission.teacher_notes, 100)}
                                             </Typography>
-                                        )}
-                                        {submission.teacher_notes && (
-                                            <Box sx={{ mt: 1 }}>
-                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                    Teacher Notes:
-                                                </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                        backgroundColor: '#f5f5f5',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        whiteSpace: 'pre-wrap',
-                                                        maxHeight: '60px',
-                                                        overflow: 'auto'
-                                                    }}
-                                                >
-                                                    {truncateText(submission.teacher_notes, 100)}
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                                            Received: {formatDateTime(submission.submission_date)}
-                                        </Typography>
-                                    </CardContent>
-                                    <CardActions sx={{ pt: 0.5, pb: 1, px: 1.5 }}>
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            onClick={() => handleDownload(submission.document_area)}
-                                            sx={{ textTransform: "none" }}
-                                        >
-                                            Download
-                                        </Button>
-                                    </CardActions>
-                                </Card>
-                            </Grid>
-                        );
-                    })}
+                                        </Box>
+                                    )}
+
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                        Received: {formatDateTime(submission.submission_date)}
+                                    </Typography>
+                                </CardContent>
+                                <CardActions sx={{ p: 2, pt: 0 }}>
+                                    <Button
+                                        size="small"
+                                        variant="contained"
+                                        onClick={() => handleDownload(submission.document_area)}
+                                    >
+                                        Download
+                                    </Button>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteClick(submission.id, true)}
+                                        color="error"
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    ))}
                 </Grid>
                 {/* Pagination Controls for Received Work */}
                 <Box sx={{ mt: 4, textAlign: "center" }}>
@@ -545,94 +607,40 @@ const StudentHomeworkSummary = () => {
                 <Grid container spacing={3}>
                     {paginateSent(sortSubmissions(sentSubmissions, sentSort)).map((submission) => (
                         <Grid item xs={12} sm={6} md={4} key={submission.id}>
-                            <Card
-                                variant="outlined"
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    height: '100%',
-                                    borderRadius: '8px',
-                                    position: 'relative',
-                                    backgroundColor: '#fafafa',
-                                    background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
-                                    backgroundSize: '40px 40px',
-                                    backgroundOpacity: 0.3,
-                                    border: '0.5px solid #eaeaea',
-                                    overflow: 'hidden',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
-                                        transition: 'all 0.3s ease'
-                                    },
+                            <Card sx={{
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                borderRadius: '8px',
+                                backgroundColor: '#fafafa',
+                                background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
+                                backgroundSize: '40px 40px',
+                                backgroundOpacity: 0.3,
+                                border: '0.5px solid #eaeaea',
+                                '&:hover': {
+                                    transform: 'translateY(-4px)',
+                                    boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
                                     transition: 'all 0.3s ease'
-                                }}
-                            >
-                                <IconButton
-                                    onClick={() => handleDeleteClick(submission.id, true)}
-                                    sx={{
-                                        position: 'absolute',
-                                        right: 8,
-                                        top: 8,
-                                        zIndex: 3,
-                                        color: 'rgba(0, 0, 0, 0.54)',
-                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                        '&:hover': {
-                                            color: 'rgba(0, 0, 0, 0.87)',
-                                            backgroundColor: 'rgba(255, 255, 255, 1)'
-                                        },
-                                        padding: '4px',
-                                        minWidth: '32px',
-                                        minHeight: '32px'
-                                    }}
-                                >
-                                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
-                                </IconButton>
-                                <CardContent sx={{ 
-                                    flexGrow: 1, 
-                                    overflow: 'hidden', 
-                                    p: 1.5,
-                                    pt: 3,
-                                    borderRadius: '0 0 8px 8px',
-                                    position: 'relative'
-                                }}>
-                                    <Box sx={{ 
-                                        display: 'flex', 
-                                        alignItems: 'center', 
-                                        mb: 1,
-                                        position: 'relative',
-                                        zIndex: 2
-                                    }}>
-                                        <img
-                                            src={getUserProfilePicture(submission.student_name?.id)}
-                                            alt="Profile"
-                                            style={{
-                                                height: "40px",
-                                                width: "40px",
-                                                borderRadius: "50%",
-                                                objectFit: "cover",
-                                                border: "2px solid #3f51b5",
-                                            }}
+                                },
+                                transition: 'all 0.3s ease'
+                            }}>
+                                <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                        <ProfileImage 
+                                            profilePicture={getUserProfilePicture(submission.student_name?.id)}
+                                            firstName={submission.student_name?.first_name}
                                         />
-                                        <Box sx={{ ml: 1 }}>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                                {submission.student_name?.username}
+                                        <Box sx={{ ml: 2 }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                                {submission.task_type}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                {submission.student_name?.email}
+                                            <Typography variant="caption" color="text.secondary">
+                                                To: {submission.send_to?.first_name} {submission.send_to?.last_name}
                                             </Typography>
                                         </Box>
                                     </Box>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Task: {submission.task_type}
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Sent to: {submission.send_to?.first_name} {submission.send_to?.last_name}
-                                    </Typography>
-                                    {submission.grade_awarded && (
-                                        <Typography variant="body1" sx={{ color: "#2196f3" }} noWrap>
-                                            Grade: {submission.grade_awarded}/{submission.grade_total} ({formatPercentage(submission.grade_percent)}%)
-                                        </Typography>
-                                    )}
+
+                                    {/* Student's notes in sent work */}
                                     {submission.student_notes && (
                                         <Box sx={{ mt: 1 }}>
                                             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -642,50 +650,39 @@ const StudentHomeworkSummary = () => {
                                                 variant="body2" 
                                                 sx={{ 
                                                     backgroundColor: '#f5f5f5',
-                                                    padding: '4px 8px',
+                                                    padding: '8px 12px',
                                                     borderRadius: '4px',
                                                     whiteSpace: 'pre-wrap',
                                                     maxHeight: '60px',
-                                                    overflow: 'auto'
+                                                    overflow: 'auto',
+                                                    border: '1px solid rgba(0,0,0,0.05)',
+                                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                                                 }}
                                             >
                                                 {truncateText(submission.student_notes, 100)}
                                             </Typography>
                                         </Box>
                                     )}
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                                        Submitted: {formatDateTime(submission.submission_date)}
+
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                                        Sent: {formatDateTime(submission.submission_date)}
                                     </Typography>
-                                    {submission.teacher_notes && (
-                                        <Box sx={{ mt: 1 }}>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                Teacher Notes:
-                                            </Typography>
-                                            <Typography 
-                                                variant="body2" 
-                                                sx={{ 
-                                                    backgroundColor: '#f5f5f5',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '4px',
-                                                    whiteSpace: 'pre-wrap',
-                                                    maxHeight: '60px',
-                                                    overflow: 'auto'
-                                                }}
-                                            >
-                                                {truncateText(submission.teacher_notes, 100)}
-                                            </Typography>
-                                        </Box>
-                                    )}
                                 </CardContent>
-                                <CardActions sx={{ pt: 0.5, pb: 1, px: 1.5 }}>
+                                <CardActions sx={{ p: 2, pt: 0 }}>
                                     <Button
                                         size="small"
                                         variant="contained"
                                         onClick={() => handleDownload(submission.document_area)}
-                                        sx={{ textTransform: "none" }}
                                     >
                                         Download
                                     </Button>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleDeleteClick(submission.id, false)}
+                                        color="error"
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
                                 </CardActions>
                             </Card>
                         </Grid>
@@ -720,19 +717,19 @@ const StudentHomeworkSummary = () => {
                 aria-labelledby="delete-dialog-title"
             >
                 <DialogTitle id="delete-dialog-title">
-                    Confirm Deletion
+                    Hide Submission
                 </DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete this submission? This action cannot be undone.
+                        Are you sure you want to hide this submission? It will be removed from your view but will still be visible to the teacher.
                     </Typography>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleDeleteCancel} color="primary">
                         Cancel
                     </Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                        Delete
+                    <Button onClick={handleDeleteConfirm} color="primary" variant="contained">
+                        Hide
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './FileCard.css';
 import audio_icon from '../images/audio_icon.png';
 import image_icon from '../images/image_icon.png';
@@ -6,6 +6,8 @@ import document_icon from '../images/document_icon.png';
 import video_icon from '../images/video_icon.png';
 
 const FileCard = ({ file, onDownload, onDelete }) => {
+  const [imageError, setImageError] = useState(false);
+
   // Helper function to get the correct icon based on the file type
   console.log("File sender is: ", file.sender);
   const getIcon = (type) => {
@@ -28,16 +30,11 @@ const FileCard = ({ file, onDownload, onDelete }) => {
     if (!dateTime) return 'Date not available';
     
     try {
-      // Try parsing the date string
       const date = new Date(dateTime);
-      
-      // Check if the date is valid
       if (isNaN(date.getTime())) {
         console.error('Invalid date:', dateTime);
         return 'Invalid date';
       }
-
-      // Format the date using Intl.DateTimeFormat for better localization
       const formatter = new Intl.DateTimeFormat('en-GB', {
         year: 'numeric',
         month: '2-digit',
@@ -46,7 +43,6 @@ const FileCard = ({ file, onDownload, onDelete }) => {
         minute: '2-digit',
         hour12: false
       });
-
       return formatter.format(date);
     } catch (error) {
       console.error('Error formatting date:', error, dateTime);
@@ -74,9 +70,34 @@ const FileCard = ({ file, onDownload, onDelete }) => {
     }
   };
 
+  const renderFilePreview = () => {
+    if (file.type === 'image' && !imageError) {
+      return (
+        <div className="file-preview-container">
+          <img
+            src={file.file_url || file.file}
+            alt={file.title}
+            onError={() => {
+              console.error('Image failed to load:', file.file_url || file.file);
+              setImageError(true);
+            }}
+            className="file-preview-image"
+          />
+        </div>
+      );
+    } else {
+      return (
+        <img
+          src={getIcon(file.type)}
+          alt={file.type}
+          className="w-11 h-11 border border-gray-200 rounded-full p-1"
+        />
+      );
+    }
+  };
+
   return (
     <div className="file-card border-2 shadow-md rounded-lg hover:shadow-lg transition-shadow duration-300 bg-gradient-to-r from-gray-50 to-gray-100 relative">
-      {/* Delete button (cross) */}
       <button
         onClick={() => onDelete(file)}  
         className="delete-button absolute top-2 right-2 text-red-500 hover:text-red-700"
@@ -87,11 +108,7 @@ const FileCard = ({ file, onDownload, onDelete }) => {
       </button> 
 
       <div className="file-info flex items-center space-x-4 p-4">
-        <img
-          src={getIcon(file.type)}
-          alt={file.type}
-          className="w-11 h-11 border border-gray-200 rounded-full p-1"
-        />
+        {renderFilePreview()}
         <div>
           <h3 className="text-xl font-semibold text-gray-800">{file.title}</h3>
           <p className="text-sm text-gray-500">
@@ -101,7 +118,6 @@ const FileCard = ({ file, onDownload, onDelete }) => {
       </div>
 
       <div className="file-actions p-4 flex justify-between items-center">
-        {/* Display sender's name */}
         <span className="text-sm text-blue-400">
           Sender: {formatSenderName(file.sender)}
         </span>

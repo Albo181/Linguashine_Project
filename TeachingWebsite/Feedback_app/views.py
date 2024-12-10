@@ -158,7 +158,12 @@ class TeacherReceivedHomeworkView(APIView):
     serializer_class = StudentFetchSerializer
 
     def get_queryset(self):
-        return Feedback.objects.filter(send_to=self.request.user).order_by('-submission_date')
+        # Show feedback where teacher is the recipient (send_to) and not hidden
+        return Feedback.objects.filter(
+            send_to=self.request.user,
+            grade_awarded__isnull=True,  # Only show ungraded submissions
+            hidden_from_teacher=False  # Don't show hidden submissions
+        ).order_by('-submission_date')
 
     def get(self, request):
         queryset = self.get_queryset()
@@ -168,7 +173,8 @@ class TeacherReceivedHomeworkView(APIView):
     def delete(self, request, pk):
         try:
             feedback = Feedback.objects.get(pk=pk, send_to=request.user)
-            feedback.delete()
+            feedback.hidden_from_teacher = True  # Hide instead of delete
+            feedback.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Feedback.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -179,7 +185,11 @@ class TeacherSubmittedHomeworkView(APIView):
     serializer_class = TeacherFetchSerializer
 
     def get_queryset(self):
-        return Feedback.objects.filter(send_to=self.request.user).order_by('-submission_date')
+        return Feedback.objects.filter(
+            send_to=self.request.user,
+            grade_awarded__isnull=False,  # Only show graded submissions
+            hidden_from_teacher=False  # Don't show hidden submissions
+        ).order_by('-submission_date')
 
     def get(self, request):
         queryset = self.get_queryset()
@@ -189,7 +199,8 @@ class TeacherSubmittedHomeworkView(APIView):
     def delete(self, request, pk):
         try:
             feedback = Feedback.objects.get(pk=pk, send_to=request.user)
-            feedback.delete()
+            feedback.hidden_from_teacher = True  # Hide instead of delete
+            feedback.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Feedback.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -203,7 +214,8 @@ class StudentSubmittedHomeworkView(APIView):
 
     def get_queryset(self):
         return Feedback.objects.filter(
-            student_name=self.request.user
+            student_name=self.request.user,
+            hidden_from_student=False  # Don't show hidden submissions
         ).order_by('-submission_date')
 
     def get(self, request):
@@ -214,7 +226,8 @@ class StudentSubmittedHomeworkView(APIView):
     def delete(self, request, pk):
         try:
             feedback = Feedback.objects.get(pk=pk, student_name=request.user)
-            feedback.delete()
+            feedback.hidden_from_student = True  # Hide instead of delete
+            feedback.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Feedback.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -226,8 +239,9 @@ class StudentReceivedHomeworkView(APIView):
 
     def get_queryset(self):
         return Feedback.objects.filter(
-            student_name=self.request.user,  
-            grade_awarded__isnull=False  
+            student_name=self.request.user,
+            grade_awarded__isnull=False,
+            hidden_from_student=False  # Don't show hidden submissions
         ).order_by('-submission_date')
 
     def get(self, request):
@@ -237,8 +251,9 @@ class StudentReceivedHomeworkView(APIView):
 
     def delete(self, request, pk):
         try:
-            feedback = Feedback.objects.get(pk=pk, student_name=request.user)  
-            feedback.delete()
+            feedback = Feedback.objects.get(pk=pk, student_name=request.user)
+            feedback.hidden_from_student = True  # Hide instead of delete
+            feedback.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Feedback.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -252,6 +267,7 @@ class UploadView(APIView):
     parser_classes = [parsers.MultiPartParser, parsers.FormParser]
     permission_classes = [IsAuthenticated]
     ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    MAX_FILE_SIZE = 25 * 1024 * 1024  # 25MB limit for email attachments
 
     def post(self, request, *args, **kwargs):
         try:
@@ -278,6 +294,13 @@ class UploadView(APIView):
             if not data['document_area']:
                 return Response(
                     {"error": "Document file is required."}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check file size
+            if data['document_area'].size > self.MAX_FILE_SIZE:
+                return Response(
+                    {"error": f"File size too large. Maximum size allowed is 25MB."}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
                 

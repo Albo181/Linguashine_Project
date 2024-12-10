@@ -1,121 +1,32 @@
 import axios from 'axios';
 
-// Always use the production URL when running locally
-const baseURL = 'https://linguashineproject-production.up.railway.app';
-
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 console.log('API Client baseURL:', baseURL);
 
 const apiClient = axios.create({
-  baseURL,
+  baseURL: baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest'
-  }
+  },
 });
 
-let csrfTokenPromise = null;
-
-// Function to get CSRF token with retries
-export const fetchCSRFToken = async (retries = 3) => {
-  if (csrfTokenPromise) {
-    return csrfTokenPromise;
-  }
-
-  csrfTokenPromise = (async () => {
-    for (let i = 0; i < retries; i++) {
-      try {
-        // Make a GET request to Django's CSRF endpoint
-        const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
-          withCredentials: true
-        });
-        console.log('CSRF token response:', response.data);
-        
-        const csrfToken = response.data.csrfToken;
-        
-        if (!csrfToken) {
-          console.error(`Attempt ${i + 1}/${retries}: No CSRF token in response`);
-          if (i === retries - 1) {
-            throw new Error('Failed to get CSRF token after multiple attempts');
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          continue;
-        }
-        
-        console.log('Successfully retrieved CSRF token');
-        return csrfToken;
-      } catch (error) {
-        console.error(`Attempt ${i + 1}/${retries}: Error fetching CSRF token:`, error);
-        if (i === retries - 1) {
-          throw error;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-  })();
-
-  try {
-    return await csrfTokenPromise;
-  } finally {
-    csrfTokenPromise = null;
-  }
-};
-
-// Add request interceptor to handle CSRF token
-apiClient.interceptors.request.use(
-  async config => {
-    // Add detailed request logging
-    console.log('🔍 Request Details:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data
-    });
-
+// Add a request interceptor to include CSRF token
+apiClient.interceptors.request.use(async (config) => {
+  // Only get CSRF token for non-GET requests
+  if (config.method !== 'get') {
     try {
-      // Don't modify headers if it's a multipart/form-data request
-      if (config.headers['Content-Type'] === 'multipart/form-data') {
-        const token = await fetchCSRFToken();
-        config.headers['X-CSRFToken'] = token;
-        return config;
-      }
-
-      // For other requests, proceed with default JSON content type
-      const token = await fetchCSRFToken();
-      config.headers['X-CSRFToken'] = token;
-      config.headers['Content-Type'] = 'application/json';
-      return config;
+      // Get CSRF token from cookie endpoint
+      const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
+        withCredentials: true
+      });
+      const csrfToken = response.data.csrfToken;
+      config.headers['X-CSRFToken'] = csrfToken;
     } catch (error) {
-      console.error('Failed to fetch CSRF token in interceptor:', error);
+      console.error('Error fetching CSRF token:', error);
     }
-
-    return config;
-  },
-  error => {
-    console.error('Request interceptor error:', error);
-    return Promise.reject(error);
   }
-);
-
-// Add response interceptor for better error handling
-apiClient.interceptors.response.use(
-  response => {
-    console.log('Response:', {
-      status: response.status,
-      headers: response.headers,
-      data: response.data
-    });
-    return response;
-  },
-  error => {
-    console.error('Response error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      headers: error.response?.headers
-    });
-    return Promise.reject(error);
-  }
-);
+  return config;
+});
 
 export default apiClient;

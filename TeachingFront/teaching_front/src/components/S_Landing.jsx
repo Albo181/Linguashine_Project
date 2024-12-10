@@ -3,56 +3,70 @@ import { Link, useNavigate } from 'react-router-dom';
 import './FileDashboard.css';
 import apiClient from '../api/apiClient';
 
-const OptimizedImage = ({ src, alt, className, style }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+const ProfileImage = ({ src, userName, className = "" }) => {
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Construct the full URL based on whether it's a local or production URL
+  const fullImageUrl = src?.startsWith('http') 
+    ? src 
+    : src ? `${apiClient.defaults.baseURL}${src}` : null;
 
   useEffect(() => {
-    console.log('OptimizedImage mounted with src:', src);
-    // Preload the image
+    setImageError(false);
+    setIsLoading(true);
+    
+    if (!fullImageUrl) {
+      setImageError(true);
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('Attempting to load image from:', fullImageUrl);
+
+    // Test image loading
     const img = new Image();
-    img.src = src;
     img.onload = () => {
-      console.log('Image preloaded successfully:', src);
-      setIsLoaded(true);
+      console.log('Successfully loaded image:', fullImageUrl);
+      setIsLoading(false);
+      setImageError(false);
     };
     img.onerror = (e) => {
-      console.error('Error preloading image:', src, e);
-      setHasError(true);
+      console.error('Failed to load image:', fullImageUrl, e);
+      setImageError(true);
+      setIsLoading(false);
     };
-  }, [src]);
+    img.src = fullImageUrl;
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [fullImageUrl]);
+
+  if (imageError || !fullImageUrl) {
+    return (
+      <div className={`w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl ${className}`}>
+        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative overflow-hidden w-full h-full">
-      {/* Blur placeholder */}
-      {!hasError && (
-        <div 
-          className={`absolute inset-0 blur-xl scale-95 transform ${isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
-          style={{
-            backgroundImage: `url(${src})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
+    <div className="relative w-full h-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
       )}
-      {/* Main image */}
-      {!hasError && (
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={style}
-          onLoad={() => {
-            console.log('Main image loaded successfully:', src);
-            setIsLoaded(true);
-          }}
-          onError={(e) => {
-            console.error('Error loading main image:', src, e);
-            setHasError(true);
-          }}
-        />
-      )}
+      <img
+        src={fullImageUrl}
+        alt={`${userName}'s profile`}
+        className={`w-full h-full rounded-full object-cover border-4 border-white shadow-xl ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 ${className}`}
+        onError={() => setImageError(true)}
+      />
     </div>
   );
 };
@@ -87,16 +101,13 @@ const LandingPage = () => {
           setUser(data);
           setReceiveNotifications(data.receive_email_notifications || false);
           
-          // Handle both profile_picture and profile_picture_url fields
-          if (data.profile_picture) {
-            const pictureUrl = data.profile_picture.startsWith('http') 
-              ? data.profile_picture 
-              : `${apiClient.defaults.baseURL}${data.profile_picture}`;
-            console.log('Setting profile picture from profile_picture:', pictureUrl);
-            setProfilePicturePreview(pictureUrl);
-          } else if (data.profile_picture_url) {
-            console.log('Setting profile picture from profile_picture_url:', data.profile_picture_url);
+          // Handle profile picture URL
+          if (data.profile_picture_url) {
+            // Use the full URL from the backend
             setProfilePicturePreview(data.profile_picture_url);
+          } else if (data.profile_picture) {
+            // For local development, use the relative path
+            setProfilePicturePreview(data.profile_picture);
           }
         }
       } catch (error) {
@@ -195,24 +206,12 @@ const LandingPage = () => {
           <div className="mb-8">
             <div className="w-32 h-32 mx-auto relative">
               <div className="absolute inset-0 bg-blue-500 rounded-full animate-pulse"></div>
-              {profilePicturePreview ? (
-                <img
-                  src={profilePicturePreview}
-                  alt={`${user?.first_name}'s profile picture`}
-                  className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl relative z-10"
-                  onError={(e) => {
-                    console.error('Error loading profile picture:', profilePicturePreview);
-                    e.target.style.display = 'none';
-                    setProfilePicturePreview('');
-                  }}
+              <div className="w-32 h-32 relative z-10">
+                <ProfileImage 
+                  src={profilePicturePreview} 
+                  userName={user?.first_name}
                 />
-              ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl relative z-10">
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              )}
+              </div>
             </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
@@ -268,14 +267,18 @@ const LandingPage = () => {
                 View Full Profile
               </button>
 
-              <label className="flex items-center space-x-3 text-gray-700 bg-gray-50 p-4 rounded-lg">
+              <label className="flex items-center space-x-3 text-gray-700 bg-gray-50 p-4 rounded-lg group relative">
                 <input
                   type="checkbox"
                   checked={receiveNotifications}
                   onChange={handleCheckboxChange}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-not-allowed opacity-50"
+                  disabled
                 />
                 <span>Receive email notifications</span>
+                <div className="hidden group-hover:block absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded whitespace-nowrap">
+                  Coming soon! 🚀
+                </div>
               </label>
             </div>
           </div>
@@ -293,6 +296,22 @@ const LandingPage = () => {
 
             <div className="space-y-4 mb-8">
               <ul className="space-y-4">
+                <li>
+                  <Link to="/dash/files" className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
+                    My Dashboard
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/dash-shared/files" className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+                    <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Shared Files
+                  </Link>
+                </li>
                 <li>
                   <Link to="/feedback" className="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

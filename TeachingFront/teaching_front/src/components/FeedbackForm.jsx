@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Button, TextField, MenuItem, Typography, Box } from "@mui/material";
+import { Button, TextField, MenuItem, Typography, Box, CircularProgress } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 
 const FeedbackForm = () => {
+    const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
     const [currentUserUsername, setCurrentUserUsername] = useState("");
     const [sendToOptions, setSendToOptions] = useState([]);
     const [sendTo, setSendTo] = useState("");
     const [taskType, setTaskType] = useState("");
-    const [taskTypes, setTaskTypes] = useState([]);
+    const [taskTypes] = useState([
+        { value: 'Cambridge', label: 'Cambridge' },
+        { value: 'Aptis', label: 'Aptis' },
+        { value: 'EOI', label: 'Escuela Oficial de Idiomas' },
+        { value: 'IELTS', label: 'Ielts' },
+        { value: 'Trinity', label: 'Trinity' },
+        { value: '(Homework task)', label: 'Homework Task' },
+        { value: '(Essay)', label: 'Essay' },
+        { value: '(Project)', label: 'Project' },
+        { value: '*Other*', label: 'Other' }
+    ]);
     const [gradeAwarded, setGradeAwarded] = useState("");
     const [gradeTotal, setGradeTotal] = useState("");
     const [gradePercent, setGradePercent] = useState(null);
@@ -20,70 +32,76 @@ const FeedbackForm = () => {
     const [feedbackId, setFeedbackId] = useState(null);
     const [studentName, setStudentName] = useState("");
     const [userId, setUserId] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const getCsrfToken = () => {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-            if (cookie.startsWith('csrftoken=')) {
-                return cookie.substring('csrftoken='.length);
+    // Add session check
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const response = await apiClient.get('/users/check-auth/');
+                if (!response.data.logged_in) {
+                    navigate('/login');
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+                // Only navigate to login if it's a 401 error
+                if (error.response?.status === 401) {
+                    navigate('/login');
+                }
             }
-        }
-        return null;
+        };
+        checkSession();
+    }, [navigate]);
+
+    // Add navigation handler
+    const handleBack = () => {
+        navigate('/landing');
     };
 
     // GETS LOGGED-IN USER DETAILS
     const fetchProfile = async () => {
         try {
-            const response = await fetch("/api/users/me", {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCsrfToken(),
-                },
-                credentials: "include",
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch profile: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            // Store the ID separately
+            setIsLoading(true);
+            const response = await apiClient.get("/users/me/");
+            const data = response.data;
             setUserId(data.id);
             setCurrentUser(data);
             setCurrentUserUsername(data.username || "");
             setStudentName(data.name || data.username || "Unknown Student");
         } catch (error) {
             console.error("Error fetching profile:", error);
+            setError("Failed to load user profile");
+        } finally {
+            setIsLoading(false);
         }
     };
 
     //GETS "ALL" USER DETAILS
     const fetchUsers = async () => {
         try {
-            const response = await fetch("/api/users", {
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCsrfToken(),
-                },
-                credentials: 'include',
-            });
-            const users = await response.json();
+            const response = await apiClient.get("/users/all-users/");
+            const users = response.data;
             
-            // Extract just IDs and usernames
+            // Extract user details including name
             const processedUsers = users.map(user => ({
                 id: user.id,
                 username: user.username,
+                name: user.first_name ? `${user.first_name} ${user.last_name}` : user.username,
                 user_type: user.user_type
             }));
             
             const students = processedUsers.filter(user => user.user_type === "student");
             const teachers = processedUsers.filter(user => user.user_type === "teacher");
             
+            console.log("Processed users:", processedUsers);
+            console.log("Students:", students);
+            console.log("Teachers:", teachers);
+            
             setSendToOptions(currentUser?.user_type === "teacher" ? students : teachers);
         } catch (error) {
             console.error("Error fetching users:", error);
+            setError("Failed to load users list");
         }
     };
 
@@ -97,7 +115,7 @@ const FeedbackForm = () => {
         if (currentUser) fetchUsers();
     }, [currentUser]);
 
-    // ** CALCULATES HOMEWORK PERCENTAGE (likely redundant - as done on back end)
+    // CALCULATES HOMEWORK PERCENTAGE
     useEffect(() => {
         if (gradeAwarded && gradeTotal) {
             const percentage = (gradeAwarded / gradeTotal) * 100;
@@ -108,31 +126,40 @@ const FeedbackForm = () => {
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        if (file.type === 'application/pdf') {
-            setPreviewUrl(URL.createObjectURL(file));
-        } else {
-            setPreviewUrl(null);
-        }
-        setDocumentArea(file);
-    };
-
-    // FETCHES TASK-TYPES FOR DROP DOWN MENU (on upload)
-    useEffect(() => {
-        const fetchTaskTypes = async () => {
-            try {
-                const response = await fetch("/api/task-types/"); 
-                if (!response.ok) {
-                    throw new Error("Failed to fetch task types");
-                }
-                const data = await response.json();
-                setTaskTypes(data); 
-            } catch (error) {
-                console.error("Error fetching task types:", error);
+        if (file) {
+            console.log("File selected:", file);
+            console.log("File type:", file.type);
+            console.log("File name:", file.name);
+            console.log("File size:", file.size);
+            
+            // Check file size (25MB limit)
+            if (file.size > 25 * 1024 * 1024) {
+                alert("File size too large. Maximum size allowed is 25MB.");
+                e.target.value = ''; // Clear the file input
+                return;
             }
-        };
-
-        fetchTaskTypes();
-    }, []);
+            
+            // Check file type
+            const allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
+            
+            if (!allowedTypes.includes(file.type)) {
+                alert("Invalid file type. Please upload a PDF, DOC, or DOCX file.");
+                e.target.value = ''; // Clear the file input
+                return;
+            }
+            
+            setDocumentArea(file);
+            if (file.type === 'application/pdf') {
+                setPreviewUrl(URL.createObjectURL(file));
+            } else {
+                setPreviewUrl(null);
+            }
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -145,311 +172,321 @@ const FeedbackForm = () => {
         try {
             const formData = new FormData();
             
-            // Handle student_name field based on user type
-            if (currentUser?.user_type === "teacher") {
-                // For teachers, student_name is the recipient (sendTo)
-                if (!sendTo) {
-                    throw new Error("Please select a student to send feedback to.");
-                }
-                formData.append("student_name", String(sendTo));
-                // send_to will be set automatically to the current teacher in the backend
-            } else {
-                // For students, student_name is themselves and send_to is the teacher
-                formData.append("student_name", String(userId));
-                if (!sendTo) {
-                    throw new Error("Please select a teacher to send to.");
-                }
-                formData.append("send_to", String(sendTo));
+            // Add file first
+            if (!documentArea) {
+                throw new Error("Please upload a document.");
             }
             
+            // Only append the file once with the correct field name
+            formData.append("document_area", documentArea);
+            
+            // Add task type
             if (!taskType) {
                 throw new Error("Please select a task type.");
             }
             formData.append("task_type", taskType);
             
-            // Add appropriate fields based on user type
+            // Add student name and other required fields
+            const selectedUser = sendToOptions.find(user => user.id === parseInt(sendTo));
+            console.log("Selected user:", selectedUser);
+            console.log("Current user:", currentUser);
+            console.log("Send to options:", sendToOptions);
+            console.log("Send to value:", sendTo);
+            
+            if (!selectedUser && currentUser?.user_type === "teacher") {
+                throw new Error("Selected student not found");
+            }
+            
+            // Use the correct user ID for student_name field
             if (currentUser?.user_type === "teacher") {
+                formData.append("student_name", sendTo); // Use the selected student's ID
+            } else {
+                formData.append("student_name", userId.toString()); // Use current user's ID for student submissions
+            }
+            
+            // Add other fields
+            if (currentUser?.user_type === "teacher") {
+                if (!sendTo) {
+                    throw new Error("Please select a student to send feedback to.");
+                }
+                formData.append("send_to", String(sendTo));
+                formData.append("teacher_notes", teacherNotes || "");
                 if (gradeAwarded) formData.append("grade_awarded", gradeAwarded);
                 if (gradeTotal) formData.append("grade_total", gradeTotal);
-                if (teacherNotes) formData.append("teacher_notes", teacherNotes);
             } else {
-                if (studentNotes) formData.append("student_notes", studentNotes);
-            }
-            
-            if (!documentArea) {
-                throw new Error("Please upload a document.");
-            }
-            formData.append("document_area", documentArea);
-            
-            // Log form data for debugging
-            console.log("Form data entries:");
-            for (let pair of formData.entries()) {
-                console.log(pair[0] + ': ' + pair[1]);
-            }
-            
-            const endpoint = "/api/upload/";
-            console.log("Sending request to:", endpoint);
-            
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                credentials: "include",
-                body: formData,
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.log("Error response:", errorText);
-                let errorMessage;
-                try {
-                    const errorJson = JSON.parse(errorText);
-                    errorMessage = errorJson.error || errorJson.detail || errorText;
-                } catch {
-                    errorMessage = errorText;
+                if (!sendTo) {
+                    throw new Error("Please select a teacher to send to.");
                 }
-                throw new Error(errorMessage);
+                formData.append("send_to", String(sendTo));
+                formData.append("student_notes", studentNotes || "");
             }
 
-            const result = await response.json();
-            setFeedbackId(result.id);
-            alert("Work submitted successfully!");
+            // Debug FormData contents
+            console.log("Form data contents:");
+            for (let [key, value] of formData.entries()) {
+                if (value instanceof File) {
+                    console.log(`${key}: File - ${value.name} (${value.type}, ${value.size} bytes)`);
+                } else {
+                    console.log(`${key}: ${value}`);
+                }
+            }
+
+            console.log("Submitting homework...");
+            const response = await apiClient.post("/api/upload/", formData);
             
+            console.log("Upload response:", response.data);
+            
+            if (response.data?.id) {
+                setFeedbackId(response.data.id);
+                alert("Work submitted successfully!");
+                
+                // Clear form after successful submission
+                setTaskType("");
+                setSendTo("");
+                setGradeAwarded("");
+                setGradeTotal("");
+                setTeacherNotes("");
+                setStudentNotes("");
+                setDocumentArea(null);
+                setPreviewUrl(null);
+            }
         } catch (error) {
             console.error("Error during submission:", error);
-            alert(error.message || "Error submitting work. Please try again.");
+            console.error("Error response data:", error.response?.data);
+            const errorMessage = error.response?.data?.detail || 
+                               error.response?.data?.error || 
+                               error.response?.data?.message || 
+                               error.message || 
+                               "Error submitting work. Please try again.";
+            alert(errorMessage);
         }
     };
 
-    const handleSendToChange = (e) => {
-        const selectedId = Number(e.target.value);
-        console.log('Selected user ID:', selectedId, 'Type:', typeof selectedId);
-        setSendTo(selectedId);
-    };
+    if (isLoading) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+                <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+                <Typography color="error">{error}</Typography>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{
             width: '100%',
             maxWidth: '100vw',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            p: { xs: 2, sm: 4, md: 6 },
+            mt: '80px'
         }}>
-            <Box
-                component="form"
-                onSubmit={handleSubmit}
-                sx={{ 
-                    width: '100%',
-                    maxWidth: '100%',
-                    px: { xs: 2, sm: 8 },
-                    py: { xs: 4, sm: 8 },
-                    mt: { xs: 4, sm: 8 },
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    gap: { xs: 3, sm: 4 },
-                    overflow: 'hidden'
-                }}
-                encType="multipart/form-data"
+            {/* Add back button */}
+            <Button
+                onClick={handleBack}
+                variant="outlined"
+                sx={{ mb: 2 }}
             >
-                <Box sx={{ 
-                    width: { xs: '100%', sm: '50%' },
-                    minWidth: { xs: 'auto', sm: '400px' },
-                    maxWidth: '100%'
-                }}>
-                    <Typography variant="h5" gutterBottom>
-                        Upload an assignment
-                    </Typography>
+                Back to Landing Page
+            </Button>
 
-                    {currentUser ? (
-                        <TextField
-                            id="sender_name"
-                            label="Sender Name"
-                            fullWidth
-                            value={currentUser?.username || ""}
-                            margin="normal"
-                            InputProps={{ readOnly: true }}
-                        />
-                    ) : (
-                        <Typography>Loading...</Typography>
-                    )}
-
+            <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+                {currentUser?.user_type === 'teacher' ? 'Teacher Feedback Form' : 'Student Assignment Upload'}
+            </Typography>
+            
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: 4,
+                maxWidth: '1400px',
+                mx: 'auto',
+                px: { xs: 1, sm: 2, md: 4 }
+            }}>
+                {/* Left side - Form */}
+                <Box
+                    component="form"
+                    onSubmit={handleSubmit}
+                    sx={{
+                        flex: 1,
+                        minWidth: { xs: '100%', sm: '380px' },
+                        maxWidth: { sm: '45%' }
+                    }}
+                >
+                    {/* Send To Field */}
                     <TextField
-                        id="task_type"
-                        label="Task Type"
                         select
+                        label={currentUser?.user_type === 'teacher' ? "Select Student" : "Select Teacher"}
+                        value={sendTo}
+                        onChange={(e) => setSendTo(e.target.value)}
                         fullWidth
-                        value={taskType}
-                        onChange={(e) => setTaskType(e.target.value)}
-                        margin="normal"
+                        required
+                        sx={{ mb: 2.5 }}
                     >
-                        {taskTypes.map((option) => (
-                            <MenuItem key={option} value={option}>
-                                {option}
+                        {sendToOptions.map((option) => (
+                            <MenuItem key={option.id} value={option.id}>
+                                {option.username}
                             </MenuItem>
                         ))}
                     </TextField>
 
+                    {/* Task Type Field */}
                     <TextField
-                        id="send_to"
-                        label="Send To"
                         select
+                        label="Task Type"
+                        value={taskType}
+                        onChange={(e) => setTaskType(e.target.value)}
                         fullWidth
-                        value={sendTo || ""} 
-                        onChange={handleSendToChange}
-                        margin="normal"
+                        required
+                        sx={{ mb: 2.5 }}
                     >
-                        {sendToOptions.length > 0 ? (
-                            sendToOptions.map((user) => (
-                                <MenuItem key={user.id} value={user.id}>
-                                    {user.username}
-                                </MenuItem>
-                            ))
-                        ) : (
-                            <MenuItem disabled>No users available</MenuItem>
-                        )}
+                        {taskTypes.map((type) => (
+                            <MenuItem key={type.value} value={type.value}>
+                                {type.label}
+                            </MenuItem>
+                        ))}
                     </TextField>
 
-                    {currentUser?.user_type === "teacher" && (
+                    {/* Teacher-specific fields */}
+                    {currentUser?.user_type === 'teacher' && (
                         <>
                             <TextField
-                                id="grade_awarded"
                                 label="Grade Awarded"
                                 type="number"
-                                fullWidth
                                 value={gradeAwarded}
-                                onChange={(e) => {
-                                    if (currentUser?.user_type === "teacher") {
-                                        setGradeAwarded(e.target.value);
-                                    }
-                                }}
-                                disabled={currentUser?.user_type === "student"} 
-                                margin="normal"
-                            />
-
-                            <TextField
-                                id="grade_total"
-                                label="Grade Total"
-                                type="number"
+                                onChange={(e) => setGradeAwarded(e.target.value)}
                                 fullWidth
+                                sx={{ mb: 2.5 }}
+                            />
+                            <TextField
+                                label="Total Grade"
+                                type="number"
                                 value={gradeTotal}
                                 onChange={(e) => setGradeTotal(e.target.value)}
-                                margin="normal"
+                                fullWidth
+                                sx={{ mb: 2.5 }}
                             />
-
-                            <Typography variant="body1" sx={{ mt: 2 }}>
-                                Grade Percentage: {gradePercent || "N/A"}
-                            </Typography>
-
-                            <Typography variant="body1" sx={{ mt: 1 }}>
-                                Grade (Spanish System): {gradeSpanish || "N/A"} / 10
-                            </Typography>
-                        </>
-                    )}
-
-                    {currentUser?.user_type === "student" && (
-                        <TextField
-                            id="student_notes"
-                            label="Student Notes"
-                            multiline
-                            rows={4}
-                            fullWidth
-                            value={studentNotes}
-                            onChange={(e) => setStudentNotes(e.target.value)}
-                            margin="normal"
-                        />
-                    )}
-
-                    {currentUser?.user_type === "teacher" && (
-                        <TextField
-                            id="teacher_notes"
-                            label="Teacher Notes"
-                            multiline
-                            rows={4}
-                            fullWidth
-                            value={teacherNotes}
-                            onChange={(e) => setTeacherNotes(e.target.value)}
-                            margin="normal"
-                        />
-                    )}
-
-                    <Box sx={{ mt: 2, mb: 2 }}>
-                        <Button variant="contained" component="label">
-                            Upload File
-                            <input type="file" hidden onChange={handleFileChange} />
-                        </Button>
-                        <Button type="submit" variant="contained" sx={{ marginLeft: "2rem" }}>
-                            Submit
-                        </Button>
-                    </Box>
-                </Box>
-
-                <Box sx={{ 
-                    width: { xs: '100%', sm: '50%' },
-                    minWidth: { xs: '100%', sm: '400px' },
-                    border: "4px solid #ccc",
-                    p: 2
-                }}>
-                    <Box sx={{ 
-                        display: 'flex',
-                        flexDirection: { xs: 'row', sm: 'column' },
-                        alignItems: { xs: 'center', sm: 'flex-start' },
-                        gap: 2,
-                        mb: 2
-                    }}>
-                        <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6">
-                                {currentUser?.user_type === "teacher" ? "Teacher's Dashboard" : "Student's Dashboard"}
-                            </Typography>
-                            <Typography 
-                                variant="subtitle1"
-                            >
-                                {currentUser?.user_type === "teacher" 
-                                    ? "(INSTRUCTIONS: Here you can review and provide feedback on student submissions)"
-                                    : "(INSTRUCTIONS: Here you can upload assignments for grading ** Only use when instructed by your teacher**)"}
-                            </Typography>
-                        </Box>
-                    </Box>
-
-                    {/* Preview iframe - full width below header */}
-                    {documentArea && (
-                        <Box sx={{ 
-                            width: '100%',
-                            height: { xs: '300px', sm: '600px' },
-                            mt: 2
-                        }}>
-                            {documentArea.type === 'application/pdf' ? (
-                                <iframe
-                                    src={previewUrl}
-                                    title="Document Preview"
-                                    style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        border: 'none',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                            ) : (
-                                <Box sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    border: '2px dashed #ccc',
-                                    borderRadius: '4px',
-                                    p: 3
+                            
+                            {/* Grade Calculations Display */}
+                            {(gradeAwarded && gradeTotal) && (
+                                <Box sx={{ 
+                                    mb: 2.5, 
+                                    p: 2, 
+                                    bgcolor: 'background.paper',
+                                    borderRadius: 1,
+                                    border: '1px solid',
+                                    borderColor: 'divider'
                                 }}>
-                                    <Typography variant="h6" sx={{ mb: 2 }}>
-                                        File Selected: {documentArea.name}
+                                    <Typography variant="body1" gutterBottom>
+                                        Grade Percentage: {gradePercent}%
                                     </Typography>
-                                    <Typography color="text.secondary">
-                                        Preview not available for this file type.
-                                        File will be uploaded when you submit.
+                                    <Typography variant="body1">
+                                        Spanish Grade: {gradeSpanish} / 10
                                     </Typography>
                                 </Box>
                             )}
-                        </Box>
+
+                            <TextField
+                                label="Teacher Notes"
+                                multiline
+                                rows={4}
+                                value={teacherNotes}
+                                onChange={(e) => setTeacherNotes(e.target.value)}
+                                fullWidth
+                                sx={{ mb: 2.5 }}
+                            />
+                        </>
+                    )}
+
+                    {/* Student-specific fields */}
+                    {currentUser?.user_type === 'student' && (
+                        <TextField
+                            label="Student Notes"
+                            multiline
+                            rows={4}
+                            value={studentNotes}
+                            onChange={(e) => setStudentNotes(e.target.value)}
+                            fullWidth
+                            sx={{ mb: 2.5 }}
+                        />
+                    )}
+
+                    {/* File Upload */}
+                    <Box sx={{ mb: 2.5 }}>
+                        <input
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            style={{ display: 'none' }}
+                            id="document-upload"
+                            type="file"
+                            onChange={handleFileChange}
+                        />
+                        <label htmlFor="document-upload">
+                            <Button variant="contained" component="span">
+                                Upload Document
+                            </Button>
+                        </label>
+                        {documentArea && (
+                            <Typography variant="body2" sx={{ mt: 1 }}>
+                                Selected file: {documentArea.name}
+                            </Typography>
+                        )}
+                    </Box>
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        size="large"
+                        fullWidth
+                    >
+                        Submit
+                    </Button>
+                </Box>
+
+                {/* Right side - Preview */}
+                <Box sx={{ 
+                    flex: 1,
+                    minWidth: { xs: '100%', sm: '380px' },
+                    maxWidth: { sm: '45%' },
+                    border: '2px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '500px',
+                    bgcolor: 'background.paper'
+                }}>
+                    {documentArea ? (
+                        documentArea.type === 'application/pdf' && previewUrl ? (
+                            <iframe
+                                src={previewUrl}
+                                width="100%"
+                                height="100%"
+                                style={{ border: 'none', minHeight: '500px' }}
+                                title="Document Preview"
+                            />
+                        ) : (
+                            <Box sx={{ textAlign: 'center', p: 3 }}>
+                                <Typography variant="h6" gutterBottom>
+                                    File Selected: {documentArea.name}
+                                </Typography>
+                                <Typography color="text.secondary">
+                                    Preview not available for this file type.
+                                    File will be uploaded when you submit.
+                                </Typography>
+                            </Box>
+                        )
+                    ) : (
+                        <Typography color="text.secondary">
+                            Upload a document to see preview
+                        </Typography>
                     )}
                 </Box>
             </Box>

@@ -8,9 +8,9 @@ const LoginPage = () => {
   }, []);
 
   return (
-     <>
-     <LoginForm />
-     </>
+    <>
+      <LoginForm />
+    </>
   )
 }
 

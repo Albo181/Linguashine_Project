@@ -1,85 +1,142 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Box, Typography, Card, CardContent, CardActions, Button, Divider, CircularProgress, Grid, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import {
+    Box,
+    Typography,
+    Card,
+    CardContent,
+    CardActions,
+    Button,
+    Divider,
+    CircularProgress,
+    Grid,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel
+} from "@mui/material";
+import apiClient from '../api/apiClient';
+
+const ProfileImage = React.memo(({ profilePicture, firstName }) => {
+    const [imageError, setImageError] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Construct the full URL based on whether it's a local or production URL
+    const fullImageUrl = useMemo(() => {
+        if (!profilePicture) return null;
+        
+        if (profilePicture.startsWith('http')) {
+            return profilePicture;
+        }
+        
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+        return `${cleanBaseUrl}${profilePicture}`;
+    }, [profilePicture]);
+
+    useEffect(() => {
+        setImageError(false);
+        setIsLoading(true);
+        
+        if (!fullImageUrl) {
+            setImageError(true);
+            setIsLoading(false);
+            return;
+        }
+
+        console.log('Attempting to load image from:', fullImageUrl);
+
+        // Test image loading
+        const img = new Image();
+        img.onload = () => {
+            console.log('Successfully loaded image:', fullImageUrl);
+            setIsLoading(false);
+            setImageError(false);
+        };
+        img.onerror = (e) => {
+            console.error('Failed to load image:', fullImageUrl, e);
+            setImageError(true);
+            setIsLoading(false);
+        };
+        img.src = fullImageUrl;
+
+        return () => {
+            img.onload = null;
+            img.onerror = null;
+        };
+    }, [fullImageUrl]);
+
+    if (imageError || !fullImageUrl) {
+        return (
+            <div className="w-[60px] h-[60px] rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative w-[60px] h-[60px]">
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-full">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                </div>
+            )}
+            <img
+                src={fullImageUrl}
+                alt={`${firstName}'s profile`}
+                className={`w-full h-full rounded-full object-cover border-4 border-white shadow-xl ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+                onError={() => setImageError(true)}
+            />
+        </div>
+    );
+});
 
 const TeacherHomeworkReview = () => {
-
-  //Starts window at top
-  useEffect(() => {
-    const vh = window.innerHeight * 0.05; // 5% of viewport height
-    window.scrollTo(0, vh);
-  }, []);
-  
     const [receivedSubmissions, setReceivedSubmissions] = useState([]);
     const [submittedSubmissions, setSubmittedSubmissions] = useState([]);
     const [allUsers, setAllUsers] = useState([]);
-    const [receivedPage, setReceivedPage] = useState(1);  // Separate page for inbox
-    const [submittedPage, setSubmittedPage] = useState(1);  // Separate page for outbox
+    const [receivedPage, setReceivedPage] = useState(1);
+    const [submittedPage, setSubmittedPage] = useState(1);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [submissionToDelete, setSubmissionToDelete] = useState(null);
     const [isInbox, setIsInbox] = useState(true);
     const [receivedSort, setReceivedSort] = useState('newest');
     const [submittedSort, setSubmittedSort] = useState('newest');
-    const cardsPerPage = 9; // Adjust to display fewer cards for a more refined look
+    const cardsPerPage = 9;
     const [loading, setLoading] = useState(true);
     const receivedSectionRef = useRef(null);
     const sentSectionRef = useRef(null);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [receivedResponse, submittedResponse, usersResponse] = await Promise.all([
-                    fetch('/api/teacher/homework/received/', {
-                        credentials: 'include'
-                    }),
-                    fetch('/api/teacher/homework/submitted/', {
-                        credentials: 'include'
-                    }),
-                    fetch('/users/all-users/', {
-                        credentials: 'include'
-                    })
-                ]);
+        const vh = window.innerHeight * 0.05;
+        window.scrollTo(0, vh);
+    }, []);
 
-                if (!receivedResponse.ok || !submittedResponse.ok || !usersResponse.ok) {
-                    throw new Error('One or more requests failed');
-                }
+    const fetchData = async () => {
+        try {
+            const [receivedResponse, submittedResponse, usersResponse] = await Promise.all([
+                apiClient.get('/api/teacher/homework/received/'),
+                apiClient.get('/api/teacher/homework/submitted/'),
+                apiClient.get('/users/all-users/')
+            ]);
 
-                const [receivedData, submittedData, usersData] = await Promise.all([
-                    receivedResponse.text().then(text => {
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('Failed to parse received data:', text);
-                            return [];
-                        }
-                    }),
-                    submittedResponse.text().then(text => {
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('Failed to parse submitted data:', text);
-                            return [];
-                        }
-                    }),
-                    usersResponse.text().then(text => {
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('Failed to parse users data:', text);
-                            return [];
-                        }
-                    })
-                ]);
+            setReceivedSubmissions(receivedResponse.data);
+            setSubmittedSubmissions(submittedResponse.data);
+            setAllUsers(usersResponse.data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setLoading(false);
+        }
+    };
 
-                setReceivedSubmissions(receivedData);
-                setSubmittedSubmissions(submittedData);
-                setAllUsers(usersData);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-            }
-        };
-
+    useEffect(() => {
         fetchData();
     }, []);
 
@@ -101,14 +158,18 @@ const TeacherHomeworkReview = () => {
         return data.slice(start, start + cardsPerPage);
     };
 
-    const getFullImageUrl = (imagePath) => {
-        if (!imagePath) return "/placeholder-profile.png";  // Default placeholder image
-        return imagePath;  // Assuming the image URL is already complete
-    };
-
     const getUserProfilePicture = (userId) => {
-        const user = allUsers.find((user) => user.id === userId);
-        return user ? getFullImageUrl(user.profile_picture) : "/placeholder-profile.png";
+        const user = allUsers.find(user => user.id === userId);
+        if (user) {
+            const pictureUrl = user.profile_picture_url || user.profile_picture || user.profilePicture;
+            if (pictureUrl && pictureUrl.startsWith('/media')) {
+                const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+                const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+                return `${cleanBaseUrl}${pictureUrl}`;
+            }
+            return pictureUrl;
+        }
+        return "/placeholder-profile.png";
     };
 
     const handleDelete = async (submissionId, isReceived) => {
@@ -117,16 +178,9 @@ const TeacherHomeworkReview = () => {
                 ? `/api/teacher/homework/received/${submissionId}/`
                 : `/api/teacher/homework/submitted/${submissionId}/`;
             
-            const response = await fetch(endpoint, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]
-                },
-            });
+            const response = await apiClient.delete(endpoint);
 
-            if (response.ok) {
-                // Update the state to remove the deleted submission
+            if (response.status === 204) {
                 if (isReceived) {
                     setReceivedSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
                 } else {
@@ -161,17 +215,15 @@ const TeacherHomeworkReview = () => {
 
     const handleDownload = async (documentUrl) => {
         try {
-            const response = await fetch(documentUrl);
-            if (!response.ok) throw new Error('Download failed');
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = documentUrl.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
+            const response = await apiClient.get(documentUrl, { responseType: 'blob' });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', documentUrl.split('/').pop());
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
             window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
         } catch (error) {
             console.error('Error downloading file:', error);
         }
@@ -218,10 +270,182 @@ const TeacherHomeworkReview = () => {
     };
 
     const truncateText = (text, length) => {
-        if (text.length > length) {
-            return text.substring(0, length) + '...';
-        }
-        return text;
+        if (!text) return '';
+        if (text.length <= length) return text;
+        return text.substring(0, length) + '...';
+    };
+
+    const renderSubmissionCard = (submission, isReceived) => {
+        const profilePicUrl = getUserProfilePicture(submission.student_name?.id);
+
+        return (
+            <Card
+                variant="outlined"
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    borderRadius: '8px',
+                    position: 'relative',
+                    backgroundColor: '#fafafa',
+                    background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
+                    backgroundSize: '40px 40px',
+                    backgroundOpacity: 0.3,
+                    border: '0.5px solid #eaeaea',
+                    overflow: 'hidden',
+                    '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
+                        transition: 'all 0.3s ease'
+                    },
+                    transition: 'all 0.3s ease'
+                }}
+            >
+                <IconButton
+                    onClick={() => handleDeleteClick(submission.id, isReceived)}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        zIndex: 3,
+                        color: 'rgba(0, 0, 0, 0.54)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                        '&:hover': {
+                            color: 'rgba(0, 0, 0, 0.87)',
+                            backgroundColor: 'rgba(255, 255, 255, 1)'
+                        },
+                        padding: '4px',
+                        minWidth: '32px',
+                        minHeight: '32px'
+                    }}
+                >
+                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
+                </IconButton>
+                <CardContent sx={{ 
+                    flexGrow: 1, 
+                    overflow: 'hidden', 
+                    p: 1.5,
+                    pt: 3,
+                    borderRadius: '0 0 8px 8px',
+                    position: 'relative'
+                }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        mb: 1,
+                        position: 'relative',
+                        zIndex: 2
+                    }}>
+                        <ProfileImage 
+                            profilePicture={profilePicUrl}
+                            firstName={submission.student_name?.first_name}
+                        />
+                        <Box sx={{ ml: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
+                                {submission.student_name?.username || 'Unknown Student'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                {submission.student_name?.email}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                        Task: {submission.task_type}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {isReceived ? 'From:' : 'To:'} {submission.student_name?.first_name} {submission.student_name?.last_name}
+                    </Typography>
+                    {isReceived ? (
+                        (submission.grade !== null && submission.grade !== undefined) && (
+                            <Typography 
+                                variant="body1" 
+                                sx={{ 
+                                    color: "#2196f3",
+                                    fontWeight: 500,
+                                    mt: 1,
+                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    display: 'inline-block'
+                                }}
+                            >
+                                Grade: {submission.grade}
+                            </Typography>
+                        )
+                    ) : (
+                        (submission.grade_awarded !== null && submission.grade_awarded !== undefined) && (
+                            <Typography 
+                                variant="body1" 
+                                sx={{ 
+                                    color: "#2196f3",
+                                    fontWeight: 500,
+                                    mt: 1,
+                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    display: 'inline-block'
+                                }}
+                            >
+                                Grade: {submission.grade_awarded}/{submission.grade_total} ({((submission.grade_awarded / submission.grade_total) * 100).toFixed(1)}%)
+                            </Typography>
+                        )
+                    )}
+                    {submission.student_notes && (
+                        <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                Student Notes:
+                            </Typography>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                    backgroundColor: '#f5f5f5',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    whiteSpace: 'pre-wrap',
+                                    maxHeight: '60px',
+                                    overflow: 'auto'
+                                }}
+                            >
+                                {truncateText(submission.student_notes, 100)}
+                            </Typography>
+                        </Box>
+                    )}
+                    {!isReceived && submission.teacher_notes && (
+                        <Box sx={{ mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                Teacher Notes:
+                            </Typography>
+                            <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                    backgroundColor: '#e3f2fd',
+                                    padding: '4px 8px',
+                                    borderRadius: '4px',
+                                    whiteSpace: 'pre-wrap',
+                                    maxHeight: '60px',
+                                    overflow: 'auto'
+                                }}
+                            >
+                                {truncateText(submission.teacher_notes, 100)}
+                            </Typography>
+                        </Box>
+                    )}
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                        Received: {formatDateTime(submission.submission_date)}
+                    </Typography>
+                </CardContent>
+                <CardActions sx={{ pt: 0.5, pb: 1, px: 1.5 }}>
+                    <Button
+                        size="small"
+                        variant="contained"
+                        onClick={() => handleDownload(submission.document_area)}
+                        sx={{ textTransform: "none" }}
+                    >
+                        Download
+                    </Button>
+                </CardActions>
+            </Card>
+        );
     };
 
     return (
@@ -230,14 +454,12 @@ const TeacherHomeworkReview = () => {
                 Teacher Dashboard
             </Typography>
 
-            {/* Loading Spinner */}
             {loading && (
                 <Box sx={{ textAlign: "center", marginTop: 4 }}>
                     <CircularProgress />
                 </Box>
             )}
 
-            {/* Received Submissions (Inbox) */}
             {!loading && (
                 <Box 
                     ref={receivedSectionRef}
@@ -301,148 +523,15 @@ const TeacherHomeworkReview = () => {
                             </Select>
                         </FormControl>
                     </Box>
+
                     <Grid container spacing={3}>
                         {paginate(sortSubmissions(receivedSubmissions, receivedSort), receivedPage).map((submission) => (
                             <Grid item xs={12} sm={6} md={4} key={submission.id}>
-                                <Card
-                                    variant="outlined"
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        borderRadius: '8px',
-                                        position: 'relative',
-                                        backgroundColor: '#fafafa',
-                                        background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
-                                        backgroundSize: '40px 40px',
-                                        backgroundOpacity: 0.3,
-                                        border: '0.5px solid #eaeaea',
-                                        overflow: 'hidden',
-                                        '&:hover': {
-                                            transform: 'translateY(-4px)',
-                                            boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
-                                            transition: 'all 0.3s ease'
-                                        },
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
-                                    <IconButton
-                                        onClick={() => handleDeleteClick(submission.id, true)}
-                                        sx={{
-                                            position: 'absolute',
-                                            right: 8,
-                                            top: 8,
-                                            zIndex: 3,
-                                            color: 'rgba(0, 0, 0, 0.54)',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                            '&:hover': {
-                                                color: 'rgba(0, 0, 0, 0.87)',
-                                                backgroundColor: 'rgba(255, 255, 255, 1)'
-                                            },
-                                            padding: '4px',
-                                            minWidth: '32px',
-                                            minHeight: '32px'
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
-                                    </IconButton>
-                                    <CardContent sx={{ 
-                                        flexGrow: 1, 
-                                        overflow: 'hidden', 
-                                        p: 1.5,
-                                        pt: 3,
-                                        borderRadius: '0 0 8px 8px',
-                                        position: 'relative'
-                                    }}>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            mb: 1,
-                                            position: 'relative',
-                                            zIndex: 2
-                                        }}>
-                                            <img
-                                                src={getUserProfilePicture(submission.student_name?.id)}
-                                                alt="Profile"
-                                                style={{
-                                                    height: "40px",
-                                                    width: "40px",
-                                                    borderRadius: "50%",
-                                                    objectFit: "cover",
-                                                    border: "2px solid #3f51b5",
-                                                }}
-                                            />
-                                            <Box sx={{ ml: 1 }}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                                    {submission.student_name?.username || 'Unknown Student'}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                    {submission.student_name?.email}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Task: {submission.task_type}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            From: {submission.student_name?.first_name} {submission.student_name?.last_name}
-                                        </Typography>
-                                        {(submission.grade !== null && submission.grade !== undefined) && (
-                                            <Typography 
-                                                variant="body1" 
-                                                sx={{ 
-                                                    color: "#2196f3",
-                                                    fontWeight: 500,
-                                                    mt: 1,
-                                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '4px',
-                                                    display: 'inline-block'
-                                                }}
-                                            >
-                                                Grade: {submission.grade}
-                                            </Typography>
-                                        )}
-                                        {submission.student_notes && (
-                                            <Box sx={{ mt: 1 }}>
-                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                    Student Notes:
-                                                </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                        backgroundColor: '#f5f5f5',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        whiteSpace: 'pre-wrap',
-                                                        maxHeight: '60px',
-                                                        overflow: 'auto'
-                                                    }}
-                                                >
-                                                    {truncateText(submission.student_notes, 100)}
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                        <Typography variant="body2" color="text.secondary">
-                                            Received: {formatDateTime(submission.submission_date)}
-                                        </Typography>
-                                    </CardContent>
-                                    <CardActions sx={{ pt: 0.5, pb: 1, px: 1.5 }}>
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            onClick={() => handleDownload(submission.document_area)}
-                                            sx={{ textTransform: "none" }}
-                                        >
-                                            Download
-                                        </Button>
-                                    </CardActions>
-                                </Card>
+                                {renderSubmissionCard(submission, true)}
                             </Grid>
                         ))}
                     </Grid>
 
-                    {/* Pagination for Inbox */}
                     <Box sx={{ mt: 4, textAlign: "center" }}>
                         <Button
                             variant="outlined"
@@ -477,7 +566,6 @@ const TeacherHomeworkReview = () => {
                 </Box>
             )}
 
-            {/* Submitted Submissions (Outbox) */}
             {!loading && (
                 <Box 
                     ref={sentSectionRef}
@@ -541,148 +629,15 @@ const TeacherHomeworkReview = () => {
                             </Select>
                         </FormControl>
                     </Box>
+
                     <Grid container spacing={3}>
                         {paginate(sortSubmissions(submittedSubmissions, submittedSort), submittedPage).map((submission) => (
                             <Grid item xs={12} sm={6} md={4} key={submission.id}>
-                                <Card
-                                    variant="outlined"
-                                    sx={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        height: '100%',
-                                        borderRadius: '8px',
-                                        position: 'relative',
-                                        backgroundColor: '#fafafa',
-                                        background: 'linear-gradient(45deg, #fafafa 25%, #ffffff 25%, #ffffff 50%, #fafafa 50%, #fafafa 75%, #ffffff 75%, #ffffff 100%)',
-                                        backgroundSize: '40px 40px',
-                                        backgroundOpacity: 0.3,
-                                        border: '0.5px solid #eaeaea',
-                                        overflow: 'hidden',
-                                        '&:hover': {
-                                            transform: 'translateY(-4px)',
-                                            boxShadow: '0 12px 24px rgba(0,0,0,0.07)',
-                                            transition: 'all 0.3s ease'
-                                        },
-                                        transition: 'all 0.3s ease'
-                                    }}
-                                >
-                                    <IconButton
-                                        onClick={() => handleDeleteClick(submission.id, false)}
-                                        sx={{
-                                            position: 'absolute',
-                                            right: 8,
-                                            top: 8,
-                                            zIndex: 3,
-                                            color: 'rgba(0, 0, 0, 0.54)',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                            '&:hover': {
-                                                color: 'rgba(0, 0, 0, 0.87)',
-                                                backgroundColor: 'rgba(255, 255, 255, 1)'
-                                            },
-                                            padding: '4px',
-                                            minWidth: '32px',
-                                            minHeight: '32px'
-                                        }}
-                                    >
-                                        <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>×</span>
-                                    </IconButton>
-                                    <CardContent sx={{ 
-                                        flexGrow: 1, 
-                                        overflow: 'hidden', 
-                                        p: 1.5,
-                                        pt: 3,
-                                        borderRadius: '0 0 8px 8px',
-                                        position: 'relative'
-                                    }}>
-                                        <Box sx={{ 
-                                            display: 'flex', 
-                                            alignItems: 'center', 
-                                            mb: 1,
-                                            position: 'relative',
-                                            zIndex: 2
-                                        }}>
-                                            <img
-                                                src={getUserProfilePicture(submission.student_name?.id)}
-                                                alt="Profile"
-                                                style={{
-                                                    height: "40px",
-                                                    width: "40px",
-                                                    borderRadius: "50%",
-                                                    objectFit: "cover",
-                                                    border: "2px solid #3f51b5",
-                                                }}
-                                            />
-                                            <Box sx={{ ml: 1 }}>
-                                                <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
-                                                    {submission.student_name?.username || 'Unknown Student'}
-                                                </Typography>
-                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                                    {submission.student_name?.email}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                        <Typography variant="body2" color="text.secondary">
-                                            Task: {submission.task_type}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            To: {submission.send_to?.first_name} {submission.send_to?.last_name}
-                                        </Typography>
-                                        {(submission.grade_awarded !== null && submission.grade_awarded !== undefined) && (
-                                            <Typography 
-                                                variant="body1" 
-                                                sx={{ 
-                                                    color: "#2196f3",
-                                                    fontWeight: 500,
-                                                    mt: 1,
-                                                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                                                    padding: '4px 8px',
-                                                    borderRadius: '4px',
-                                                    display: 'inline-block'
-                                                }}
-                                            >
-                                                Grade: {submission.grade_awarded}/{submission.grade_total} ({((submission.grade_awarded / submission.grade_total) * 100).toFixed(1)}%)
-                                            </Typography>
-                                        )}
-                                        {submission.student_notes && (
-                                            <Box sx={{ mt: 1 }}>
-                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                                                    Student Notes:
-                                                </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    sx={{ 
-                                                        backgroundColor: '#f5f5f5',
-                                                        padding: '4px 8px',
-                                                        borderRadius: '4px',
-                                                        whiteSpace: 'pre-wrap',
-                                                        maxHeight: '60px',
-                                                        overflow: 'auto'
-                                                    }}
-                                                >
-                                                    {truncateText(submission.student_notes, 100)}
-                                                </Typography>
-                                            </Box>
-                                        )}
-                                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                                            Received: {formatDateTime(submission.submission_date)}
-                                        </Typography>
-                                    </CardContent>
-                                    <CardActions sx={{ pt: 0.5, pb: 1, px: 1.5 }}>
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            onClick={() => handleDownload(submission.document_area)}
-                                            sx={{ textTransform: "none" }}
-                                        >
-                                            Download
-                                        </Button>
-                                    </CardActions>
-                                </Card>
+                                {renderSubmissionCard(submission, false)}
                             </Grid>
                         ))}
                     </Grid>
 
-                    {/* Pagination for Outbox */}
                     <Box sx={{ mt: 4, textAlign: "center" }}>
                         <Button
                             variant="outlined"
@@ -716,7 +671,7 @@ const TeacherHomeworkReview = () => {
                     </Box>
                 </Box>
             )}
-            {/* Delete Confirmation Dialog */}
+
             <Dialog
                 open={deleteDialogOpen}
                 onClose={handleDeleteCancel}

@@ -1,7 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Button, Label, TextInput } from 'flowbite-react';
 import { useNavigate } from 'react-router-dom';
-import apiClient, { fetchCSRFToken } from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
 const LoginForm = () => {
@@ -9,7 +8,7 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { setIsAuthenticated, setUser, login } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,25 +17,19 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // First, ensure we have a CSRF token
-      await fetchCSRFToken();
+      // Validate input before making API call
+      if (!username.trim() || !password.trim()) {
+        setError('Please enter both username and password.');
+        setIsLoading(false);
+        return;
+      }
 
-      // Now attempt login
-      const response = await apiClient.post('/users/login/', {
-        username,
-        password
-      });
-
-      if (response.status === 200) {
-        // If login is successful, call the login function from AuthContext
-        const success = await login(username, password);
-        if (success) {
-          navigate('/landing');
-        } else {
-          setError('Login failed. Please check your credentials.');
-        }
+      // Attempt login directly - CSRF token will be handled by apiClient
+      const success = await login(username, password);
+      if (success) {
+        navigate('/landing');
       } else {
-        setError(response.data?.error || 'Login failed');
+        setError('Login failed. Please check your credentials.');
       }
     } catch (err) {
       console.error('Login error:', err);

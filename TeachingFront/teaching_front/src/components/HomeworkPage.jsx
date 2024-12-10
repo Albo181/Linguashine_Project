@@ -137,7 +137,20 @@ const HomeworkPage = () => {
     }, [userType]);
 
     const handleFileChange = (event) => {
-        setHomework({ ...homework, file: event.target.files[0] });
+        const file = event.target.files[0];
+        if (file) {
+            // Check file size (25MB limit)
+            if (file.size > 25 * 1024 * 1024) {
+                setAlert({
+                    show: true,
+                    message: 'File size too large. Maximum size allowed is 25MB.',
+                    severity: 'error'
+                });
+                event.target.value = ''; // Clear the file input
+                return;
+            }
+            setHomework({ ...homework, file: file });
+        }
     };
 
     const handleStudentChange = (event) => {
@@ -150,7 +163,20 @@ const HomeworkPage = () => {
     };
 
     const handleSubmissionFileChange = (event) => {
-        setSubmissionFile(event.target.files[0]);
+        const file = event.target.files[0];
+        if (file) {
+            // Check file size (25MB limit)
+            if (file.size > 25 * 1024 * 1024) {
+                setAlert({
+                    show: true,
+                    message: 'File size too large. Maximum size allowed is 25MB.',
+                    severity: 'error'
+                });
+                event.target.value = ''; // Clear the file input
+                return;
+            }
+            setSubmissionFile(file);
+        }
     };
 
     const handleSubmit = async (e) => {

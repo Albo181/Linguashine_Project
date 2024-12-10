@@ -16,25 +16,19 @@ useEffect(() => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch("/users/me/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCsrfToken(),
-          },
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setUserRole(userData.user_type);
-        } else if (response.status === 401) {
-          console.log("User not authenticated");
+        const response = await apiClient.get("/users/me/");
+        console.log('User data response:', response.data);
+        
+        if (response.status === 200) {
+          setUserRole(response.data.user_type?.toLowerCase() || 'student');
+          console.log('User role set to:', response.data.user_type);
         } else {
           console.error("Failed to fetch user data:", response.statusText);
+          setUserRole('student'); // Default to student on error
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        setUserRole('student'); // Default to student on error
       }
     };
 

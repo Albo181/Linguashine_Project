@@ -2,6 +2,80 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 
+const ProfileImage = ({ src, userName, className = "" }) => {
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Handle different types of URLs
+  const fullImageUrl = src?.includes('#preview') 
+    ? src.replace('#preview', '') // Remove marker and use blob URL directly
+    : src?.startsWith('http') 
+      ? src 
+      : src ? `${apiClient.defaults.baseURL}${src}` : null;
+
+  useEffect(() => {
+    setImageError(false);
+    setIsLoading(true);
+    
+    if (!fullImageUrl) {
+      setImageError(true);
+      setIsLoading(false);
+      return;
+    }
+
+    console.log('Attempting to load image from:', fullImageUrl);
+
+    // Test image loading
+    const img = new Image();
+    img.onload = () => {
+      console.log('Successfully loaded image:', fullImageUrl);
+      setIsLoading(false);
+      setImageError(false);
+    };
+    img.onerror = (e) => {
+      console.error('Failed to load image:', fullImageUrl, e);
+      setImageError(true);
+      setIsLoading(false);
+    };
+    img.src = fullImageUrl;
+
+    // Cleanup blob URLs when component unmounts or src changes
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      if (src?.includes('#preview')) {
+        URL.revokeObjectURL(fullImageUrl);
+      }
+    };
+  }, [fullImageUrl, src]);
+
+  if (imageError || !fullImageUrl) {
+    return (
+      <div className={`w-full h-full rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl ${className}`}>
+        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+      <img
+        src={fullImageUrl}
+        alt={`${userName}'s profile`}
+        className={`w-full h-full rounded-full object-cover border-4 border-white shadow-xl ${isLoading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300 ${className}`}
+        onError={() => setImageError(true)}
+      />
+    </div>
+  );
+};
+
 const StudentProfile = () => {
 
   //Starts window at top
@@ -42,12 +116,12 @@ const StudentProfile = () => {
           setStudentData(data);
           
           // Set profile picture preview if available
-          if (data.profile_picture) {
-            const pictureUrl = data.profile_picture.startsWith('http') 
-              ? data.profile_picture 
-              : `${apiClient.defaults.baseURL}${data.profile_picture}`;
-            console.log('Setting profile picture preview:', pictureUrl);
-            setProfilePicturePreview(pictureUrl);
+          if (data.profile_picture_url) {
+            // Use the full URL from the backend
+            setProfilePicturePreview(data.profile_picture_url);
+          } else if (data.profile_picture) {
+            // For local development, use the relative path
+            setProfilePicturePreview(data.profile_picture);
           }
 
           // Parse goals from bio if they exist
@@ -62,11 +136,6 @@ const StudentProfile = () => {
           } catch {
             // If bio isn't JSON, treat it all as notes
             setStudentData(data);
-          }
-
-          // Handle profile picture URL
-          if (data.profile_picture_url) {
-            setProfilePicturePreview(data.profile_picture_url);
           }
         } else {
           console.error("Failed to fetch profile data:", response.status);
@@ -96,7 +165,11 @@ const StudentProfile = () => {
       }
       console.log('Selected file:', file);  
       setProfilePicture(file); 
-      setProfilePicturePreview(URL.createObjectURL(file));
+      
+      // Create a blob URL for preview and mark it as a blob URL
+      const blobUrl = URL.createObjectURL(file);
+      console.log('Created blob URL for preview:', blobUrl);
+      setProfilePicturePreview(blobUrl + '#preview');  // Add marker to identify preview URLs
       setErrorMessage('');
     }
   };
@@ -222,26 +295,13 @@ const StudentProfile = () => {
           {/* Profile Header */}
           <div className="flex flex-col items-center mb-8">
             <div className="relative group">
-              {profilePicturePreview ? (
-                <img
+              <div className="w-32 h-32 relative z-10">
+                <ProfileImage
                   src={profilePicturePreview}
-                  alt="Profile"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
-                  onError={(e) => {
-                    console.error('Error loading profile picture:', profilePicturePreview);
-                    // Don't hide the image, just show placeholder
-                    e.target.style.display = 'none';
-                    setProfilePicturePreview('');  
-                  }}
+                  userName={studentData.first_name}
                 />
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-500 border-4 border-white shadow-xl">
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform transition-transform hover:scale-110">
+              </div>
+              <label className="absolute bottom-0 right-0 bg-blue-500 text-white p-2 rounded-full shadow-lg cursor-pointer transform transition-transform hover:scale-110 z-20">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />

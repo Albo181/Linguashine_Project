@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import blogData from './blogData';
 import enjoyment from '../images/enjoyment.png';
@@ -7,6 +7,33 @@ import dashboard from '../images/dashboard.png';
 import professional from '../images/professional.png';
 import tree from '../images/tree.png';
 import podcast from '../images/podcast.png';
+
+const OptimizedImage = ({ src, alt, className, style }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className="relative">
+      {/* Blur placeholder */}
+      <div 
+        className={`absolute inset-0 blur-xl scale-95 transform ${isLoaded ? 'opacity-0' : 'opacity-100'} transition-opacity duration-500`}
+        style={{
+          backgroundImage: `url(${src})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
+      {/* Main image */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        className={`${className} transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={style}
+        onLoad={() => setIsLoaded(true)}
+      />
+    </div>
+  );
+};
 
 const BlogDetails = () => {
   const { id } = useParams();
@@ -32,7 +59,7 @@ const BlogDetails = () => {
               </p>
               <div className="flex justify-center">
                 {blogImage && (
-                  <img
+                  <OptimizedImage
                     src={blogImage}
                     alt="Professional classes"
                     style={{
@@ -84,12 +111,12 @@ const BlogDetails = () => {
                     </Link>
                   </div>
                   <div className="relative flex flex-col items-center">
-                  <img
+                  <OptimizedImage
                       src={tree}
                       alt="tree"
                       className="mt-32 lg:-mt-2 mb-8 h-[150px] lg:h-[275px] w-auto rounded-lg shadow-lg p-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"
                       style={{
-                        borderRadius: '15px', // Rounded edges
+                        borderRadius: '15px',
                       }}
                     />
 
@@ -111,7 +138,7 @@ const BlogDetails = () => {
           </h1>
           {blogImage && (
             <div className="flex justify-center mb-4">
-              <img
+              <OptimizedImage
                 src={blogImage}
                 alt="Event"
                 className="border-4 border-green-700 h-60 mt-4 mb-4 w-auto rounded-lg"
