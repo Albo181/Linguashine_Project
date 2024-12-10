@@ -105,49 +105,46 @@ const StudentProfile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        console.log('Fetching profile...');
         const response = await apiClient.get('/users/me/');
-        console.log('Profile Response:', response);
-        console.log('Profile Data:', response.data);
         
         if (response.status === 200) {
           const data = response.data;
-          console.log('Setting student data:', data);
-          setStudentData(data);
           
-          // Set profile picture preview if available
+          // Handle profile picture
           if (data.profile_picture_url) {
-            // Use the full URL from the backend
             setProfilePicturePreview(data.profile_picture_url);
           } else if (data.profile_picture) {
-            // For local development, use the relative path
             setProfilePicturePreview(data.profile_picture);
           }
 
-          // Parse goals from bio if they exist
+          // Parse bio data
           try {
-            const bioData = JSON.parse(data.bio);
-            if (bioData.goals && Array.isArray(bioData.goals)) {
-              setGoals(bioData.goals);
-            }
-            if (bioData.notes) {
-              setStudentData(prev => ({ ...prev, bio: bioData.notes }));
-            }
-          } catch {
-            // If bio isn't JSON, treat it all as notes
-            setStudentData(data);
+            const bioData = JSON.parse(data.bio || '{"goals":[],"notes":""}');
+            setGoals(bioData.goals || []);
+            // Set student data without the raw bio JSON
+            setStudentData(prev => ({
+              ...prev,
+              ...data,
+              bio: bioData.notes || ''  // Only set the notes part to bio
+            }));
+          } catch (error) {
+            // If parsing fails, initialize with empty values
+            setGoals([]);
+            setStudentData(prev => ({
+              ...prev,
+              ...data,
+              bio: ''
+            }));
           }
         } else {
-          console.error("Failed to fetch profile data:", response.status);
+          setErrorMessage("Failed to fetch profile data");
         }
       } catch (error) {
-        console.error('Profile Error:', error);
-        console.error('Error Response:', error.response?.data);
         setErrorMessage('Error loading profile data');
       }
     };
 
-    fetchProfile();                                  
+    fetchProfile();
   }, []);
 
   const handleFileChange = (event) => {
