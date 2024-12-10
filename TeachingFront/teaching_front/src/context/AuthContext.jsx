@@ -48,7 +48,8 @@ export const AuthProvider = ({ children }) => {
       });
       
       if (loginResponse.status === 200) {
-        setUser(loginResponse.data);
+        const userResponse = await apiClient.get('/users/me/');
+        setUser(userResponse.data);
         setIsAuthenticated(true);
         return true;
       }
