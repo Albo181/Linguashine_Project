@@ -163,102 +163,49 @@ const FeedbackForm = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        if (!userId) {
-            alert("User ID not found. Please log in again.");
-            return;
-        }
+        setIsSubmitting(true);
+        setError(null);
 
         try {
             const formData = new FormData();
             
-            // Add file first
-            if (!documentArea) {
-                throw new Error("Please upload a document.");
-            }
-            
-            // Only append the file once with the correct field name
-            formData.append("document_area", documentArea);
-            
-            // Add task type
-            if (!taskType) {
-                throw new Error("Please select a task type.");
-            }
-            formData.append("task_type", taskType);
-            
-            // Add student name and other required fields
-            const selectedUser = sendToOptions.find(user => user.id === parseInt(sendTo));
-            console.log("Selected user:", selectedUser);
-            console.log("Current user:", currentUser);
-            console.log("Send to options:", sendToOptions);
-            console.log("Send to value:", sendTo);
-            
-            if (!selectedUser && currentUser?.user_type === "teacher") {
-                throw new Error("Selected student not found");
-            }
-            
-            // Use the correct user ID for student_name field
-            if (currentUser?.user_type === "teacher") {
-                formData.append("student_name", sendTo); // Use the selected student's ID
-            } else {
-                formData.append("student_name", userId.toString()); // Use current user's ID for student submissions
-            }
-            
-            // Add other fields
-            if (currentUser?.user_type === "teacher") {
-                if (!sendTo) {
-                    throw new Error("Please select a student to send feedback to.");
-                }
-                formData.append("send_to", String(sendTo));
-                formData.append("teacher_notes", teacherNotes || "");
-                if (gradeAwarded) formData.append("grade_awarded", gradeAwarded);
-                if (gradeTotal) formData.append("grade_total", gradeTotal);
-            } else {
-                if (!sendTo) {
-                    throw new Error("Please select a teacher to send to.");
-                }
-                formData.append("send_to", String(sendTo));
-                formData.append("student_notes", studentNotes || "");
+            // Add the file
+            if (document) {
+                formData.append('document_area', document);
             }
 
-            // Debug FormData contents
-            console.log("Form data contents:");
-            for (let [key, value] of formData.entries()) {
-                if (value instanceof File) {
-                    console.log(`${key}: File - ${value.name} (${value.type}, ${value.size} bytes)`);
-                } else {
-                    console.log(`${key}: ${value}`);
-                }
+            // Add other form fields
+            formData.append('student_name', selectedStudent);
+            formData.append('send_to', selectedTeacher);
+            formData.append('task_type', taskType);
+
+            // Add teacher-specific fields
+            if (isTeacher) {
+                if (teacherNotes) formData.append('teacher_notes', teacherNotes);
+                if (gradeAwarded) formData.append('grade_awarded', gradeAwarded);
+                if (gradeTotal) formData.append('grade_total', gradeTotal);
+            } else {
+                if (studentNotes) formData.append('student_notes', studentNotes);
             }
 
-            console.log("Submitting homework...");
-            const response = await apiClient.post("/api/upload/", formData);
-            
-            console.log("Upload response:", response.data);
-            
-            if (response.data?.id) {
-                setFeedbackId(response.data.id);
-                alert("Work submitted successfully!");
-                
-                // Clear form after successful submission
-                setTaskType("");
-                setSendTo("");
-                setGradeAwarded("");
-                setGradeTotal("");
-                setTeacherNotes("");
-                setStudentNotes("");
-                setDocumentArea(null);
-                setPreviewUrl(null);
+            const response = await apiClient.post('/feedback/upload/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': getCsrfToken(),
+                }
+            });
+
+            if (response.data.error) {
+                throw new Error(response.data.error);
             }
-        } catch (error) {
-            console.error("Error during submission:", error);
-            console.error("Error response data:", error.response?.data);
-            const errorMessage = error.response?.data?.detail || 
-                               error.response?.data?.error || 
-                               error.response?.data?.message || 
-                               error.message || 
-                               "Error submitting work. Please try again.";
-            alert(errorMessage);
+
+            setSuccess(true);
+            resetForm();
+        } catch (err) {
+            console.error('Error submitting feedback:', err);
+            setError(err.response?.data?.error || err.message || 'Error submitting feedback');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 

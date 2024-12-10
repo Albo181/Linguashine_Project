@@ -389,29 +389,33 @@ const FileDashboard = () => {
       });
 
       const contentType = response.headers['content-type'];
-      const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
+      
+      // Get original extension from filename or content type
+      let originalExt = '';
+      if (fileName.includes('.')) {
+        originalExt = '.' + fileName.split('.').pop().toLowerCase();
+      } else {
+        // Map content types to extensions
+        const contentTypeToExt = {
+          'video/webm': '.webm',
+          'video/mp4': '.mp4',
+          'video/quicktime': '.mov',
+          'audio/mpeg': '.mp3',
+          'audio/wav': '.wav',
+          'audio/webm': '.weba',
+          'image/jpeg': '.jpg',
+          'image/png': '.png',
+          'image/gif': '.gif',
+          'application/pdf': '.pdf',
+          'application/msword': '.doc',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
+        };
+        originalExt = contentTypeToExt[contentType] || '';
+      }
       
       let finalFileName = fileName;
       if (!finalFileName.includes('.')) {
-        if (contentType === 'video/webm') {
-          finalFileName += '.webm';
-        } else {
-          switch (fileType) {
-            case 'audio':
-              finalFileName += originalExt || '.wav';
-              break;
-            case 'video':
-              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
-              break;
-            case 'image':
-              finalFileName += originalExt || '.jpg';
-              break;
-            case 'document':
-            default:
-              finalFileName += originalExt || '.pdf';
-              break;
-          }
-        }
+        finalFileName += originalExt;
       }
 
       const blob = new Blob([response.data], { type: contentType });
@@ -485,9 +489,13 @@ const FileDashboard = () => {
       });
     
       if (response.status === 204) {
-        // Remove only the specific file from both states
-        setFiles(prevFiles => prevFiles.filter(f => f.id !== file.id));
-        setFilteredFiles(prevFiles => prevFiles.filter(f => f.id !== file.id));
+        // Remove the file from both states
+        const removeFile = (prevFiles) => prevFiles.filter(f => f.id !== file.id);
+        setFiles(prevFiles => {
+          const newFiles = removeFile(prevFiles);
+          setFilteredFiles(removeFile(filteredFiles)); // Update filtered files synchronously
+          return newFiles;
+        });
         console.log('File deleted successfully:', file.id);
       } else {
         alert('Failed to delete the file.');
