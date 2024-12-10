@@ -9,7 +9,6 @@ const FileCard = ({ file, onDownload, onDelete }) => {
   const [imageError, setImageError] = useState(false);
 
   // Helper function to get the correct icon based on the file type
-  console.log("File sender is: ", file.sender);
   const getIcon = (type) => {
     switch (type) {
       case 'audio':
@@ -71,29 +70,52 @@ const FileCard = ({ file, onDownload, onDelete }) => {
   };
 
   const renderFilePreview = () => {
+    const previewStyle = {
+      width: '120px',
+      height: '120px',
+      objectFit: 'cover',
+      borderRadius: '8px',
+      backgroundColor: '#f3f4f6',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    };
+
     if (file.type === 'image' && !imageError) {
       return (
-        <div className="file-preview-container">
+        <div style={previewStyle}>
           <img
             src={file.file_url || file.file}
             alt={file.title}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '8px',
+            }}
             onError={() => {
               console.error('Image failed to load:', file.file_url || file.file);
               setImageError(true);
             }}
-            className="file-preview-image"
           />
         </div>
       );
-    } else {
-      return (
+    }
+
+    // For non-image files or if image fails to load, show icon
+    return (
+      <div style={previewStyle}>
         <img
           src={getIcon(file.type)}
           alt={file.type}
-          className="w-11 h-11 border border-gray-200 rounded-full p-1"
+          style={{
+            width: '60px',
+            height: '60px',
+            padding: '8px',
+          }}
         />
-      );
-    }
+      </div>
+    );
   };
 
   return (

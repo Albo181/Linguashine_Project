@@ -105,17 +105,31 @@ useEffect(() => {
         responseType: "blob",
       });
 
+      // Extract original filename from the URL or use the title
+      let downloadFileName = fileName;
+      if (fileName.includes('/')) {
+        // If it's a URL, get just the filename part
+        downloadFileName = fileName.split('/').pop();
+        // Remove any URL encoding
+        downloadFileName = decodeURIComponent(downloadFileName);
+      }
+
+      // Get content type and extension
+      const contentType = response.headers["content-type"];
       const contentDisposition = response.headers["content-disposition"];
       const matches = /filename="(.+)"/.exec(contentDisposition);
-      const serverFileName = matches && matches[1] ? matches[1] : fileName;
+      
+      // Use server provided filename if available, otherwise use our processed filename
+      const finalFileName = matches && matches[1] ? matches[1] : downloadFileName;
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: contentType }));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", serverFileName);
+      link.setAttribute("download", finalFileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error downloading file:", error);
       alert("Error downloading file. Please try again.");
@@ -256,7 +270,7 @@ useEffect(() => {
           {/* Shared Files Section */}
           <section className="backdrop-blur-sm bg-gradient-to-br from-teal-100/95 via-white/90 to-emerald-100/95 rounded-lg p-6 shadow-xl border border-white/50">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center">
-              <span className="text-3xl mr-2">📁</span>
+              <span className="text-3xl mr-2">����</span>
               <span>Shared Files</span>
             </h2>
             {userRole === "teacher" && (

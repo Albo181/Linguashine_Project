@@ -361,7 +361,27 @@ const FileDashboard = () => {
   // File download handler with proper error handling
   const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      const response = await apiClient.get(`/files/download/${fileId}/`, {
+      // Construct the correct download URL based on file type
+      let downloadUrl = '';
+      switch (fileType) {
+        case 'document':
+          downloadUrl = `/files/private/documents/${fileId}/`;
+          break;
+        case 'image':
+          downloadUrl = `/files/private/images/${fileId}/`;
+          break;
+        case 'audio':
+          downloadUrl = `/files/private/audio/${fileId}/`;
+          break;
+        case 'video':
+          downloadUrl = `/files/private/video/${fileId}/`;
+          break;
+        default:
+          console.error('Unknown file type for download');
+          return;
+      }
+
+      const response = await apiClient.get(downloadUrl, {
         responseType: 'blob',
         headers: {
           'X-CSRFToken': getCsrfToken(),
