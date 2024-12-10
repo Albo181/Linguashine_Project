@@ -4,6 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../context/AuthContext';
 
+// Add this function before the FeedbackForm component
+const getCsrfToken = () => {
+    const name = 'csrftoken=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookieArray = decodedCookie.split(';');
+    for (let cookie of cookieArray) {
+        cookie = cookie.trim();
+        if (cookie.indexOf(name) === 0) {
+            return cookie.substring(name.length, cookie.length);
+        }
+    }
+    return null;
+};
+
 const FeedbackForm = () => {
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
@@ -193,7 +207,7 @@ const FeedbackForm = () => {
             
             // Add the file with correct field name
             formData.append('document_area', documentArea);
-
+            
             // Add other form fields
             formData.append('student_name', currentUser?.user_type === 'teacher' ? sendTo : userId.toString());
             formData.append('send_to', sendTo);
@@ -234,13 +248,7 @@ const FeedbackForm = () => {
             resetForm();
         } catch (error) {
             console.error("Error during submission:", error);
-            console.error("Error response data:", error.response?.data);
-            const errorMessage = error.response?.data?.detail || 
-                               error.response?.data?.error || 
-                               error.response?.data?.message || 
-                               error.message || 
-                               "Error submitting work. Please try again.";
-            alert(errorMessage);
+            setError(error.message || "An error occurred while submitting the feedback.");
         } finally {
             setIsSubmitting(false);
         }

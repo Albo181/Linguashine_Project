@@ -329,19 +329,21 @@ const HomeworkPage = () => {
                 console.log(`${key}:`, value);
             }
 
-            const response = await apiClient.post('/api/homework-submission/', formData);
+            const response = await apiClient.post('/api/homework-submission/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
             // Try to parse response as JSON, but handle cases where it's not JSON
             let responseData;
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
+            if (response.data) {
                 responseData = response.data;
             } else {
-                responseData = await response.text();
-                console.log('Non-JSON response:', responseData);
+                responseData = { message: 'Homework submitted successfully!' };
             }
 
-            if (response.status !== 201) {
+            if (response.status !== 201 && response.status !== 200) {
                 throw new Error(
                     typeof responseData === 'object' ? 
                         responseData.error || 'Failed to submit homework' :
