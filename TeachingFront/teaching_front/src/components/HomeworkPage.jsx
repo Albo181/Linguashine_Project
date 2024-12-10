@@ -219,58 +219,53 @@ const HomeworkPage = () => {
             formData.append('due_date', formattedDueDate);
             formData.append('instructions', homework.instructions);
             formData.append('comments', homework.comments || '');
-            
-            // Add teacher ID
             formData.append('teacher', String(userData.id));
-            console.log('Teacher ID:', userData.id);
             
-            // Make sure student ID is a string
             if (homework.student) {
-                const studentId = String(homework.student);
-                console.log('Sending student ID:', studentId);
-                formData.append('student', studentId);
+                formData.append('student', String(homework.student));
             }
             
             if (homework.file) {
-                formData.append('attachment', homework.file);
+                formData.append('document_area', homework.file);
             }
 
             // Log form data for debugging
-            console.log('Form data being sent:');
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: ${value}`);
             }
 
-            const response = await apiClient.post('/api/homework/', formData);
+            const response = await apiClient.post('/api/upload/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || '',
+                },
+                withCredentials: true
+            });
 
-            if (response.status !== 201) {
-                const errorData = response.data;
-                throw new Error(errorData.detail || 'Failed to create homework');
+            if (response.status === 201) {
+                setAlert({
+                    show: true,
+                    message: 'Homework has been sent successfully!',
+                    severity: 'success'
+                });
+
+                // Reset form
+                setHomework({
+                    setDate: dayjs(),
+                    dueDate: dayjs().add(7, 'day'),
+                    instructions: '',
+                    comments: '',
+                    file: null,
+                    student: ''
+                });
+            } else {
+                throw new Error(response.data?.error || 'Failed to create homework');
             }
-
-            const responseData = response.data;
-            console.log('Server response:', responseData);
-
-            setAlert({
-                show: true,
-                message: 'Homework has been sent successfully!',
-                severity: 'success'
-            });
-
-            // Reset form
-            setHomework({
-                setDate: dayjs(),
-                dueDate: dayjs().add(7, 'day'),
-                instructions: '',
-                comments: '',
-                file: null,
-                student: ''
-            });
         } catch (error) {
             console.error('Error:', error);
             setAlert({
                 show: true,
-                message: error.message || 'Failed to send homework. Please try again.',
+                message: error.response?.data?.error || error.message || 'Failed to send homework. Please try again.',
                 severity: 'error'
             });
         } finally {

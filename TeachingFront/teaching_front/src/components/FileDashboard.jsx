@@ -359,36 +359,38 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (fileId, fileName) => {
+  const handleDownload = async (fileId, fileName, fileType) => {
     try {
-        // Make the request with responseType blob
-        const response = await apiClient.get(`/api/files/${fileId}/download/`, {
+        // Use the existing download endpoint from PrivateFileViewSet
+        const downloadUrl = `/files/download/${fileId}/`;
+
+        console.log('Attempting to download from:', downloadUrl); // Debug log
+
+        const response = await apiClient.get(downloadUrl, {
             responseType: 'blob'
         });
 
-        // Create a blob from the response data
-        const blob = new Blob([response.data]);
-        
-        // Create a temporary URL for the blob
+        // Get content type from response
+        const contentType = response.headers['content-type'];
+        console.log('Response content type:', contentType); // Debug log
+
+        // Create blob with the correct content type
+        const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
         
-        // Create a temporary anchor element
+        // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
-        
-        // Set the download attribute with original filename
         link.setAttribute('download', fileName);
-        
-        // Append to body, click, and remove
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
         
-        // Clean up the URL
+        // Cleanup
+        document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error downloading file:', error);
-        // Handle error appropriately
+        alert('Error downloading file. Please try again.');
     }
   };
 
@@ -547,8 +549,8 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file.id, file.title)}
-                    onDelete={handleDeleteFile}  // Pass the function directly
+                    onDownload={() => handleDownload(file.id, file.title, file.type)}
+                    onDelete={handleDeleteFile}
                   />
                 );
               })
