@@ -232,7 +232,7 @@ const FeedbackForm = () => {
                 }
             }
 
-            const response = await apiClient.post('/feedback/upload/', formData, {
+            const response = await apiClient.post('/api/upload/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': getCsrfToken(),

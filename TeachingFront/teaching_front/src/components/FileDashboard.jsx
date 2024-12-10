@@ -359,7 +359,7 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleFileDownload = async (fileId, fileName, fileType) => {
+  const handleFileDownload = async (fileId, fileName, fileType, originalExtension) => {
     try {
       // Construct the correct download URL based on file type
       let downloadUrl = '';
@@ -381,6 +381,8 @@ const FileDashboard = () => {
           return;
       }
 
+      console.log('Starting download:', { fileId, fileName, fileType, originalExtension });
+
       const response = await apiClient.get(downloadUrl, {
         responseType: 'blob',
         headers: {
@@ -388,16 +390,17 @@ const FileDashboard = () => {
         }
       });
 
-      // Get content type and original extension
+      // Get content type and original extension from response headers
       const contentType = response.headers['content-type'];
+      const contentDisposition = response.headers['content-disposition'];
       let finalFileName = fileName;
 
-      // First try to get extension from original filename
-      if (fileName.includes('.')) {
-        // Keep the original extension
-        finalFileName = fileName;
+      // Try to get the original filename from Content-Disposition header
+      const matches = /filename="(.+)"/.exec(contentDisposition);
+      if (matches && matches[1]) {
+        finalFileName = matches[1];
       } else {
-        // If no extension in filename, use content type to determine extension
+        // If no Content-Disposition, use original extension or determine from content type
         const contentTypeMap = {
           // Audio formats
           'audio/mpeg': '.mp3',
@@ -406,33 +409,43 @@ const FileDashboard = () => {
           'audio/wave': '.wav',
           'audio/x-wav': '.wav',
           'audio/webm': '.webm',
+          'audio/ogg': '.ogg',
+          'audio/aac': '.aac',
+          'audio/m4a': '.m4a',
           // Video formats
           'video/mp4': '.mp4',
           'video/webm': '.webm',
           'video/quicktime': '.mov',
+          'video/x-matroska': '.mkv',
+          'video/avi': '.avi',
+          'video/mpeg': '.mpeg',
           // Image formats
           'image/jpeg': '.jpg',
           'image/jpg': '.jpg',
           'image/png': '.png',
           'image/gif': '.gif',
+          'image/webp': '.webp',
+          'image/svg+xml': '.svg',
           // Document formats
           'application/pdf': '.pdf',
           'application/msword': '.doc',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx'
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+          'text/plain': '.txt',
+          'application/rtf': '.rtf',
+          'application/vnd.oasis.opendocument.text': '.odt'
         };
 
-        const extension = contentTypeMap[contentType];
-        if (extension) {
-          finalFileName += extension;
-        } else {
-          // Only use fallback if we can't determine from content type
-          const fallbackExt = {
-            'document': '.pdf',
-            'image': '.jpg',
-            'audio': '.mp3',
-            'video': '.mp4'
-          };
-          finalFileName += fallbackExt[fileType] || '';
+        // First try to use the original extension if we have it
+        if (originalExtension && originalExtension.startsWith('.')) {
+          if (!fileName.toLowerCase().endsWith(originalExtension.toLowerCase())) {
+            finalFileName += originalExtension;
+          }
+        } else if (!fileName.includes('.')) {
+          // If no original extension and filename doesn't have one, try to determine from content type
+          const extension = contentTypeMap[contentType];
+          if (extension) {
+            finalFileName += extension;
+          }
         }
       }
 
@@ -440,7 +453,7 @@ const FileDashboard = () => {
         originalName: fileName,
         finalName: finalFileName,
         contentType: contentType,
-        fileType: fileType
+        originalExtension: originalExtension
       });
 
       const blob = new Blob([response.data], { type: contentType });
@@ -619,7 +632,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleFileDownload(file.id, file.title, file.type)}
+                    onDownload={() => handleFileDownload(file.id, file.title, file.type, file.originalExtension)}
                     onDelete={handleDeleteFile}  // Pass the function directly
                   />
                 );
