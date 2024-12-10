@@ -207,7 +207,6 @@ const HomeworkPage = () => {
             // Get current user info first
             const userResponse = await apiClient.get('/users/me/');
             const userData = userResponse.data;
-            console.log('Current user data:', userData);
 
             // Format dates according to Django's expected format
             const formattedSetDate = homework.setDate.format('YYYY-MM-DD HH:mm:ss');
@@ -226,7 +225,7 @@ const HomeworkPage = () => {
             }
             
             if (homework.file) {
-                formData.append('document_area', homework.file);
+                formData.append('attachment', homework.file);
             }
 
             // Log form data for debugging
@@ -234,7 +233,7 @@ const HomeworkPage = () => {
                 console.log(`${key}: ${value}`);
             }
 
-            const response = await apiClient.post('/api/upload/', formData, {
+            const response = await apiClient.post('/api/homework/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || '',
@@ -242,10 +241,10 @@ const HomeworkPage = () => {
                 withCredentials: true
             });
 
-            if (response.status === 201) {
+            if (response.status === 201 || response.status === 200) {
                 setAlert({
                     show: true,
-                    message: 'Homework has been sent successfully!',
+                    message: 'Homework has been assigned successfully!',
                     severity: 'success'
                 });
 
@@ -259,13 +258,13 @@ const HomeworkPage = () => {
                     student: ''
                 });
             } else {
-                throw new Error(response.data?.error || 'Failed to create homework');
+                throw new Error(response.data?.error || 'Failed to assign homework');
             }
         } catch (error) {
             console.error('Error:', error);
             setAlert({
                 show: true,
-                message: error.response?.data?.error || error.message || 'Failed to send homework. Please try again.',
+                message: error.response?.data?.error || error.message || 'Failed to assign homework. Please try again.',
                 severity: 'error'
             });
         } finally {
