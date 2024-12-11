@@ -38,6 +38,7 @@ const HomeworkPage = () => {
     const [loading, setLoading] = useState(false);
     const [students, setStudents] = useState([]);
     const [userType, setUserType] = useState(null);
+    const [userId, setUserId] = useState(null);
     const [studentHomework, setStudentHomework] = useState([]);
     const [submissionFile, setSubmissionFile] = useState(null);
     const [selectedHomework, setSelectedHomework] = useState(null);
@@ -60,6 +61,7 @@ const HomeworkPage = () => {
                 if (userResponse.status === 200) {
                     const userData = userResponse.data;
                     setUserType(userData.user_type);
+                    setUserId(userData.id);
                     console.log('User data:', userData);
 
                     // If user is a teacher, fetch students list
@@ -93,9 +95,8 @@ const HomeworkPage = () => {
                 const response = await apiClient.get('/users/all-users/');
                 if (response.status === 200) {
                     const data = response.data;
-                    // For testing: show all users except current user
-                    const currentUserId = localStorage.getItem('userId');
-                    const otherUsers = data.filter(user => user.id !== parseInt(currentUserId));
+                    // Include all users for testing purposes
+                    const otherUsers = data;
                     console.log('Available users:', otherUsers);
                     setStudents(otherUsers);
                 } else {
@@ -207,7 +208,6 @@ const HomeworkPage = () => {
             // Get current user info first
             const userResponse = await apiClient.get('/users/me/');
             const userData = userResponse.data;
-            console.log('Current user data:', userData);
 
             // Format dates according to Django's expected format
             const formattedSetDate = homework.setDate.format('YYYY-MM-DD HH:mm:ss');
@@ -219,16 +219,10 @@ const HomeworkPage = () => {
             formData.append('due_date', formattedDueDate);
             formData.append('instructions', homework.instructions);
             formData.append('comments', homework.comments || '');
-            
-            // Add teacher ID
             formData.append('teacher', String(userData.id));
-            console.log('Teacher ID:', userData.id);
             
-            // Make sure student ID is a string
             if (homework.student) {
-                const studentId = String(homework.student);
-                console.log('Sending student ID:', studentId);
-                formData.append('student', studentId);
+                formData.append('student', String(homework.student));
             }
             
             if (homework.file) {
@@ -236,41 +230,42 @@ const HomeworkPage = () => {
             }
 
             // Log form data for debugging
-            console.log('Form data being sent:');
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: ${value}`);
             }
 
-            const response = await apiClient.post('/api/homework/', formData);
+            const response = await apiClient.post('/api/homework/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || '',
+                },
+                withCredentials: true
+            });
 
-            if (response.status !== 201) {
-                const errorData = response.data;
-                throw new Error(errorData.detail || 'Failed to create homework');
+            if (response.status === 201 || response.status === 200) {
+                setAlert({
+                    show: true,
+                    message: 'Homework has been assigned successfully!',
+                    severity: 'success'
+                });
+
+                // Reset form
+                setHomework({
+                    setDate: dayjs(),
+                    dueDate: dayjs().add(7, 'day'),
+                    instructions: '',
+                    comments: '',
+                    file: null,
+                    student: ''
+                });
+            } else {
+                throw new Error(response.data?.error || 'Failed to assign homework');
             }
-
-            const responseData = response.data;
-            console.log('Server response:', responseData);
-
-            setAlert({
-                show: true,
-                message: 'Homework has been sent successfully!',
-                severity: 'success'
-            });
-
-            // Reset form
-            setHomework({
-                setDate: dayjs(),
-                dueDate: dayjs().add(7, 'day'),
-                instructions: '',
-                comments: '',
-                file: null,
-                student: ''
-            });
         } catch (error) {
             console.error('Error:', error);
             setAlert({
                 show: true,
-                message: error.message || 'Failed to send homework. Please try again.',
+                message: error.response?.data?.error || error.message || 'Failed to assign homework. Please try again.',
                 severity: 'error'
             });
         } finally {
@@ -329,19 +324,21 @@ const HomeworkPage = () => {
                 console.log(`${key}:`, value);
             }
 
-            const response = await apiClient.post('/api/homework-submission/', formData);
+            const response = await apiClient.post('/api/homework-submission/', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
 
             // Try to parse response as JSON, but handle cases where it's not JSON
             let responseData;
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
+            if (response.data) {
                 responseData = response.data;
             } else {
-                responseData = await response.text();
-                console.log('Non-JSON response:', responseData);
+                responseData = { message: 'Homework submitted successfully!' };
             }
 
-            if (response.status !== 201) {
+            if (response.status !== 201 && response.status !== 200) {
                 throw new Error(
                     typeof responseData === 'object' ? 
                         responseData.error || 'Failed to submit homework' :
@@ -407,6 +404,13 @@ const HomeworkPage = () => {
                     <AssignmentIcon sx={{ fontSize: 40, mr: 2 }} />
                     My Homework
                 </Typography>
+
+                {/* Email notification message - only shown for students */}
+                {userType === 'student' && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontStyle: 'italic' }}>
+                        * Any submissions from this page will be sent directly to your teacher's email address
+                    </Typography>
+                )}
 
                 {/* Tabs */}
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -628,16 +632,6 @@ const HomeworkPage = () => {
                         boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
                     }}
                 >
-                    {alert.show && (
-                        <Alert 
-                            severity={alert.severity} 
-                            sx={{ mb: 2 }}
-                            onClose={() => setAlert({ ...alert, show: false })}
-                        >
-                            {alert.message}
-                        </Alert>
-                    )}
-                    
                     {userType && (
                         <Box sx={{ mb: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                         </Box>
@@ -656,6 +650,14 @@ const HomeworkPage = () => {
 
                             <form onSubmit={handleSubmit}>
                                 <Grid container spacing={3}>
+                                    {/* Email notification message - only shown for teachers */}
+                                    {userType === 'teacher' && homework.student && (
+                                        <Grid item xs={12}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                                                * Any files attached will be sent directly to the selected student's email address
+                                            </Typography>
+                                        </Grid>
+                                    )}
                                     {userType === 'teacher' && (
                                         <Grid item xs={12}>
                                             <FormControl fullWidth>
@@ -732,6 +734,21 @@ const HomeworkPage = () => {
                                                 {homework.file.name}
                                             </Typography>
                                         )}
+                                        {alert.show && (
+                                            <Alert 
+                                                severity={alert.severity}
+                                                sx={{ 
+                                                    display: 'inline-flex',
+                                                    ml: 2,
+                                                    py: 0,
+                                                    '& .MuiAlert-message': {
+                                                        padding: '4px 0'
+                                                    }
+                                                }}
+                                            >
+                                                {alert.message}
+                                            </Alert>
+                                        )}
                                     </Grid>
                                     <Grid item xs={12}>
                                         <Button
@@ -750,6 +767,15 @@ const HomeworkPage = () => {
                                         >
                                             {loading ? 'Sending...' : 'Send Homework'}
                                         </Button>
+                                        {alert.show && (
+                                            <Alert 
+                                                severity={alert.severity} 
+                                                sx={{ mt: 2 }}
+                                                onClose={() => setAlert({ ...alert, show: false })}
+                                            >
+                                                {alert.message}
+                                            </Alert>
+                                        )}
                                     </Grid>
                                 </Grid>
                             </form>
