@@ -44,44 +44,45 @@ class HomeworkViewSet(viewsets.ModelViewSet):
 
             # Get the file from request
             file = request.FILES.get('attachment')
+            print("\n=== File Handling Debug ===")
+            print(f"Request method: {request.method}")
+            print(f"Content-Type: {request.content_type}")
+            print(f"All FILES: {dict(request.FILES)}")
             
-            # Create homework without file
-            homework_data = request.data.copy()
-            if 'attachment' in homework_data:
-                del homework_data['attachment']
-                
-            serializer = self.get_serializer(data=homework_data)
-            if not serializer.is_valid():
-                print("Validation errors:", serializer.errors)
-                return Response(
-                    {"error": "Invalid data", "detail": serializer.errors},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            homework = serializer.save()
-            
-            # If there's a file, send it via email immediately
             if file:
+                print(f"\nFile details:")
+                print(f"- Name: {file.name}")
+                print(f"- Size: {file.size} bytes")
+                print(f"- Content type: {file.content_type}")
+                
+                # Create homework without file first
+                homework_data = request.data.copy()
+                if 'attachment' in homework_data:
+                    del homework_data['attachment']
+                    
+                serializer = self.get_serializer(data=homework_data)
+                if not serializer.is_valid():
+                    print("Validation errors:", serializer.errors)
+                    return Response(
+                        {"error": "Invalid data", "detail": serializer.errors},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                homework = serializer.save()
+                
+                # Now handle email with file
                 try:
-                    logger.debug("Preparing to send email...")
-                    logger.debug(f"From: {settings.EMAIL_HOST_USER}")
-                    logger.debug(f"To: {student.email}")
-                    logger.debug(f"SMTP Settings: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
-                    logger.debug(f"TLS Enabled: {settings.EMAIL_USE_TLS}")
+                    print("\n=== Email Sending Debug ===")
+                    print(f"Sending to: {student.email}")
+                    print(f"From: {settings.EMAIL_HOST_USER}")
+                    print(f"SMTP: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
+                    print(f"TLS: {settings.EMAIL_USE_TLS}")
                     
                     # Enable SMTP debug mode
                     smtplib.SMTP.debuglevel = 2
                     
-                    subject = f'New Homework Assignment'
-                    message = f'''
-                    Teacher: {request.user.first_name} {request.user.last_name}
-                    Due Date: {homework.due_date.strftime('%d/%m/%Y %H:%M')}
-                    Instructions: {homework.instructions[:100]}...
-                    
-                    Please find the attached homework assignment.
-                    '''
-                    
                     # Get a new connection
+                    print("Creating SMTP connection...")
                     connection = get_connection(
                         host=settings.EMAIL_HOST,
                         port=settings.EMAIL_PORT,
@@ -92,13 +93,23 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                     )
                     
                     try:
-                        logger.debug("Testing SMTP connection...")
+                        print("Testing SMTP connection...")
                         connection.open()
-                        logger.debug("SMTP connection successful!")
+                        print("SMTP connection successful!")
                     except Exception as conn_error:
-                        logger.error(f"SMTP Connection Error: {str(conn_error)}")
+                        print(f"SMTP Connection Error: {str(conn_error)}")
                         raise
                     
+                    subject = f'New Homework Assignment'
+                    message = f'''
+                    Teacher: {request.user.first_name} {request.user.last_name}
+                    Due Date: {homework.due_date.strftime('%d/%m/%Y %H:%M')}
+                    Instructions: {homework.instructions[:100]}...
+                    
+                    Please find the attached homework assignment.
+                    '''
+                    
+                    # Create email with connection
                     email = EmailMessage(
                         subject,
                         message,
@@ -107,31 +118,47 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                         connection=connection
                     )
                     
-                    email.attach(file.name, file.read(), file.content_type)
+                    # Read and attach file
+                    file_content = file.read()
+                    print(f"File content length: {len(file_content)} bytes")
+                    email.attach(file.name, file_content, file.content_type)
+                    print("File attached to email")
                     
+                    # Send with debug
                     try:
-                        logger.debug("Attempting to send email...")
+                        print("Attempting to send email...")
                         email.send(fail_silently=False)
-                        logger.debug("Email sent successfully!")
+                        print("Email sent successfully!")
                     except Exception as send_error:
-                        logger.error(f"Email Send Error: {str(send_error)}")
-                        logger.error(f"Error Type: {type(send_error)}")
-                        logger.error(f"Error Args: {send_error.args}")
+                        print(f"Email Send Error: {str(send_error)}")
                         raise
                     finally:
+                        print("Closing SMTP connection...")
                         connection.close()
-                        
+                    
                 except Exception as e:
-                    logger.error(f"Email Error: {str(e)}")
-                    logger.error(f"Error Type: {type(e)}")
-                    logger.error(f"Error Args: {e.args}")
-                    # Continue with homework creation even if email fails
-            
-            print(f"Successfully created homework {homework.id}")
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-            )
+                    print(f"\nEmail Error: {str(e)}")
+                    print(f"Error Type: {type(e)}")
+                    print(f"Error Args: {e.args}")
+                    # Continue even if email fails
+                
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            else:
+                # Handle case with no file
+                serializer = self.get_serializer(data=request.data)
+                if serializer.is_valid():
+                    homework = serializer.save()
+                    return Response(
+                        serializer.data,
+                        status=status.HTTP_201_CREATED
+                    )
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         except Exception as e:
             print(f"Error creating homework: {str(e)}")
             return Response(
