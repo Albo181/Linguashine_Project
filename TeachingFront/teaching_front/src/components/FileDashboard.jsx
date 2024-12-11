@@ -119,7 +119,9 @@ const FileDashboard = () => {
       console.log('Raw file data:', response.data);
 
       const constructFileUrl = (file) => {
-        return `/files/download/${file.id}/`;
+        return file.file_url || // Use file_url if provided
+          (file.file?.startsWith('http') ? file.file : // Use file if it's a full URL
+          `${apiClient.defaults.baseURL}${file.file}`); // Construct URL for relative paths
       };
 
       const allFiles = [
@@ -357,13 +359,29 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (fileId, fileName) => {
+  const handleDownload = async (fileId, fileName, fileType) => {
     try {
-        // Use the simple download endpoint
-        const downloadUrl = `/files/download/${fileId}/`;
-        
+        // Construct the correct endpoint based on file type
+        let downloadUrl;
+        switch (fileType) {
+            case 'document':
+                downloadUrl = `/files/private/documents/${fileId}/download/`;
+                break;
+            case 'image':
+                downloadUrl = `/files/private/images/${fileId}/download/`;
+                break;
+            case 'audio':
+                downloadUrl = `/files/private/audio/${fileId}/download/`;
+                break;
+            case 'video':
+                downloadUrl = `/files/private/video/${fileId}/download/`;
+                break;
+            default:
+                throw new Error('Unknown file type');
+        }
+
         console.log('Attempting to download from:', downloadUrl);
-        
+
         const response = await apiClient.get(downloadUrl, {
             responseType: 'blob',
             headers: {
@@ -371,20 +389,32 @@ const FileDashboard = () => {
             }
         });
 
-        // Get content type from response
-        const contentType = response.headers['content-type'] || 'application/octet-stream';
+        // Get content type and original filename from headers
+        const contentType = response.headers['content-type'];
         const contentDisposition = response.headers['content-disposition'];
+        console.log('Response headers:', {
+            contentType,
+            contentDisposition
+        });
 
-        // Get filename from Content-Disposition or use provided filename
+        // Extract filename from Content-Disposition header if available
         let downloadFileName = fileName;
         const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
         if (matches && matches[1]) {
             downloadFileName = matches[1].replace(/['"]/g, '');
         }
 
-        // Create blob and trigger download
+        // If filename includes path, get just the filename
+        if (downloadFileName.includes('/')) {
+            downloadFileName = downloadFileName.split('/').pop();
+            downloadFileName = decodeURIComponent(downloadFileName);
+        }
+
+        // Create blob with the correct content type
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
+        
+        // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', downloadFileName);
@@ -575,7 +605,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file.id, file.title)}
+                    onDownload={() => handleDownload(file.id, file.title, file.type)}
                     onDelete={handleDeleteFile}
                   />
                 );
