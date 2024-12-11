@@ -119,9 +119,8 @@ const FileDashboard = () => {
       console.log('Raw file data:', response.data);
 
       const constructFileUrl = (file) => {
-        return file.file_url || // Use file_url if provided
-          (file.file?.startsWith('http') ? file.file : // Use file if it's a full URL
-          `${apiClient.defaults.baseURL}${file.file}`); // Construct URL for relative paths
+        // For downloads, use the download endpoint
+        return `${apiClient.defaults.baseURL}/files/private/${file.type}s/${file.id}/download/`;
       };
 
       const allFiles = [
