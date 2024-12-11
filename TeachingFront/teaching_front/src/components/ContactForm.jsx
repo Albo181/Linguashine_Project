@@ -6,19 +6,25 @@ const ContactForm = () => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [submissionStatus, setSubmissionStatus] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmissionStatus("pending");
+    setValidationErrors({});
     
-    try {
-      // Validate form data
-      if (!name || !subject || !message) {
-        setSubmissionStatus("error");
-        console.error("Validation error: All fields are required");
-        return;
-      }
+    const errors = {};
+    if (!name) errors.name = "Por favor, introduce tu nombre";
+    if (!subject) errors.subject = "Por favor, selecciona una opción";
+    if (!message) errors.message = "Por favor, escribe tu mensaje";
 
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      setSubmissionStatus("error");
+      return;
+    }
+
+    try {
       const payload = {
         name,
         subject,
@@ -71,31 +77,46 @@ const ContactForm = () => {
         <span>Mándame un mensaje</span>
       </div>
 
-      <input
-        type="text"
-        placeholder="Nombre"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        className="border p-2 w-96"
-      />
+      <div className="flex flex-col">
+        <input
+          type="text"
+          placeholder="Nombre *"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={`border p-2 w-96 ${validationErrors.name ? 'border-red-500' : ''}`}
+        />
+        {validationErrors.name && (
+          <span className="text-red-500 text-sm mt-1">{validationErrors.name}</span>
+        )}
+      </div>
 
-      <select
-        value={subject}
-        onChange={(e) => setSubject(e.target.value)}
-        className="border p-2 w-96"
-      >
-        <option value="">Elige una opción</option>
-        <option value="TENGO UNA PREGUNTA">Tengo una pregunta</option>
-        <option value="ME GUSTARÍA QUE ME LLAMARAS">Me gustaría que me llamaras</option>
-        <option value="OTRO MOTIVO">Otro motivo</option>
-      </select>
+      <div className="flex flex-col">
+        <select
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className={`border p-2 w-96 ${validationErrors.subject ? 'border-red-500' : ''}`}
+        >
+          <option value="">Elige una opción *</option>
+          <option value="TENGO UNA PREGUNTA">Tengo una pregunta</option>
+          <option value="ME GUSTARÍA QUE ME LLAMARAS">Me gustaría que me llamaras</option>
+          <option value="OTRO MOTIVO">Otro motivo</option>
+        </select>
+        {validationErrors.subject && (
+          <span className="text-red-500 text-sm mt-1">{validationErrors.subject}</span>
+        )}
+      </div>
 
-      <textarea
-        placeholder="Mensaje"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)} 
-        className="border p-2 w-96"
-      />
+      <div className="flex flex-col">
+        <textarea
+          placeholder="Mensaje *"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)} 
+          className={`border p-2 w-96 ${validationErrors.message ? 'border-red-500' : ''}`}
+        />
+        {validationErrors.message && (
+          <span className="text-red-500 text-sm mt-1">{validationErrors.message}</span>
+        )}
+      </div>
 
       <button
         type="submit"
