@@ -699,7 +699,7 @@ const HomeworkPage = () => {
                                                 >
                                                     {students.map((user) => (
                                                         <MenuItem key={user.id} value={user.id}>
-                                                            {user.first_name} {user.last_name}
+                                                            {user.first_name} {user.last_name} ({user.email})
                                                         </MenuItem>
                                                     ))}
                                                 </Select>

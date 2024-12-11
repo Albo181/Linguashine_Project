@@ -362,26 +362,10 @@ const FileDashboard = () => {
   const handleDownload = async (fileId, fileName, fileType) => {
     try {
         // Construct the correct endpoint based on file type
-        let downloadUrl;
-        switch (fileType) {
-            case 'document':
-                downloadUrl = `/files/private/documents/${fileId}/download/`;
-                break;
-            case 'image':
-                downloadUrl = `/files/private/images/${fileId}/download/`;
-                break;
-            case 'audio':
-                downloadUrl = `/files/private/audio/${fileId}/download/`;
-                break;
-            case 'video':
-                downloadUrl = `/files/private/video/${fileId}/download/`;
-                break;
-            default:
-                throw new Error('Unknown file type');
-        }
-
+        const downloadUrl = `/files/private/${fileType}s/${fileId}/download/`;
+        
         console.log('Attempting to download from:', downloadUrl);
-
+        
         const response = await apiClient.get(downloadUrl, {
             responseType: 'blob',
             headers: {
