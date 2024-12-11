@@ -112,15 +112,16 @@ const FileDashboard = () => {
 
   // Fetch files
   const fetchFiles = async () => {
-    if (!selectedStudentId && user?.user_type !== 'teacher') return;
+    if (!selectedStudentId) return;
     try {
       const endpoint = `/files/private/all-files/${selectedStudentId}/`;
       const response = await apiClient.get(endpoint);
       console.log('Raw file data:', response.data);
 
       const constructFileUrl = (file) => {
-        // For downloads, use the download endpoint
-        return `/files/private/${file.type}s/${file.id}/download/`;
+        return file.file_url || // Use file_url if provided
+          (file.file?.startsWith('http') ? file.file : // Use file if it's a full URL
+          `${apiClient.defaults.baseURL}${file.file}`); // Construct URL for relative paths
       };
 
       const allFiles = [
@@ -358,66 +359,38 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (file) => {
+  const handleDownload = async (fileId, fileName, fileType) => {
     try {
-        // Construct the correct endpoint based on file type
-        const downloadUrl = `/files/private/${file.type}s/${file.id}/download/`;
-        
-        console.log('Attempting to download from:', downloadUrl);
-        
+        // Use the existing download endpoint from PrivateFileViewSet
+        const downloadUrl = `/files/download/${fileId}/`;
+
+        console.log('Attempting to download from:', downloadUrl); // Debug log
+
         const response = await apiClient.get(downloadUrl, {
-            responseType: 'blob',
-            headers: {
-                'X-CSRFToken': getCsrfToken(),
-            }
+            responseType: 'blob'
         });
 
         // Get content type from response
-        const contentType = response.headers['content-type'] || 'application/octet-stream';
-        const contentDisposition = response.headers['content-disposition'];
+        const contentType = response.headers['content-type'];
+        console.log('Response content type:', contentType); // Debug log
 
-        // Get filename from Content-Disposition or use provided filename
-        let downloadFileName = file.title;
-        const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-        if (matches && matches[1]) {
-            downloadFileName = matches[1].replace(/['"]/g, '');
-        }
-
-        // Create blob and trigger download
+        // Create blob with the correct content type
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
+        
+        // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', downloadFileName);
+        link.setAttribute('download', fileName);
         document.body.appendChild(link);
         link.click();
         
         // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-
-        console.log('Download completed successfully');
     } catch (error) {
         console.error('Error downloading file:', error);
-        console.error('Error details:', {
-            message: error.message,
-            response: error.response,
-            status: error.response?.status,
-            data: error.response?.data
-        });
-
-        // Show user-friendly error message
-        let errorMessage = 'Error downloading file. ';
-        if (error.response?.status === 404) {
-            errorMessage += 'File not found.';
-        } else if (error.response?.status === 403) {
-            errorMessage += 'You do not have permission to download this file.';
-        } else if (error.response?.status === 500) {
-            errorMessage += 'Server error. Please try again later.';
-        } else {
-            errorMessage += 'Please try again.';
-        }
-        alert(errorMessage);
+        alert('Error downloading file. Please try again.');
     }
   };
 
@@ -576,7 +549,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file)}
+                    onDownload={() => handleDownload(file.id, file.title, file.type)}
                     onDelete={handleDeleteFile}
                   />
                 );
