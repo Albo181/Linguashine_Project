@@ -42,10 +42,11 @@ def get_csrf_token(request):
 
 #Checks log-in status   
 class CheckAuthView(APIView):   
+    permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
+    
     def get(self, request):
         if request.user.is_authenticated:
             return JsonResponse({'logged_in': True}, status=200)
-             
         else:
             return JsonResponse({'logged_in': False}, status=200)
         

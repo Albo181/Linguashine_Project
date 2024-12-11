@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django import forms
 from .models import CustomUser
 import logging
@@ -48,7 +48,7 @@ class CustomUserDetailsForm(forms.ModelForm):
 
 class CustomUserAdmin(BaseUserAdmin):
     add_form = CustomUserCreationForm
-    form = CustomUserDetailsForm
+    form = UserChangeForm
     model = CustomUser
     list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'is_staff')
     list_filter = ('is_staff', 'is_active', 'user_type')

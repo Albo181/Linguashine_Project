@@ -170,7 +170,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'https://attractive-upliftment-production.up.railway.app',
+    'https://attractive-upliftment-production.up.railway.app',  # Frontend domain only
     'http://localhost:5173',
     'http://localhost:5174'
 ]
