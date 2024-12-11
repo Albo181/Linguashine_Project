@@ -779,15 +779,6 @@ const HomeworkPage = () => {
                                         >
                                             {loading ? 'Sending...' : 'Send Homework'}
                                         </Button>
-                                        {alert.show && (
-                                            <Alert 
-                                                severity={alert.severity} 
-                                                sx={{ mt: 2 }}
-                                                onClose={() => setAlert({ ...alert, show: false })}
-                                            >
-                                                {alert.message}
-                                            </Alert>
-                                        )}
                                     </Grid>
                                 </Grid>
                             </form>

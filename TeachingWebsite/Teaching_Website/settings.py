@@ -204,6 +204,39 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+
+# Email Debug Settings
+EMAIL_DEBUG = True  # This will log email sending attempts
+EMAIL_TIMEOUT = 20  # Timeout in seconds
+
+# Add email to logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.mail': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 # Rest Framework settings
 REST_FRAMEWORK = {
@@ -271,11 +304,3 @@ AUTHENTICATION_BACKENDS = [
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')

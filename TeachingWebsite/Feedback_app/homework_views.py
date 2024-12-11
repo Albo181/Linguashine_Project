@@ -59,6 +59,11 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             # If there's a file, send it via email immediately
             if file:
                 try:
+                    print("Preparing to send email...")
+                    print(f"From: {settings.EMAIL_HOST_USER}")
+                    print(f"To: {student.email}")
+                    print(f"Using SMTP: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
+                    
                     subject = f'New Homework Assignment'
                     message = f'''
                     Teacher: {request.user.first_name} {request.user.last_name}
@@ -75,11 +80,21 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                         [student.email]
                     )
                     email.attach(file.name, file.read(), file.content_type)
-                    email.send()
+                    
+                    # Try to send with debug info
+                    try:
+                        print("Attempting to send email...")
+                        email.send(fail_silently=False)
+                        print("Email sent successfully!")
+                    except Exception as send_error:
+                        print(f"Email send error details: {str(send_error)}")
+                        raise send_error
                     
                 except Exception as e:
                     # If email fails, we still created the homework, just log the error
                     print(f"Error sending email: {str(e)}")
+                    print(f"Error type: {type(e)}")
+                    print(f"Error args: {e.args}")
             
             print(f"Successfully created homework {homework.id}")
             return Response(
