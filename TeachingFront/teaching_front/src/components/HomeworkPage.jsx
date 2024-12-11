@@ -242,12 +242,6 @@ const HomeworkPage = () => {
             });
 
             if (response.status === 201 || response.status === 200) {
-                setAlert({
-                    show: true,
-                    message: 'Homework has been assigned successfully!',
-                    severity: 'success'
-                });
-
                 // Reset form
                 setHomework({
                     setDate: dayjs(),
@@ -257,6 +251,7 @@ const HomeworkPage = () => {
                     file: null,
                     student: ''
                 });
+                setLoading(false);
             } else {
                 throw new Error(response.data?.error || 'Failed to assign homework');
             }

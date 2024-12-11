@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+
+# Test logging configuration
+logger = logging.getLogger('django.mail')
+logger.info('Settings module loaded - logging is configured')
 
 load_dotenv()
 

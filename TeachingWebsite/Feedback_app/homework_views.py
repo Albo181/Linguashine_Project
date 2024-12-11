@@ -129,6 +129,12 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                         print("Attempting to send email...")
                         email.send(fail_silently=False)
                         print("Email sent successfully!")
+                        
+                        # Update is_sent flag
+                        homework.is_sent = True
+                        homework.save()
+                        print("Updated homework is_sent flag")
+                        
                     except Exception as send_error:
                         print(f"Email Send Error: {str(send_error)}")
                         raise
