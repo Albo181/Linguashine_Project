@@ -27,11 +27,22 @@ class HomeworkViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            # Log request data for debugging
-            print("Creating homework with data:", request.data)
-            print("Student ID from request:", request.data.get('student'))
-            print("Teacher ID from request:", request.data.get('teacher'))
-
+            print("\n=== Starting Homework Creation ===")
+            print(f"Request method: {request.method}")
+            print(f"Content type: {request.content_type}")
+            print(f"Files in request: {request.FILES}")
+            print(f"Data in request: {request.data}")
+            
+            # Get the file from request
+            file = request.FILES.get('attachment')
+            if file:
+                print("\n=== File Details ===")
+                print(f"File name: {file.name}")
+                print(f"File size: {file.size}")
+                print(f"Content type: {file.content_type}")
+            else:
+                print("\nNo file attached in request")
+                
             # Validate that the student exists
             try:
                 student_id = request.data.get('student')
@@ -78,56 +89,59 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                     print(f"SMTP: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
                     print(f"TLS: {settings.EMAIL_USE_TLS}")
                     
-                    # Enable SMTP debug mode
-                    smtplib.SMTP.debuglevel = 2
+                    # Test SMTP connection directly
+                    import smtplib
+                    from email.mime.text import MIMEText
+                    from email.mime.multipart import MIMEMultipart
+                    from email.mime.application import MIMEApplication
                     
-                    # Get a new connection
-                    print("Creating SMTP connection...")
-                    connection = get_connection(
-                        host=settings.EMAIL_HOST,
-                        port=settings.EMAIL_PORT,
-                        username=settings.EMAIL_HOST_USER,
-                        password=settings.EMAIL_HOST_PASSWORD,
-                        use_tls=settings.EMAIL_USE_TLS,
-                        timeout=30
-                    )
-                    
+                    print("\nTesting direct SMTP connection...")
                     try:
-                        print("Testing SMTP connection...")
-                        connection.open()
-                        print("SMTP connection successful!")
-                    except Exception as conn_error:
-                        print(f"SMTP Connection Error: {str(conn_error)}")
-                        raise
-                    
-                    subject = f'New Homework Assignment'
-                    message = f'''
-                    Teacher: {request.user.first_name} {request.user.last_name}
-                    Due Date: {homework.due_date.strftime('%d/%m/%Y %H:%M')}
-                    Instructions: {homework.instructions[:100]}...
-                    
-                    Please find the attached homework assignment.
-                    '''
-                    
-                    # Create email with connection
-                    email = EmailMessage(
-                        subject,
-                        message,
-                        settings.EMAIL_HOST_USER,
-                        [student.email],
-                        connection=connection
-                    )
-                    
-                    # Read and attach file
-                    file_content = file.read()
-                    print(f"File content length: {len(file_content)} bytes")
-                    email.attach(file.name, file_content, file.content_type)
-                    print("File attached to email")
-                    
-                    # Send with debug
-                    try:
-                        print("Attempting to send email...")
-                        email.send(fail_silently=False)
+                        # Create SMTP connection
+                        smtp = smtplib.SMTP(settings.EMAIL_HOST, settings.EMAIL_PORT)
+                        smtp.set_debuglevel(2)  # Show all SMTP communication
+                        
+                        # Identify ourselves to SMTP server
+                        print("Saying hello to SMTP server...")
+                        smtp.ehlo()
+                        
+                        # Start TLS
+                        if settings.EMAIL_USE_TLS:
+                            print("Starting TLS...")
+                            smtp.starttls()
+                            smtp.ehlo()  # Need to say hello again after TLS
+                        
+                        # Login
+                        print("Attempting login...")
+                        smtp.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+                        print("Login successful!")
+                        
+                        # Create message
+                        print("Creating email message...")
+                        msg = MIMEMultipart()
+                        msg['From'] = settings.EMAIL_HOST_USER
+                        msg['To'] = student.email
+                        msg['Subject'] = 'New Homework Assignment'
+                        
+                        body = f'''
+                        Teacher: {request.user.first_name} {request.user.last_name}
+                        Due Date: {homework.due_date.strftime('%d/%m/%Y %H:%M')}
+                        Instructions: {homework.instructions[:100]}...
+                        
+                        Please find the attached homework assignment.
+                        '''
+                        msg.attach(MIMEText(body, 'plain'))
+                        
+                        # Attach file
+                        print("Attaching file...")
+                        file_content = file.read()
+                        part = MIMEApplication(file_content, Name=file.name)
+                        part['Content-Disposition'] = f'attachment; filename="{file.name}"'
+                        msg.attach(part)
+                        
+                        # Send email
+                        print("Sending email...")
+                        smtp.send_message(msg)
                         print("Email sent successfully!")
                         
                         # Update is_sent flag
@@ -135,13 +149,17 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                         homework.save()
                         print("Updated homework is_sent flag")
                         
-                    except Exception as send_error:
-                        print(f"Email Send Error: {str(send_error)}")
+                        # Close connection
+                        smtp.quit()
+                        print("SMTP connection closed properly")
+                        
+                    except Exception as e:
+                        print(f"\nSMTP Error: {str(e)}")
+                        print(f"Error Type: {type(e)}")
+                        print(f"Error Args: {e.args}")
+                        # Continue even if email fails
                         raise
-                    finally:
-                        print("Closing SMTP connection...")
-                        connection.close()
-                    
+                
                 except Exception as e:
                     print(f"\nEmail Error: {str(e)}")
                     print(f"Error Type: {type(e)}")

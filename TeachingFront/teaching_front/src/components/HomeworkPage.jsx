@@ -138,6 +138,8 @@ const HomeworkPage = () => {
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
+        console.log('File selected:', file);
+        
         if (file) {
             // Check file size (25MB limit)
             if (file.size > 25 * 1024 * 1024) {
@@ -149,7 +151,13 @@ const HomeworkPage = () => {
                 event.target.value = ''; // Clear the file input
                 return;
             }
-            setHomework({ ...homework, file: file });
+            console.log('Setting file in homework state:', file.name);
+            setHomework(prev => {
+                console.log('Previous homework state:', prev);
+                return { ...prev, file: file };
+            });
+        } else {
+            console.log('No file selected');
         }
     };
 
@@ -224,13 +232,23 @@ const HomeworkPage = () => {
                 formData.append('student', String(homework.student));
             }
             
+            // Debug file attachment
+            console.log('File to attach:', homework.file);
             if (homework.file) {
-                formData.append('attachment', homework.file);
+                console.log('Attaching file:', homework.file.name);
+                formData.append('attachment', homework.file, homework.file.name);
+            } else {
+                console.log('No file to attach');
             }
 
-            // Log form data for debugging
+            // Debug FormData contents
+            console.log('FormData contents:');
             for (let [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
+                if (value instanceof File) {
+                    console.log(`${key}: File - ${value.name} (${value.size} bytes)`);
+                } else {
+                    console.log(`${key}: ${value}`);
+                }
             }
 
             const response = await apiClient.post('/api/homework/', formData, {
@@ -251,6 +269,14 @@ const HomeworkPage = () => {
                     file: null,
                     student: ''
                 });
+                
+                // Show success message
+                setAlert({
+                    show: true,
+                    message: 'Homework has been assigned successfully!',
+                    severity: 'success'
+                });
+                
                 setLoading(false);
             } else {
                 throw new Error(response.data?.error || 'Failed to assign homework');
