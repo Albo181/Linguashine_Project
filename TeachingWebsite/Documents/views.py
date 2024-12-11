@@ -40,12 +40,16 @@ class StudentListView(APIView):
 
 # **Private File Views**
 class PrivateFileViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStudentOwnerOrTeacher]
     parser_classes = [MultiPartParser]
 
     def list(self, request, student_id=None):
         search_term = request.query_params.get('q', None)
         student = get_object_or_404(CustomUser, id=student_id) if student_id else None
+
+        # Check permissions
+        if request.user.user_type != UserType.TEACHER and request.user != student:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
         documents = PrivateDocument.objects.filter(user=student) if student else PrivateDocument.objects.none()
         images = PrivateImage.objects.filter(user=student) if student else PrivateImage.objects.none()
@@ -73,6 +77,10 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
         if not file:
             return Response("File not found", status=status.HTTP_404_NOT_FOUND)
+
+        # Check permissions
+        if request.user.user_type != UserType.TEACHER and request.user != file.user:
+            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer_class = (PrivateDocumentSerializer if isinstance(file, PrivateDocument) else
                             PrivateImageSerializer if isinstance(file, PrivateImage) else
@@ -202,6 +210,10 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
         if not file_obj:
             return HttpResponse("File not found", status=404)
+
+        # Check permissions
+        if request.user.user_type != UserType.TEACHER and request.user != file_obj.user:
+            return HttpResponse("Permission denied", status=403)
 
         # Get the actual file field and path based on type
         if isinstance(file_obj, PrivateDocument):
