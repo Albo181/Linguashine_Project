@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm, AdminPasswordChangeForm
 from django import forms
 from .models import CustomUser
 import logging
@@ -49,6 +49,7 @@ class CustomUserDetailsForm(forms.ModelForm):
 class CustomUserAdmin(BaseUserAdmin):
     add_form = CustomUserCreationForm
     form = UserChangeForm
+    change_password_form = AdminPasswordChangeForm
     model = CustomUser
     list_display = ('username', 'email', 'first_name', 'last_name', 'user_type', 'is_staff')
     list_filter = ('is_staff', 'is_active', 'user_type')
@@ -106,6 +107,10 @@ class CustomUserAdmin(BaseUserAdmin):
                     obj.telephone = ''  # Set empty string as default
                 if not obj.bio:
                     obj.bio = ''  # Set empty string as default
+            if obj.pk is None:  # New user
+                obj.set_password(obj.password)
+            elif 'password' in form.changed_data:  # Password changed
+                obj.set_password(obj.password)
             super().save_model(request, obj, form, change)
         except Exception as e:
             logger.error(f"Error in save_model: {str(e)}")

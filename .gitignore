@@ -53,3 +53,11 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Django stuff
+local_settings.py
+db.sqlite3-journal
+
+# Temporary directories
+TeachingWebsite/TeachingWebsite/
+TeachingWebsite/YourApp/
