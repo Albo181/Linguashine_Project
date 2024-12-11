@@ -93,9 +93,8 @@ const HomeworkPage = () => {
                 const response = await apiClient.get('/users/all-users/');
                 if (response.status === 200) {
                     const data = response.data;
-                    // For testing: show all users except current user
-                    const currentUserId = localStorage.getItem('userId');
-                    const otherUsers = data.filter(user => user.id !== parseInt(currentUserId));
+                    // Include all users for testing purposes
+                    const otherUsers = data;
                     console.log('Available users:', otherUsers);
                     setStudents(otherUsers);
                 } else {
@@ -652,6 +651,11 @@ const HomeworkPage = () => {
 
                             <form onSubmit={handleSubmit}>
                                 <Grid container spacing={3}>
+                                    <Grid item xs={12}>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                                            * Submissions from this page will be sent directly to the teacher's email address
+                                        </Typography>
+                                    </Grid>
                                     {userType === 'teacher' && (
                                         <Grid item xs={12}>
                                             <FormControl fullWidth>
@@ -667,6 +671,9 @@ const HomeworkPage = () => {
                                                         </MenuItem>
                                                     ))}
                                                 </Select>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
+                                                    * Any files attached will be sent directly to the student's email address
+                                                </Typography>
                                             </FormControl>
                                         </Grid>
                                     )}
