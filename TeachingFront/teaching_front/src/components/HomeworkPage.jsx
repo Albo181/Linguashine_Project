@@ -70,10 +70,9 @@ const HomeworkPage = () => {
 
                         if (studentsResponse.status === 200) {
                             const studentsData = studentsResponse.data;
-                            // Filter for only student users
-                            const studentUsers = studentsData.filter(user => user.user_type === 'student');
-                            console.log('Available students:', studentUsers);
-                            setStudents(studentUsers);
+                            // Include all users for testing purposes
+                            console.log('Available users:', studentsData);
+                            setStudents(studentsData);
                         } else {
                             console.error('Failed to fetch students:', studentsResponse.data);
                         }
