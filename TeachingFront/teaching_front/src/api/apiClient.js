@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const baseURL = 'https://linguashineproject-production.up.railway.app';
+const baseURL = import.meta.env.VITE_API_URL || 'https://linguashineproject-production.up.railway.app';
+console.log('Using API URL:', baseURL); // Debug log
 
 const apiClient = axios.create({
   baseURL: baseURL,
@@ -21,8 +22,9 @@ apiClient.interceptors.request.use(async (config) => {
         withCredentials: true
       });
       csrfToken = response.data.csrfToken;
+      console.log('Got CSRF token:', csrfToken); // Debug log
     } catch (error) {
-      // Silent fail in production
+      console.error('Error getting CSRF token:', error); // Debug log
     }
   }
   
@@ -37,6 +39,7 @@ apiClient.interceptors.request.use(async (config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    console.error('API Error:', error.response?.status, error.response?.data); // Debug log
     if (error.response?.status === 403 || error.response?.status === 401) {
       // Clear token and try to get a new one
       csrfToken = null;
@@ -50,6 +53,7 @@ apiClient.interceptors.response.use(
         config.headers['X-CSRFToken'] = csrfToken;
         return axios(config);
       } catch (retryError) {
+        console.error('Error refreshing CSRF token:', retryError); // Debug log
         return Promise.reject(error);
       }
     }
@@ -58,4 +62,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-
