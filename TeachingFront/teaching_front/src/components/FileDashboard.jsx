@@ -358,10 +358,10 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (fileId, fileName, fileType) => {
+  const handleDownload = async (file) => {
     try {
         // Construct the correct endpoint based on file type
-        const downloadUrl = `/files/private/${fileType}s/${fileId}/download/`;
+        const downloadUrl = `/files/private/${file.type}s/${file.id}/download/`;
         
         console.log('Attempting to download from:', downloadUrl);
         
@@ -377,7 +377,7 @@ const FileDashboard = () => {
         const contentDisposition = response.headers['content-disposition'];
 
         // Get filename from Content-Disposition or use provided filename
-        let downloadFileName = fileName;
+        let downloadFileName = file.title;
         const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
         if (matches && matches[1]) {
             downloadFileName = matches[1].replace(/['"]/g, '');
@@ -576,7 +576,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file.id, file.title, file.type)}
+                    onDownload={() => handleDownload(file)}
                     onDelete={handleDeleteFile}
                   />
                 );
