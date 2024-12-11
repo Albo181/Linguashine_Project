@@ -28,7 +28,7 @@ const ContactForm = () => {
       console.log("Making request to:", `${apiClient.defaults.baseURL}/send_query/contacto/`);
       console.log("With payload:", payload);
 
-      const response = await apiClient.post("/contacto/", payload);
+      const response = await apiClient.post("/send_query/contacto/", payload);
 
       console.log("Full response:", {
         status: response.status,
