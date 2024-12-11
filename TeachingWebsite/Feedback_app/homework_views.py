@@ -7,8 +7,12 @@ from .models import Homework
 from .homework_serializers import HomeworkSerializer
 from Users.models import CustomUser
 from django.db.models import Q
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, get_connection
 from django.conf import settings
+import smtplib
+import logging
+
+logger = logging.getLogger('django.mail')
 
 class HomeworkViewSet(viewsets.ModelViewSet):
     serializer_class = HomeworkSerializer
@@ -59,10 +63,14 @@ class HomeworkViewSet(viewsets.ModelViewSet):
             # If there's a file, send it via email immediately
             if file:
                 try:
-                    print("Preparing to send email...")
-                    print(f"From: {settings.EMAIL_HOST_USER}")
-                    print(f"To: {student.email}")
-                    print(f"Using SMTP: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
+                    logger.debug("Preparing to send email...")
+                    logger.debug(f"From: {settings.EMAIL_HOST_USER}")
+                    logger.debug(f"To: {student.email}")
+                    logger.debug(f"SMTP Settings: {settings.EMAIL_HOST}:{settings.EMAIL_PORT}")
+                    logger.debug(f"TLS Enabled: {settings.EMAIL_USE_TLS}")
+                    
+                    # Enable SMTP debug mode
+                    smtplib.SMTP.debuglevel = 2
                     
                     subject = f'New Homework Assignment'
                     message = f'''
@@ -73,28 +81,51 @@ class HomeworkViewSet(viewsets.ModelViewSet):
                     Please find the attached homework assignment.
                     '''
                     
+                    # Get a new connection
+                    connection = get_connection(
+                        host=settings.EMAIL_HOST,
+                        port=settings.EMAIL_PORT,
+                        username=settings.EMAIL_HOST_USER,
+                        password=settings.EMAIL_HOST_PASSWORD,
+                        use_tls=settings.EMAIL_USE_TLS,
+                        timeout=30
+                    )
+                    
+                    try:
+                        logger.debug("Testing SMTP connection...")
+                        connection.open()
+                        logger.debug("SMTP connection successful!")
+                    except Exception as conn_error:
+                        logger.error(f"SMTP Connection Error: {str(conn_error)}")
+                        raise
+                    
                     email = EmailMessage(
                         subject,
                         message,
                         settings.EMAIL_HOST_USER,
-                        [student.email]
+                        [student.email],
+                        connection=connection
                     )
+                    
                     email.attach(file.name, file.read(), file.content_type)
                     
-                    # Try to send with debug info
                     try:
-                        print("Attempting to send email...")
+                        logger.debug("Attempting to send email...")
                         email.send(fail_silently=False)
-                        print("Email sent successfully!")
+                        logger.debug("Email sent successfully!")
                     except Exception as send_error:
-                        print(f"Email send error details: {str(send_error)}")
-                        raise send_error
-                    
+                        logger.error(f"Email Send Error: {str(send_error)}")
+                        logger.error(f"Error Type: {type(send_error)}")
+                        logger.error(f"Error Args: {send_error.args}")
+                        raise
+                    finally:
+                        connection.close()
+                        
                 except Exception as e:
-                    # If email fails, we still created the homework, just log the error
-                    print(f"Error sending email: {str(e)}")
-                    print(f"Error type: {type(e)}")
-                    print(f"Error args: {e.args}")
+                    logger.error(f"Email Error: {str(e)}")
+                    logger.error(f"Error Type: {type(e)}")
+                    logger.error(f"Error Args: {e.args}")
+                    # Continue with homework creation even if email fails
             
             print(f"Successfully created homework {homework.id}")
             return Response(

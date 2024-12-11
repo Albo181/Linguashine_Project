@@ -206,31 +206,49 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
-# Email Debug Settings
-EMAIL_DEBUG = True  # This will log email sending attempts
-EMAIL_TIMEOUT = 20  # Timeout in seconds
+# Debug SMTP connection
+EMAIL_DEBUG = True
+DEBUG_SMTP = True  # This will show SMTP conversation
+EMAIL_TIMEOUT = 30
 
 # Add email to logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'django.security': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'django.mail': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'django.db.backends': {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
