@@ -79,12 +79,16 @@ Please log in to view the full assignment details.
 """
                     try:
                         # Print debug info
-                        print(f"Attempting to send email to: {student_email}")
-                        print(f"Using email settings:")
+                        print("====== Email Debug Information ======")
+                        print(f"Recipient email: {student_email}")
+                        print(f"Subject: {subject}")
+                        print(f"Message preview: {message[:100]}...")
+                        print("\nEmail Settings:")
                         print(f"HOST: {settings.EMAIL_HOST}")
                         print(f"PORT: {settings.EMAIL_PORT}")
                         print(f"USER: {settings.EMAIL_HOST_USER}")
                         print(f"TLS: {settings.EMAIL_USE_TLS}")
+                        print(f"Has password: {'Yes' if settings.EMAIL_HOST_PASSWORD else 'No'}")
                         
                         # Send email
                         email = EmailMessage(
@@ -96,11 +100,15 @@ Please log in to view the full assignment details.
 
                         # If there's an attachment, add it to the email
                         if homework.attachment:
-                            print(f"Attaching file: {homework.attachment.path}")
+                            print(f"\nAttachment Information:")
+                            print(f"File path: {homework.attachment.path}")
+                            print(f"File exists: {os.path.exists(homework.attachment.path)}")
+                            print(f"File size: {os.path.getsize(homework.attachment.path)} bytes")
                             email.attach_file(homework.attachment.path)
 
-                        print("Sending email...")
+                        print("\nAttempting to send email...")
                         email.send(fail_silently=False)
+                        print("Email sent successfully!")
                         
                         # After successful email send, delete the file
                         if homework.attachment:
@@ -117,13 +125,28 @@ Please log in to view the full assignment details.
                         # Mark homework as sent
                         homework.is_sent = True
                         homework.save()
-                        print("Email sent successfully and file cleaned up")
+                        print("Homework marked as sent")
+                        print("====== End Email Debug Information ======")
+                        
                     except Exception as email_error:
-                        print(f"Failed to send email: {str(email_error)}")
+                        print("\n====== Email Error Information ======")
                         print(f"Error type: {type(email_error)}")
+                        print(f"Error message: {str(email_error)}")
+                        if hasattr(email_error, 'smtp_code'):
+                            print(f"SMTP code: {email_error.smtp_code}")
+                        if hasattr(email_error, 'smtp_error'):
+                            print(f"SMTP error: {email_error.smtp_error}")
+                        if hasattr(email_error, 'args'):
+                            print(f"Error args: {email_error.args}")
+                        print("====== End Email Error Information ======")
                         # Don't raise the error, just log it
             except Exception as e:
+                print("\n====== General Error Information ======")
                 print(f"Error in email handling: {str(e)}")
+                print(f"Error type: {type(e)}")
+                if hasattr(e, 'args'):
+                    print(f"Error args: {e.args}")
+                print("====== End General Error Information ======")
                 # Don't raise the error, just log it
 
             return homework

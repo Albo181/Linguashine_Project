@@ -361,18 +361,54 @@ const FileDashboard = () => {
   // File download handler with proper error handling
   const handleDownload = async (fileId, fileName, fileType) => {
     try {
-        // Use the existing download endpoint from PrivateFileViewSet
-        const downloadUrl = `/files/download/${fileId}/`;
+        // Construct the correct endpoint based on file type
+        let downloadUrl;
+        switch (fileType) {
+            case 'document':
+                downloadUrl = `/files/private/documents/${fileId}/download/`;
+                break;
+            case 'image':
+                downloadUrl = `/files/private/images/${fileId}/download/`;
+                break;
+            case 'audio':
+                downloadUrl = `/files/private/audio/${fileId}/download/`;
+                break;
+            case 'video':
+                downloadUrl = `/files/private/video/${fileId}/download/`;
+                break;
+            default:
+                throw new Error('Unknown file type');
+        }
 
-        console.log('Attempting to download from:', downloadUrl); // Debug log
+        console.log('Attempting to download from:', downloadUrl);
 
         const response = await apiClient.get(downloadUrl, {
-            responseType: 'blob'
+            responseType: 'blob',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            }
         });
 
-        // Get content type from response
+        // Get content type and original filename from headers
         const contentType = response.headers['content-type'];
-        console.log('Response content type:', contentType); // Debug log
+        const contentDisposition = response.headers['content-disposition'];
+        console.log('Response headers:', {
+            contentType,
+            contentDisposition
+        });
+
+        // Extract filename from Content-Disposition header if available
+        let downloadFileName = fileName;
+        const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches && matches[1]) {
+            downloadFileName = matches[1].replace(/['"]/g, '');
+        }
+
+        // If filename includes path, get just the filename
+        if (downloadFileName.includes('/')) {
+            downloadFileName = downloadFileName.split('/').pop();
+            downloadFileName = decodeURIComponent(downloadFileName);
+        }
 
         // Create blob with the correct content type
         const blob = new Blob([response.data], { type: contentType });
@@ -381,16 +417,36 @@ const FileDashboard = () => {
         // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', fileName);
+        link.setAttribute('download', downloadFileName);
         document.body.appendChild(link);
         link.click();
         
         // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+
+        console.log('Download completed successfully');
     } catch (error) {
         console.error('Error downloading file:', error);
-        alert('Error downloading file. Please try again.');
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+
+        // Show user-friendly error message
+        let errorMessage = 'Error downloading file. ';
+        if (error.response?.status === 404) {
+            errorMessage += 'File not found.';
+        } else if (error.response?.status === 403) {
+            errorMessage += 'You do not have permission to download this file.';
+        } else if (error.response?.status === 500) {
+            errorMessage += 'Server error. Please try again later.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        alert(errorMessage);
     }
   };
 
