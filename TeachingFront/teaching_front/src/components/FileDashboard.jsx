@@ -112,7 +112,7 @@ const FileDashboard = () => {
 
   // Fetch files
   const fetchFiles = async () => {
-    if (!selectedStudentId) return;
+    if (!selectedStudentId && user?.user_type !== 'teacher') return;
     try {
       const endpoint = `/files/private/all-files/${selectedStudentId}/`;
       const response = await apiClient.get(endpoint);
@@ -120,7 +120,7 @@ const FileDashboard = () => {
 
       const constructFileUrl = (file) => {
         // For downloads, use the download endpoint
-        return `${apiClient.defaults.baseURL}/files/private/${file.type}s/${file.id}/download/`;
+        return `/files/private/${file.type}s/${file.id}/download/`;
       };
 
       const allFiles = [
@@ -372,32 +372,20 @@ const FileDashboard = () => {
             }
         });
 
-        // Get content type and original filename from headers
-        const contentType = response.headers['content-type'];
+        // Get content type from response
+        const contentType = response.headers['content-type'] || 'application/octet-stream';
         const contentDisposition = response.headers['content-disposition'];
-        console.log('Response headers:', {
-            contentType,
-            contentDisposition
-        });
 
-        // Extract filename from Content-Disposition header if available
+        // Get filename from Content-Disposition or use provided filename
         let downloadFileName = fileName;
         const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
         if (matches && matches[1]) {
             downloadFileName = matches[1].replace(/['"]/g, '');
         }
 
-        // If filename includes path, get just the filename
-        if (downloadFileName.includes('/')) {
-            downloadFileName = downloadFileName.split('/').pop();
-            downloadFileName = decodeURIComponent(downloadFileName);
-        }
-
-        // Create blob with the correct content type
+        // Create blob and trigger download
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
-        
-        // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', downloadFileName);
