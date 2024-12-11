@@ -38,6 +38,7 @@ const HomeworkPage = () => {
     const [loading, setLoading] = useState(false);
     const [students, setStudents] = useState([]);
     const [userType, setUserType] = useState(null);
+    const [userId, setUserId] = useState(null);
     const [studentHomework, setStudentHomework] = useState([]);
     const [submissionFile, setSubmissionFile] = useState(null);
     const [selectedHomework, setSelectedHomework] = useState(null);
@@ -60,6 +61,7 @@ const HomeworkPage = () => {
                 if (userResponse.status === 200) {
                     const userData = userResponse.data;
                     setUserType(userData.user_type);
+                    setUserId(userData.id);
                     console.log('User data:', userData);
 
                     // If user is a teacher, fetch students list
@@ -403,6 +405,13 @@ const HomeworkPage = () => {
                     My Homework
                 </Typography>
 
+                {/* Email notification message - only shown for students */}
+                {userType === 'student' && (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3, fontStyle: 'italic' }}>
+                        * Any submissions from this page will be sent directly to your teacher's email address
+                    </Typography>
+                )}
+
                 {/* Tabs */}
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                     <Tabs value={activeTab} onChange={handleTabChange}>
@@ -623,16 +632,6 @@ const HomeworkPage = () => {
                         boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
                     }}
                 >
-                    {alert.show && (
-                        <Alert 
-                            severity={alert.severity} 
-                            sx={{ mb: 2 }}
-                            onClose={() => setAlert({ ...alert, show: false })}
-                        >
-                            {alert.message}
-                        </Alert>
-                    )}
-                    
                     {userType && (
                         <Box sx={{ mb: 3, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                         </Box>
@@ -651,11 +650,24 @@ const HomeworkPage = () => {
 
                             <form onSubmit={handleSubmit}>
                                 <Grid container spacing={3}>
-                                    <Grid item xs={12}>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
-                                            * Submissions from this page will be sent directly to the teacher's email address
-                                        </Typography>
-                                    </Grid>
+                                    {/* Email notification message - only shown for students */}
+                                    {userType === 'student' && (
+                                        <Grid item xs={12}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                                                * Submissions from this page will be sent directly to the teacher's email address
+                                            </Typography>
+                                        </Grid>
+                                    )}
+                                    
+                                    {/* Email notification message - only shown for teachers */}
+                                    {userType === 'teacher' && homework.student && (
+                                        <Grid item xs={12}>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                                                * Any files attached will be sent directly to the selected student's email address
+                                            </Typography>
+                                        </Grid>
+                                    )}
+
                                     {userType === 'teacher' && (
                                         <Grid item xs={12}>
                                             <FormControl fullWidth>
@@ -735,6 +747,21 @@ const HomeworkPage = () => {
                                                 {homework.file.name}
                                             </Typography>
                                         )}
+                                        {alert.show && (
+                                            <Alert 
+                                                severity={alert.severity}
+                                                sx={{ 
+                                                    display: 'inline-flex',
+                                                    ml: 2,
+                                                    py: 0,
+                                                    '& .MuiAlert-message': {
+                                                        padding: '4px 0'
+                                                    }
+                                                }}
+                                            >
+                                                {alert.message}
+                                            </Alert>
+                                        )}
                                     </Grid>
                                     <Grid item xs={12}>
                                         <Button
@@ -753,6 +780,15 @@ const HomeworkPage = () => {
                                         >
                                             {loading ? 'Sending...' : 'Send Homework'}
                                         </Button>
+                                        {alert.show && (
+                                            <Alert 
+                                                severity={alert.severity} 
+                                                sx={{ mt: 2 }}
+                                                onClose={() => setAlert({ ...alert, show: false })}
+                                            >
+                                                {alert.message}
+                                            </Alert>
+                                        )}
                                     </Grid>
                                 </Grid>
                             </form>
