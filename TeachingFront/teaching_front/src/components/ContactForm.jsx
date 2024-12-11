@@ -12,22 +12,56 @@ const ContactForm = () => {
     setSubmissionStatus("pending");
     
     try {
-      const response = await apiClient.post("/send_query/contacto/", {
+      // Validate form data
+      if (!name || !subject || !message) {
+        setSubmissionStatus("error");
+        console.error("Validation error: All fields are required");
+        return;
+      }
+
+      const payload = {
         name,
         subject,
         message
+      };
+
+      console.log("Making request to:", `${apiClient.defaults.baseURL}/send_query/contacto/`);
+      console.log("With payload:", payload);
+
+      const response = await apiClient.post("/contacto/", payload);
+
+      console.log("Full response:", {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers
       });
 
-      if (response.status === 200) {
+      if (response.status === 201 || response.status === 200) {
         setSubmissionStatus("success");
+        setName('');
+        setSubject('');
+        setMessage('');
         console.log("Mensaje enviado!");
       } else {
-        setSubmissionStatus("error");
-        console.log("Se ha producido un error. Vuelve a intentarlo.");
+        throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
+      console.error("Detailed error information:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        baseURL: apiClient.defaults.baseURL
+      });
+
+      // Log the full error object
+      console.error("Full error object:", error);
+
       setSubmissionStatus("error");
-      console.error("Error:", error);
     }
   };
 
