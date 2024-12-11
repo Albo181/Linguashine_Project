@@ -13,15 +13,12 @@ router.register(r'private/images', PrivateImageViewSet, basename='private-images
 router.register(r'private/audio', PrivateAudioViewSet, basename='private-audio')
 router.register(r'private/video', PrivateVideoViewSet, basename='private-video')
 
+ 
 urlpatterns = [
+    
     path('', include(router.urls)),
     path('students/list/', StudentListView.as_view(), name='student-list'),
-    
-    # File download endpoints
-    path('private/documents/<int:pk>/download/', PrivateFileViewSet.as_view({'get': 'download_file'}), name='download_document'),
-    path('private/images/<int:pk>/download/', PrivateFileViewSet.as_view({'get': 'download_file'}), name='download_image'),
-    path('private/audio/<int:pk>/download/', PrivateFileViewSet.as_view({'get': 'download_file'}), name='download_audio'),
-    path('private/video/<int:pk>/download/', PrivateFileViewSet.as_view({'get': 'download_file'}), name='download_video'),
+    path('download/<int:pk>/', PrivateFileViewSet.as_view({'get': 'download_file'}), name='download_file'),
     
     path('private/all-files/<str:student_id>/', PrivateFileViewSet.as_view({'get':'list', 'post': 'upload_file'})),
 
@@ -31,6 +28,7 @@ urlpatterns = [
     
     path('announcements/', AnnouncementListCreateView.as_view(), name='announcements'),
     path('announcements/<int:pk>/', AnnouncementListCreateView.as_view(), name='announcements-detail'),
+  
 ]
 
  

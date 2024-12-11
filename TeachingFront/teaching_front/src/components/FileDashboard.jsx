@@ -119,9 +119,7 @@ const FileDashboard = () => {
       console.log('Raw file data:', response.data);
 
       const constructFileUrl = (file) => {
-        return file.file_url || // Use file_url if provided
-          (file.file?.startsWith('http') ? file.file : // Use file if it's a full URL
-          `${apiClient.defaults.baseURL}${file.file}`); // Construct URL for relative paths
+        return `/files/download/${file.id}/`;
       };
 
       const allFiles = [
@@ -359,38 +357,66 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (fileId, fileName, fileType) => {
+  const handleDownload = async (fileId, fileName) => {
     try {
-        // Use the existing download endpoint from PrivateFileViewSet
+        // Use the simple download endpoint
         const downloadUrl = `/files/download/${fileId}/`;
-
-        console.log('Attempting to download from:', downloadUrl); // Debug log
-
+        
+        console.log('Attempting to download from:', downloadUrl);
+        
         const response = await apiClient.get(downloadUrl, {
-            responseType: 'blob'
+            responseType: 'blob',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+            }
         });
 
         // Get content type from response
-        const contentType = response.headers['content-type'];
-        console.log('Response content type:', contentType); // Debug log
+        const contentType = response.headers['content-type'] || 'application/octet-stream';
+        const contentDisposition = response.headers['content-disposition'];
 
-        // Create blob with the correct content type
+        // Get filename from Content-Disposition or use provided filename
+        let downloadFileName = fileName;
+        const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+        if (matches && matches[1]) {
+            downloadFileName = matches[1].replace(/['"]/g, '');
+        }
+
+        // Create blob and trigger download
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
-        
-        // Create temporary link and trigger download
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', fileName);
+        link.setAttribute('download', downloadFileName);
         document.body.appendChild(link);
         link.click();
         
         // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
+
+        console.log('Download completed successfully');
     } catch (error) {
         console.error('Error downloading file:', error);
-        alert('Error downloading file. Please try again.');
+        console.error('Error details:', {
+            message: error.message,
+            response: error.response,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+
+        // Show user-friendly error message
+        let errorMessage = 'Error downloading file. ';
+        if (error.response?.status === 404) {
+            errorMessage += 'File not found.';
+        } else if (error.response?.status === 403) {
+            errorMessage += 'You do not have permission to download this file.';
+        } else if (error.response?.status === 500) {
+            errorMessage += 'Server error. Please try again later.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        alert(errorMessage);
     }
   };
 
@@ -549,7 +575,7 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file.id, file.title, file.type)}
+                    onDownload={() => handleDownload(file.id, file.title)}
                     onDelete={handleDeleteFile}
                   />
                 );
