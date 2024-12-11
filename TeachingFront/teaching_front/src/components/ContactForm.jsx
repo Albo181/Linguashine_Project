@@ -64,10 +64,12 @@ const ContactForm = () => {
         baseURL: apiClient.defaults.baseURL
       });
 
-      // Log the full error object
-      console.error("Full error object:", error);
-
       setSubmissionStatus("error");
+      
+      // Add specific message for rate limiting
+      if (error.response?.status === 429) {
+        alert("Has enviado demasiados mensajes. Por favor, espera un tiempo antes de enviar otro mensaje.");
+      }
     }
   };
 
