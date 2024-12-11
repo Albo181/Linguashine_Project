@@ -236,7 +236,7 @@ const HomeworkPage = () => {
             const response = await apiClient.post('/api/homework/', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': document.cookie.match(/csrftoken=([\w-]+)/)?.[1] || '',
+                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '',
                 },
                 withCredentials: true
             });
@@ -673,13 +673,10 @@ const HomeworkPage = () => {
                                                 >
                                                     {students.map((user) => (
                                                         <MenuItem key={user.id} value={user.id}>
-                                                            {user.first_name} {user.last_name} ({user.email}) - {user.user_type}
+                                                            {user.first_name} {user.last_name}
                                                         </MenuItem>
                                                     ))}
                                                 </Select>
-                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                                    * Any files attached will be sent directly to the student's email address
-                                                </Typography>
                                             </FormControl>
                                         </Grid>
                                     )}
