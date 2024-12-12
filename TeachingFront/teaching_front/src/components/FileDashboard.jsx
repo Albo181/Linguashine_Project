@@ -358,82 +358,66 @@ const FileDashboard = () => {
     }
   };
 
-  // File download handler with proper error handling
-  const handleFileDownload = async (fileId, fileName, fileType) => {
-    try {
-      // Construct the correct download URL based on file type
-      let downloadUrl = '';
-      switch (fileType) {
-        case 'document':
-          downloadUrl = `/files/private/documents/${fileId}/`;
-          break;
-        case 'image':
-          downloadUrl = `/files/private/images/${fileId}/`;
-          break;
-        case 'audio':
-          downloadUrl = `/files/private/audio/${fileId}/`;
-          break;
-        case 'video':
-          downloadUrl = `/files/private/video/${fileId}/`;
-          break;
-        default:
-          console.error('Unknown file type for download');
-          return;
-      }
-
-      const response = await apiClient.get(downloadUrl, {
-        responseType: 'blob',
-        headers: {
-          'X-CSRFToken': getCsrfToken(),
-        }
-      });
-
-      const contentType = response.headers['content-type'];
-      const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
-      
-      let finalFileName = fileName;
-      if (!finalFileName.includes('.')) {
-        if (contentType === 'video/webm') {
-          finalFileName += '.webm';
-        } else {
-          switch (fileType) {
-            case 'audio':
-              finalFileName += originalExt || '.wav';
-              break;
-            case 'video':
-              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
-              break;
-            case 'image':
-              finalFileName += originalExt || '.jpg';
-              break;
-            case 'document':
-            default:
-              finalFileName += originalExt || '.pdf';
-              break;
-          }
-        }
-      }
-
-      const blob = new Blob([response.data], { type: contentType });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', finalFileName);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading file:', error);
-      if (error.response?.status === 403) {
-        alert('Access denied. Please check your permissions or try logging in again.');
-      } else if (error.response?.status === 500) {
-        alert('Server error. Please try again later or contact support.');
-      } else {
-        alert('Error downloading file. Please try again.');
-      }
+// File download handler with proper error handling
+const handleFileDownload = async (fileId, fileName, fileType) => {
+  try {
+    // Construct the correct download URL based on file type
+    let downloadUrl = '';
+    switch (fileType) {
+      case 'document':
+        downloadUrl = `/files/private/documents/${fileId}/`;
+        break;
+      case 'image':
+        downloadUrl = `/files/private/images/${fileId}/`;
+        break;
+      case 'audio':
+        downloadUrl = `/files/private/audio/${fileId}/`;
+        break;
+      case 'video':
+        downloadUrl = `/files/private/video/${fileId}/`;
+        break;
+      default:
+        console.error('Unknown file type for download');
+        return;
     }
-  };
+
+    const response = await apiClient.get(downloadUrl, {
+      responseType: 'blob',
+      headers: {
+        'X-CSRFToken': getCsrfToken(),
+      }
+    });
+
+    const contentType = response.headers['content-type'];
+    const contentDisposition = response.headers['content-disposition'];
+    let finalFileName = fileName;
+
+    // Use server-provided filename from Content-Disposition if available
+    const matches = contentDisposition && /filename[^;=\\n]*=((['\"]).*?\\2|[^;\\n]*)/.exec(contentDisposition);
+    if (matches && matches[1]) {
+        finalFileName = matches[1].replace(/['\"]/g, '');
+    }
+
+    const blob = new Blob([response.data], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', finalFileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    if (error.response?.status === 403) {
+      alert('Access denied. Please check your permissions or try logging in again.');
+    } else if (error.response?.status === 500) {
+      alert('Server error. Please try again later or contact support.');
+    } else {
+      alert('Error downloading file. Please try again.');
+    }
+  }
+};
 
   // Delete file handler
   const handleDeleteFile = async (file) => {
