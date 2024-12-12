@@ -361,7 +361,6 @@ const FileDashboard = () => {
   // File download handler with proper error handling
   const handleDownload = async (fileId, fileName) => {
     try {
-        // Use the simple download endpoint
         const downloadUrl = `/files/download/${fileId}/`;
         
         console.log('Attempting to download from:', downloadUrl);
@@ -370,21 +369,21 @@ const FileDashboard = () => {
             responseType: 'blob',
             headers: {
                 'X-CSRFToken': getCsrfToken(),
-            }
+                'Accept': '*/*'
+            },
+            withCredentials: true  // This is important for production
         });
-
-        // Get content type from response
+  
+        // Rest of the function remains the same
         const contentType = response.headers['content-type'] || 'application/octet-stream';
         const contentDisposition = response.headers['content-disposition'];
-
-        // Get filename from Content-Disposition or use provided filename
+  
         let downloadFileName = fileName;
         const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
         if (matches && matches[1]) {
             downloadFileName = matches[1].replace(/['"]/g, '');
         }
-
-        // Create blob and trigger download
+  
         const blob = new Blob([response.data], { type: contentType });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -393,10 +392,9 @@ const FileDashboard = () => {
         document.body.appendChild(link);
         link.click();
         
-        // Cleanup
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-
+  
         console.log('Download completed successfully');
     } catch (error) {
         console.error('Error downloading file:', error);
@@ -406,8 +404,7 @@ const FileDashboard = () => {
             status: error.response?.status,
             data: error.response?.data
         });
-
-        // Show user-friendly error message
+  
         let errorMessage = 'Error downloading file. ';
         if (error.response?.status === 404) {
             errorMessage += 'File not found.';
