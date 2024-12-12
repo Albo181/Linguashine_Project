@@ -202,74 +202,54 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
 
 
+    @action(detail=True, methods=['get'])
     def download_file(self, request, pk=None):
         try:
-            logger.info(f"Starting download for file ID: {pk}")
+            # Get the file object
+            file_obj = self.get_object()
+            file_field = file_obj.file
             
-            file_obj = (PrivateDocument.objects.filter(id=pk).first() or
-                        PrivateImage.objects.filter(id=pk).first() or
-                        PrivateAudio.objects.filter(id=pk).first() or
-                        PrivateVideo.objects.filter(id=pk).first())
-
-            if not file_obj:
-                logger.error(f"File not found for ID: {pk}")
-                return HttpResponse("File not found", status=404)
-
-            # Check permissions
-            if request.user.user_type != UserType.TEACHER and request.user != file_obj.user:
-                logger.warning(f"Permission denied for user {request.user} accessing file {pk}")
-                return HttpResponse("Permission denied", status=403)
-
-            # Get the actual file field based on type
-            if isinstance(file_obj, PrivateDocument):
-                file_field = file_obj.document
-            elif isinstance(file_obj, PrivateImage):
-                file_field = file_obj.image
-            elif isinstance(file_obj, PrivateAudio):
-                file_field = file_obj.audio
-            elif isinstance(file_obj, PrivateVideo):
-                file_field = file_obj.video
-            else:
-                logger.error(f"Invalid file type for file {pk}")
-                return HttpResponse("Invalid file type", status=400)
-
-            if not file_field:
-                return HttpResponse("File not found", status=404)
-
+            logger.info(f"Attempting to download private file: {file_obj.title}")
+            
             # Get file name and extension
             file_name = os.path.basename(file_field.name)
             file_extension = os.path.splitext(file_name)[1].lower()
-
+            
             # Get the storage backend
             storage = file_field.storage
-
-            # If using S3 (in production)
-            if hasattr(storage, 'bucket'):
-                # Generate a pre-signed URL
-                url = storage.url(file_field.name)
-                return JsonResponse({'url': url})
             
-            # For local development
+            # Register common MIME types
+            mimetypes.add_type('application/pdf', '.pdf', strict=True)
+            mimetypes.add_type('image/jpeg', '.jpg', strict=True)
+            mimetypes.add_type('image/png', '.png', strict=True)
+            mimetypes.add_type('audio/mpeg', '.mp3', strict=True)
+            mimetypes.add_type('audio/wav', '.wav', strict=True)
+            mimetypes.add_type('video/mp4', '.mp4', strict=True)
+            mimetypes.add_type('video/x-matroska', '.mkv', strict=True)
+            
+            # Get content type
+            content_type, _ = mimetypes.guess_type(file_name)
+            if not content_type:
+                content_type = 'application/octet-stream'
+            
+            logger.info(f"Content type detected: {content_type}")
+            
+            # Create the response
+            if hasattr(storage, 'bucket'):
+                logger.info("Using S3 storage")
+                file_content = file_field.read()
+                response = HttpResponse(file_content, content_type=content_type)
             else:
-                # Register common MIME types
-                mimetypes.add_type('video/mp4', '.mp4')
-                mimetypes.add_type('video/webm', '.webm')
-                mimetypes.add_type('video/quicktime', '.mov')
-                mimetypes.add_type('video/x-matroska', '.mkv')
-                mimetypes.add_type('audio/mpeg', '.mp3')
-                mimetypes.add_type('audio/wav', '.wav')
-                mimetypes.add_type('audio/aac', '.aac')
-                mimetypes.add_type('audio/ogg', '.ogg')
-                
-                # Get content type
-                content_type, _ = mimetypes.guess_type(file_name)
-                if not content_type:
-                    content_type = 'application/octet-stream'
-
-                # Create the response with file
-                response = HttpResponse(file_field.read(), content_type=content_type)
-                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-                return response
+                logger.info("Using local storage")
+                file_content = file_field.read()
+                response = HttpResponse(file_content, content_type=content_type)
+            
+            # Set response headers
+            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+            response['Content-Type'] = content_type
+            
+            logger.info(f"Successfully prepared download response for {file_obj.title}")
+            return response
 
         except Exception as e:
             logger.error(f"Error downloading file: {str(e)}", exc_info=True)
