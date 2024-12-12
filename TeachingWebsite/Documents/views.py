@@ -193,48 +193,53 @@ class PrivateFileViewSet(viewsets.ViewSet):
             logger.error(f"Error uploading file: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
-
-
-     
-
+    
+   
     def download_file(self, request, pk=None):
-            file_obj = (PrivateDocument.objects.filter(id=pk).first() or
-                        PrivateImage.objects.filter(id=pk).first() or
-                        PrivateAudio.objects.filter(id=pk).first() or
-                        PrivateVideo.objects.filter(id=pk).first())
+        # Retrieve the file object
+        file_obj = (
+            PrivateDocument.objects.filter(id=pk).first() or
+            PrivateImage.objects.filter(id=pk).first() or
+            PrivateAudio.objects.filter(id=pk).first() or
+            PrivateVideo.objects.filter(id=pk).first()
+        )
 
-            if not file_obj:
-                logger.error(f"File with ID {pk} not found.")
-                return HttpResponse("File not found", status=404)
+        if not file_obj:
+            logger.error(f"File with ID {pk} not found.")
+            return HttpResponse("File not found", status=404)
 
-            if isinstance(file_obj, PrivateDocument):
-                file_field = file_obj.document
-            elif isinstance(file_obj, PrivateImage):
-                file_field = file_obj.image
-            elif isinstance(file_obj, PrivateAudio):
-                file_field = file_obj.audio
-            elif isinstance(file_obj, PrivateVideo):
-                file_field = file_obj.video
-            else:
-                return HttpResponse("Invalid file type", status=400)
+        # Identify the file field and its path
+        file_field = getattr(file_obj, 'document', None) or \
+                    getattr(file_obj, 'image', None) or \
+                    getattr(file_obj, 'audio', None) or \
+                    getattr(file_obj, 'video', None)
 
-            file_path = file_field.path
-            if not os.path.exists(file_path):
-                logger.error(f"File path {file_field.path} not found.")
-                return HttpResponse("File not found on server", status=404)
+        if not file_field or not file_field.path:
+            logger.error(f"File path not found for file ID {pk}.")
+            return HttpResponse("File not found on server", status=404)
 
-            # Get content type and extension
-            file_extension = os.path.splitext(file_path)[1].lower()
-            content_type, _ = mimetypes.guess_type(file_path)
-            content_type = content_type or 'application/octet-stream'
+        file_path = file_field.path
 
-            # Prepare response
-            response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-            response['Content-Length'] = os.path.getsize(file_path)
-            return response
+        # Verify that the file exists
+        if not os.path.exists(file_path):
+            logger.error(f"File path {file_path} does not exist on server.")
+            return HttpResponse("File not found on server", status=404)
 
+        # Determine the content type and file extension
+        content_type, _ = mimetypes.guess_type(file_path)
+        content_type = content_type or 'application/octet-stream'
+        file_extension = os.path.splitext(file_path)[1].lower()
 
+        # Ensure filename has the correct extension
+        filename = f"{file_obj.title}{file_extension}"
+
+        # Prepare the response
+        response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Length'] = os.path.getsize(file_path)
+
+        logger.info(f"Serving file {filename} with content type {content_type}.")
+        return response
 
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------

@@ -357,27 +357,33 @@ const FileDashboard = () => {
       setUploadProgress(0);
     }
   };
-  const handleFileDownload = async (fileId, fileName, fileType) => {
+
+
+ const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
+      // Construct the download URL
       const downloadUrl = `/files/private/${fileType}s/${fileId}/`;
+
+      // Make the API request
       const response = await apiClient.get(downloadUrl, {
         responseType: 'blob',
         headers: {
           'X-CSRFToken': getCsrfToken(),
         },
       });
-  
-      // Extract filename from content-disposition
+
+      // Extract the filename from content-disposition
       const contentDisposition = response.headers['content-disposition'];
       let finalFileName = fileName;
-  
+
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^"]+)"?/);
         if (match) {
           finalFileName = match[1];
         }
       }
-  
+
+      // Create a Blob for the file and trigger download
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -389,9 +395,9 @@ const FileDashboard = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
-  
+
       if (error.response?.status === 404) {
-        alert('File not found. Please try again or contact support.');
+        alert('File not found. Please try again.');
       } else if (error.response?.status === 403) {
         alert('Access denied. Please check your permissions.');
       } else {
@@ -399,6 +405,7 @@ const FileDashboard = () => {
       }
     }
   };
+
   
   
 
