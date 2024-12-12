@@ -361,60 +361,29 @@ const FileDashboard = () => {
   // File download handler with proper error handling
   const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      // Construct the correct download URL based on file type
-      let downloadUrl = '';
-      switch (fileType) {
-        case 'document':
-          downloadUrl = `/files/private/documents/${fileId}/`;
-          break;
-        case 'image':
-          downloadUrl = `/files/private/images/${fileId}/`;
-          break;
-        case 'audio':
-          downloadUrl = `/files/private/audio/${fileId}/`;
-          break;
-        case 'video':
-          downloadUrl = `/files/private/video/${fileId}/`;
-          break;
-        default:
-          console.error('Unknown file type for download');
-          return;
-      }
-
+      // Construct the correct download URL
+      const downloadUrl = `/files/private/${fileType}s/${fileId}/`;
+  
       const response = await apiClient.get(downloadUrl, {
         responseType: 'blob',
         headers: {
           'X-CSRFToken': getCsrfToken(),
-        }
+        },
       });
-
-      const contentType = response.headers['content-type'];
-      const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
-      
+  
+      // Extract content-disposition and determine filename
+      const contentDisposition = response.headers['content-disposition'];
       let finalFileName = fileName;
-      if (!finalFileName.includes('.')) {
-        if (contentType === 'video/webm') {
-          finalFileName += '.webm';
-        } else {
-          switch (fileType) {
-            case 'audio':
-              finalFileName += originalExt || '.wav';
-              break;
-            case 'video':
-              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
-              break;
-            case 'image':
-              finalFileName += originalExt || '.jpg';
-              break;
-            case 'document':
-            default:
-              finalFileName += originalExt || '.pdf';
-              break;
-          }
+  
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match) {
+          finalFileName = match[1];
         }
       }
-
-      const blob = new Blob([response.data], { type: contentType });
+  
+      // Create and trigger download
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -434,6 +403,7 @@ const FileDashboard = () => {
       }
     }
   };
+  
 
   // Delete file handler
   const handleDeleteFile = async (file) => {
