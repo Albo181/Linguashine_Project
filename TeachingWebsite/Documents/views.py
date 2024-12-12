@@ -17,6 +17,7 @@ from django.http import HttpResponse, JsonResponse, Http404
 import mimetypes, os
 from django.utils.encoding import smart_str
 import logging
+from wsgiref.util import FileWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -197,44 +198,41 @@ class PrivateFileViewSet(viewsets.ViewSet):
      
 
     def download_file(self, request, pk=None):
-        file_obj = (PrivateDocument.objects.filter(id=pk).first() or
-                    PrivateImage.objects.filter(id=pk).first() or
-                    PrivateAudio.objects.filter(id=pk).first() or
-                    PrivateVideo.objects.filter(id=pk).first())
+            file_obj = (PrivateDocument.objects.filter(id=pk).first() or
+                        PrivateImage.objects.filter(id=pk).first() or
+                        PrivateAudio.objects.filter(id=pk).first() or
+                        PrivateVideo.objects.filter(id=pk).first())
 
-        if not file_obj:
-            return HttpResponse("File not found", status=404)
+            if not file_obj:
+                logger.error(f"File with ID {pk} not found.")
+                return HttpResponse("File not found", status=404)
 
-        # Get the actual file field and path based on type
-        if isinstance(file_obj, PrivateDocument):
-            file_field = file_obj.document
-        elif isinstance(file_obj, PrivateImage):
-            file_field = file_obj.image
-        elif isinstance(file_obj, PrivateAudio):
-            file_field = file_obj.audio
-        elif isinstance(file_obj, PrivateVideo):
-            file_field = file_obj.video
-        else:
-            return HttpResponse("Invalid file type", status=400)
+            if isinstance(file_obj, PrivateDocument):
+                file_field = file_obj.document
+            elif isinstance(file_obj, PrivateImage):
+                file_field = file_obj.image
+            elif isinstance(file_obj, PrivateAudio):
+                file_field = file_obj.audio
+            elif isinstance(file_obj, PrivateVideo):
+                file_field = file_obj.video
+            else:
+                return HttpResponse("Invalid file type", status=400)
 
-        file_path = file_field.path
-        if not os.path.exists(file_path):
-            return HttpResponse("File not found on server", status=404)
+            file_path = file_field.path
+            if not os.path.exists(file_path):
+                logger.error(f"File path {file_field.path} not found.")
+                return HttpResponse("File not found on server", status=404)
 
-        # Dynamically determine content type and extension
-        file_extension = os.path.splitext(file_path)[1].lower()
-        content_type, _ = mimetypes.guess_type(file_path)
-        content_type = content_type or 'application/octet-stream'
+            # Get content type and extension
+            file_extension = os.path.splitext(file_path)[1].lower()
+            content_type, _ = mimetypes.guess_type(file_path)
+            content_type = content_type or 'application/octet-stream'
 
-        # Prepare response with dynamic filename
-        response = HttpResponse(content_type=content_type)
-        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-
-        # Stream the file in chunks to avoid memory issues
-        with open(file_path, 'rb') as f:
-            response.write(f.read())
-
-        return response
+            # Prepare response
+            response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
+            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+            response['Content-Length'] = os.path.getsize(file_path)
+            return response
 
 
 

@@ -357,13 +357,9 @@ const FileDashboard = () => {
       setUploadProgress(0);
     }
   };
-
-  // File download handler with proper error handling
   const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      // Construct the correct download URL
       const downloadUrl = `/files/private/${fileType}s/${fileId}/`;
-  
       const response = await apiClient.get(downloadUrl, {
         responseType: 'blob',
         headers: {
@@ -371,7 +367,7 @@ const FileDashboard = () => {
         },
       });
   
-      // Extract content-disposition and determine filename
+      // Extract filename from content-disposition
       const contentDisposition = response.headers['content-disposition'];
       let finalFileName = fileName;
   
@@ -382,7 +378,6 @@ const FileDashboard = () => {
         }
       }
   
-      // Create and trigger download
       const blob = new Blob([response.data], { type: response.headers['content-type'] });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -394,15 +389,17 @@ const FileDashboard = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading file:', error);
-      if (error.response?.status === 403) {
-        alert('Access denied. Please check your permissions or try logging in again.');
-      } else if (error.response?.status === 500) {
-        alert('Server error. Please try again later or contact support.');
+  
+      if (error.response?.status === 404) {
+        alert('File not found. Please try again or contact support.');
+      } else if (error.response?.status === 403) {
+        alert('Access denied. Please check your permissions.');
       } else {
-        alert('Error downloading file. Please try again.');
+        alert('Failed to download file. Please try again.');
       }
     }
   };
+  
   
 
   // Delete file handler
