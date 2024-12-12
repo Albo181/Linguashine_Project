@@ -206,55 +206,30 @@ class PrivateFileViewSet(viewsets.ViewSet):
         # Get the actual file field and path based on type
         if isinstance(file_obj, PrivateDocument):
             file_field = file_obj.document
-            content_type = 'application/pdf'  # Default for documents
+            content_type, _ = mimetypes.guess_type(file_field.name)
         elif isinstance(file_obj, PrivateImage):
             file_field = file_obj.image
-            content_type = 'image/jpeg'  # Default for images
+            content_type, _ = mimetypes.guess_type(file_field.name)
         elif isinstance(file_obj, PrivateAudio):
             file_field = file_obj.audio
-            content_type = 'audio/mpeg'  # Default for audio
+            content_type, _ = mimetypes.guess_type(file_field.name)
         elif isinstance(file_obj, PrivateVideo):
             file_field = file_obj.video
-            content_type = 'video/mp4'  # Default for video
+            content_type, _ = mimetypes.guess_type(file_field.name)
         else:
             return HttpResponse("Invalid file type", status=400)
+
+        # Fallback content type if detection fails
+        if not content_type:
+            content_type = 'application/octet-stream'
 
         file_path = file_field.path
         if not os.path.exists(file_path):
             return HttpResponse("File not found on server", status=404)
 
-        # Get file extension and override content type if needed
-        file_extension = os.path.splitext(file_path)[1].lower()
-        
-        # Override content type based on file extension
-        extension_content_types = {
-            # Video formats
-            '.mp4': 'video/mp4',
-            '.webm': 'video/webm',
-            '.mov': 'video/quicktime',
-            '.mkv': 'video/x-matroska',
-            # Audio formats
-            '.mp3': 'audio/mpeg',
-            '.wav': 'audio/wav',
-            '.aac': 'audio/aac',
-            '.ogg': 'audio/ogg',
-            # Image formats
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            # Document formats
-            '.pdf': 'application/pdf',
-            '.doc': 'application/msword',
-            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        }
-
-        if file_extension in extension_content_types:
-            content_type = extension_content_types[file_extension]
-
         # Prepare response
         response = HttpResponse(content_type=content_type)
-        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{os.path.splitext(file_field.name)[1]}"'
         
         # Stream the file in chunks to avoid memory issues with large files
         with open(file_path, 'rb') as f:
