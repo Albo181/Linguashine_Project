@@ -223,36 +223,53 @@ class PrivateFileViewSet(viewsets.ViewSet):
             # Get the actual file field based on type
             if isinstance(file_obj, PrivateDocument):
                 file_field = file_obj.document
-                default_content_type = 'application/pdf'
             elif isinstance(file_obj, PrivateImage):
                 file_field = file_obj.image
-                default_content_type = 'image/jpeg'
             elif isinstance(file_obj, PrivateAudio):
                 file_field = file_obj.audio
-                default_content_type = 'audio/mpeg'
             elif isinstance(file_obj, PrivateVideo):
                 file_field = file_obj.video
-                default_content_type = 'video/mp4'
             else:
                 logger.error(f"Invalid file type for file {pk}")
                 return HttpResponse("Invalid file type", status=400)
 
+            if not file_field:
+                return HttpResponse("File not found", status=404)
+
             # Get file name and extension
             file_name = os.path.basename(file_field.name)
             file_extension = os.path.splitext(file_name)[1].lower()
+
+            # Get the storage backend
+            storage = file_field.storage
+
+            # If using S3 (in production)
+            if hasattr(storage, 'bucket'):
+                # Generate a pre-signed URL
+                url = storage.url(file_field.name)
+                return JsonResponse({'url': url})
             
-            # Determine content type
-            content_type = mimetypes.guess_type(file_name)[0] or default_content_type
+            # For local development
+            else:
+                # Register common MIME types
+                mimetypes.add_type('video/mp4', '.mp4')
+                mimetypes.add_type('video/webm', '.webm')
+                mimetypes.add_type('video/quicktime', '.mov')
+                mimetypes.add_type('video/x-matroska', '.mkv')
+                mimetypes.add_type('audio/mpeg', '.mp3')
+                mimetypes.add_type('audio/wav', '.wav')
+                mimetypes.add_type('audio/aac', '.aac')
+                mimetypes.add_type('audio/ogg', '.ogg')
+                
+                # Get content type
+                content_type, _ = mimetypes.guess_type(file_name)
+                if not content_type:
+                    content_type = 'application/octet-stream'
 
-            # Create response with file
-            response = HttpResponse(content_type=content_type)
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-
-            # Stream the file
-            file_data = file_field.read()
-            response.write(file_data)
-
-            return response
+                # Create the response with file
+                response = HttpResponse(file_field.read(), content_type=content_type)
+                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+                return response
 
         except Exception as e:
             logger.error(f"Error downloading file: {str(e)}", exc_info=True)
