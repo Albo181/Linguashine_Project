@@ -241,41 +241,22 @@ class PrivateFileViewSet(viewsets.ViewSet):
             file_name = os.path.basename(file_field.name)
             file_extension = os.path.splitext(file_name)[1].lower()
             
-            # Register common MIME types
-            mimetypes.add_type('video/mp4', '.mp4')
-            mimetypes.add_type('video/webm', '.webm')
-            mimetypes.add_type('video/quicktime', '.mov')
-            mimetypes.add_type('video/x-matroska', '.mkv')
-            mimetypes.add_type('audio/mpeg', '.mp3')
-            mimetypes.add_type('audio/wav', '.wav')
-            mimetypes.add_type('audio/aac', '.aac')
-            mimetypes.add_type('audio/ogg', '.ogg')
-            
             # Determine content type
             content_type = mimetypes.guess_type(file_name)[0] or default_content_type
 
-            # For S3 storage, we'll use the URL
-            try:
-                file_url = file_field.url
-                logger.info(f"File URL obtained: {file_url}")
-                
-                # Create response with headers
-                response = HttpResponse()
-                response['Content-Type'] = content_type
-                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-                
-                # Stream the file from S3
-                response['X-Accel-Redirect'] = file_url
-                return response
-                
-            except Exception as e:
-                logger.error(f"Error accessing file storage: {str(e)}", exc_info=True)
-                return HttpResponse(f"Error accessing file: {str(e)}", status=500)
+            # Create response with file
+            response = HttpResponse(content_type=content_type)
+            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+
+            # Stream the file
+            file_data = file_field.read()
+            response.write(file_data)
+
+            return response
 
         except Exception as e:
             logger.error(f"Error downloading file: {str(e)}", exc_info=True)
             return HttpResponse(f"Error downloading file: {str(e)}", status=500)
-
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------
 
