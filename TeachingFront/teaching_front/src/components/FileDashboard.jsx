@@ -524,7 +524,7 @@ const FileDashboard = () => {
             </div>
             {selectedStudentName ? `${selectedStudentName}'s Dashboard` : 'File Dashboard'}
             <div className="flex items-center pl-40 italic">
-              <p className="text-lg">(INSTRUCTIONS: Here you can exchange general files with your teacher)</p>
+              <p className="text-lg">(INSTRUCTIONS: Here you can keep your general English files (your teacher can also upload files to you))</p>
             </div>
           </div>
         </h1>
