@@ -40,16 +40,12 @@ class StudentListView(APIView):
 
 # **Private File Views**
 class PrivateFileViewSet(viewsets.ViewSet):
-    permission_classes = [IsAuthenticated, IsStudentOwnerOrTeacher]
+    permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser]
 
     def list(self, request, student_id=None):
         search_term = request.query_params.get('q', None)
         student = get_object_or_404(CustomUser, id=student_id) if student_id else None
-
-        # Check permissions
-        if request.user.user_type != UserType.TEACHER and request.user != student:
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
         documents = PrivateDocument.objects.filter(user=student) if student else PrivateDocument.objects.none()
         images = PrivateImage.objects.filter(user=student) if student else PrivateImage.objects.none()
@@ -77,10 +73,6 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
         if not file:
             return Response("File not found", status=status.HTTP_404_NOT_FOUND)
-
-        # Check permissions
-        if request.user.user_type != UserType.TEACHER and request.user != file.user:
-            return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer_class = (PrivateDocumentSerializer if isinstance(file, PrivateDocument) else
                             PrivateImageSerializer if isinstance(file, PrivateImage) else
@@ -202,58 +194,75 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
 
 
-    @action(detail=True, methods=['get'])
     def download_file(self, request, pk=None):
-        try:
-            # Get the file object
-            file_obj = self.get_object()
-            file_field = file_obj.file
-            
-            logger.info(f"Attempting to download private file: {file_obj.title}")
-            
-            # Get file name and extension
-            file_name = os.path.basename(file_field.name)
-            file_extension = os.path.splitext(file_name)[1].lower()
-            
-            # Get the storage backend
-            storage = file_field.storage
-            
-            # Register common MIME types
-            mimetypes.add_type('application/pdf', '.pdf', strict=True)
-            mimetypes.add_type('image/jpeg', '.jpg', strict=True)
-            mimetypes.add_type('image/png', '.png', strict=True)
-            mimetypes.add_type('audio/mpeg', '.mp3', strict=True)
-            mimetypes.add_type('audio/wav', '.wav', strict=True)
-            mimetypes.add_type('video/mp4', '.mp4', strict=True)
-            mimetypes.add_type('video/x-matroska', '.mkv', strict=True)
-            
-            # Get content type
-            content_type, _ = mimetypes.guess_type(file_name)
-            if not content_type:
-                content_type = 'application/octet-stream'
-            
-            logger.info(f"Content type detected: {content_type}")
-            
-            # Create the response
-            if hasattr(storage, 'bucket'):
-                logger.info("Using S3 storage")
-                file_content = file_field.read()
-                response = HttpResponse(file_content, content_type=content_type)
-            else:
-                logger.info("Using local storage")
-                file_content = file_field.read()
-                response = HttpResponse(file_content, content_type=content_type)
-            
-            # Set response headers
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-            response['Content-Type'] = content_type
-            
-            logger.info(f"Successfully prepared download response for {file_obj.title}")
-            return response
+        file_obj = (PrivateDocument.objects.filter(id=pk).first() or
+                    PrivateImage.objects.filter(id=pk).first() or
+                    PrivateAudio.objects.filter(id=pk).first() or
+                    PrivateVideo.objects.filter(id=pk).first())
 
-        except Exception as e:
-            logger.error(f"Error downloading file: {str(e)}", exc_info=True)
-            return HttpResponse(f"Error downloading file: {str(e)}", status=500)
+        if not file_obj:
+            return HttpResponse("File not found", status=404)
+
+        # Get the actual file field and path based on type
+        if isinstance(file_obj, PrivateDocument):
+            file_field = file_obj.document
+            content_type = 'application/pdf'  # Default for documents
+        elif isinstance(file_obj, PrivateImage):
+            file_field = file_obj.image
+            content_type = 'image/jpeg'  # Default for images
+        elif isinstance(file_obj, PrivateAudio):
+            file_field = file_obj.audio
+            content_type = 'audio/mpeg'  # Default for audio
+        elif isinstance(file_obj, PrivateVideo):
+            file_field = file_obj.video
+            content_type = 'video/mp4'  # Default for video
+        else:
+            return HttpResponse("Invalid file type", status=400)
+
+        file_path = file_field.path
+        if not os.path.exists(file_path):
+            return HttpResponse("File not found on server", status=404)
+
+        # Get file extension and override content type if needed
+        file_extension = os.path.splitext(file_path)[1].lower()
+        
+        # Override content type based on file extension
+        extension_content_types = {
+            # Video formats
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.mov': 'video/quicktime',
+            '.mkv': 'video/x-matroska',
+            # Audio formats
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.aac': 'audio/aac',
+            '.ogg': 'audio/ogg',
+            # Image formats
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            # Document formats
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword',
+            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
+
+        if file_extension in extension_content_types:
+            content_type = extension_content_types[file_extension]
+
+        # Prepare response
+        response = HttpResponse(content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+        
+        # Stream the file in chunks to avoid memory issues with large files
+        with open(file_path, 'rb') as f:
+            response.write(f.read())
+
+        return response
+
+
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------
 
@@ -379,6 +388,64 @@ class SharedFileListCreateView(APIView):
         
 
 
+    def download_shared_file(request, file_id):
+        try:
+            print(f"DEBUG: Downloading shared file with ID: {file_id} Path: {shared_file.file.path}")
+
+            # Fetch the shared file object
+            shared_file = get_object_or_404(SharedFile, id=file_id)
+            print(f"DEBUG: Found shared file: {shared_file.title}")
+
+            # Retrieve the file path and ensure it exists
+            file_path = shared_file.file.path
+            if not os.path.exists(file_path):
+                print(f"ERROR: File path does not exist - {file_path}")
+                return HttpResponse("File not found on server", status=404)
+
+            # Construct the file name with the original extension
+            original_file_name = os.path.basename(file_path)
+            file_extension = os.path.splitext(original_file_name)[1]
+            file_name = f"{shared_file.title.strip()}{file_extension}" if shared_file.title else original_file_name
+            print(f"DEBUG: Final file name constructed: {file_name}")
+
+            # Guess the MIME type
+            mimetypes.add_type('application/pdf', '.pdf', strict=True)
+            mimetypes.add_type('image/jpeg', '.jpg', strict=True)
+            mimetypes.add_type('image/png', '.png', strict=True)
+            mimetypes.add_type('audio/mpeg', '.mp3', strict=True)
+            mimetypes.add_type('audio/wav', '.wav', strict=True)
+            mimetypes.add_type('video/mp4', '.mp4', strict=True)
+            mimetypes.add_type('video/x-matroska', '.mkv', strict=True)
+
+            content_type, _ = mimetypes.guess_type(file_path)
+            print(f"DEBUG: MIME type detected - {content_type}")
+
+            if not content_type:
+                content_type = 'application/octet-stream'  # Default MIME type
+
+            print(f"DEBUG: Content type detected - {content_type}")
+
+            # Serve the file with correct headers
+            with open(file_path, 'rb') as file_handle:
+                response = HttpResponse(file_handle.read(), content_type=content_type)
+                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_name)}"'
+                response['Content-Type'] = content_type  # Ensure correct Content-Type is set
+
+            print(f"DEBUG: Response headers: {response}")
+
+            print(f"DEBUG: Response created successfully for file {file_name}")
+            return response
+
+        except FileNotFoundError:
+            print(f"ERROR: File not found for id={file_id}")
+            raise Http404("File not found.")
+        except Exception as e:
+            print(f"ERROR: Exception occurred - {str(e)}")
+            return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
+
+
+
     def delete(self, request, pk=None):
             file = get_object_or_404(SharedFile, pk=pk)
             if request.user != file.uploaded_by:
@@ -423,63 +490,3 @@ class AnnouncementListCreateView(APIView):
             return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
         announcement.delete()
         return Response({"message": "Announcement deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-
-    def download_shared_file(request, file_id):
-        try:
-            print(f"DEBUG: Downloading shared file with ID: {file_id}")
-
-            # Fetch the shared file object
-            shared_file = get_object_or_404(SharedFile, id=file_id)
-            print(f"DEBUG: Found shared file: {shared_file.title}")
-
-            # Retrieve the file path and ensure it exists
-            file_path = shared_file.file.path
-            if not os.path.exists(file_path):
-                print(f"ERROR: File path does not exist - {file_path}")
-                return HttpResponse("File not found on server", status=404)
-
-            # Construct the file name with the original extension
-            original_file_name = os.path.basename(file_path)
-            file_extension = os.path.splitext(original_file_name)[1]
-            file_name = f"{shared_file.title.strip()}{file_extension}" if shared_file.title else original_file_name
-            print(f"DEBUG: Final file name constructed: {file_name}")
-
-            # Guess the MIME type
-            mimetypes.add_type('application/pdf', '.pdf', strict=True)
-            mimetypes.add_type('image/jpeg', '.jpg', strict=True)
-            mimetypes.add_type('image/png', '.png', strict=True)
-            mimetypes.add_type('audio/mpeg', '.mp3', strict=True)
-            mimetypes.add_type('audio/wav', '.wav', strict=True)
-            mimetypes.add_type('video/mp4', '.mp4', strict=True)
-            mimetypes.add_type('video/x-matroska', '.mkv', strict=True)
-
-            content_type, _ = mimetypes.guess_type(file_path)
-            print(f"DEBUG: MIME type detected - {content_type}")
-
-            if not content_type:
-                content_type = 'application/octet-stream'  # Default MIME type
-
-            print(f"DEBUG: Content type detected - {content_type}")
-
-            # Get the file size
-            file_size = os.path.getsize(file_path)
-
-            # Serve the file with correct headers
-            response = HttpResponse(content_type=content_type)
-            response['Content-Length'] = file_size
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_name)}"'
-            response['Content-Type'] = content_type  # Ensure correct Content-Type is set
-
-            # Stream the file in chunks
-            with open(file_path, 'rb') as f:
-                response.write(f.read())
-
-            print(f"DEBUG: Response created successfully for file {file_name}")
-            return response
-
-        except FileNotFoundError:
-            print(f"ERROR: File not found for id={file_id}")
-            raise Http404("File not found.")
-        except Exception as e:
-            print(f"ERROR: Exception occurred - {str(e)}")
-            return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)

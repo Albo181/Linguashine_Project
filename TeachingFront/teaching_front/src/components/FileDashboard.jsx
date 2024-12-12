@@ -359,63 +359,79 @@ const FileDashboard = () => {
   };
 
   // File download handler with proper error handling
-  const handleDownload = async (fileId, fileName) => {
+  const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-        const downloadUrl = `/files/download/${fileId}/`;
-        
-        console.log('Attempting to download from:', downloadUrl);
-        
-        const response = await apiClient.get(downloadUrl, {
-            responseType: 'blob',
-            headers: {
-                'X-CSRFToken': getCsrfToken(),
-                'Accept': '*/*'
-            },
-            withCredentials: true  // This is important for production
-        });
-  
-        // Rest of the function remains the same
-        const contentType = response.headers['content-type'] || 'application/octet-stream';
-        const contentDisposition = response.headers['content-disposition'];
-  
-        let downloadFileName = fileName;
-        const matches = contentDisposition && /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
-        if (matches && matches[1]) {
-            downloadFileName = matches[1].replace(/['"]/g, '');
+      // Construct the correct download URL based on file type
+      let downloadUrl = '';
+      switch (fileType) {
+        case 'document':
+          downloadUrl = `/files/private/documents/${fileId}/`;
+          break;
+        case 'image':
+          downloadUrl = `/files/private/images/${fileId}/`;
+          break;
+        case 'audio':
+          downloadUrl = `/files/private/audio/${fileId}/`;
+          break;
+        case 'video':
+          downloadUrl = `/files/private/video/${fileId}/`;
+          break;
+        default:
+          console.error('Unknown file type for download');
+          return;
+      }
+
+      const response = await apiClient.get(downloadUrl, {
+        responseType: 'blob',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
         }
-  
-        const blob = new Blob([response.data], { type: contentType });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', downloadFileName);
-        document.body.appendChild(link);
-        link.click();
-        
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-  
-        console.log('Download completed successfully');
-    } catch (error) {
-        console.error('Error downloading file:', error);
-        console.error('Error details:', {
-            message: error.message,
-            response: error.response,
-            status: error.response?.status,
-            data: error.response?.data
-        });
-  
-        let errorMessage = 'Error downloading file. ';
-        if (error.response?.status === 404) {
-            errorMessage += 'File not found.';
-        } else if (error.response?.status === 403) {
-            errorMessage += 'You do not have permission to download this file.';
-        } else if (error.response?.status === 500) {
-            errorMessage += 'Server error. Please try again later.';
+      });
+
+      const contentType = response.headers['content-type'];
+      const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
+      
+      let finalFileName = fileName;
+      if (!finalFileName.includes('.')) {
+        if (contentType === 'video/webm') {
+          finalFileName += '.webm';
         } else {
-            errorMessage += 'Please try again.';
+          switch (fileType) {
+            case 'audio':
+              finalFileName += originalExt || '.wav';
+              break;
+            case 'video':
+              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
+              break;
+            case 'image':
+              finalFileName += originalExt || '.jpg';
+              break;
+            case 'document':
+            default:
+              finalFileName += originalExt || '.pdf';
+              break;
+          }
         }
-        alert(errorMessage);
+      }
+
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', finalFileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      if (error.response?.status === 403) {
+        alert('Access denied. Please check your permissions or try logging in again.');
+      } else if (error.response?.status === 500) {
+        alert('Server error. Please try again later or contact support.');
+      } else {
+        alert('Error downloading file. Please try again.');
+      }
     }
   };
 
@@ -469,13 +485,9 @@ const FileDashboard = () => {
       });
     
       if (response.status === 204) {
-        // Remove the file from both states
-        const removeFile = (prevFiles) => prevFiles.filter(f => f.id !== file.id);
-        setFiles(prevFiles => {
-          const newFiles = removeFile(prevFiles);
-          setFilteredFiles(removeFile(filteredFiles)); // Update filtered files synchronously
-          return newFiles;
-        });
+        // Remove only the specific file from both states
+        setFiles(prevFiles => prevFiles.filter(f => f.id !== file.id));
+        setFilteredFiles(prevFiles => prevFiles.filter(f => f.id !== file.id));
         console.log('File deleted successfully:', file.id);
       } else {
         alert('Failed to delete the file.');
@@ -574,8 +586,8 @@ const FileDashboard = () => {
                   <FileCard
                     key={key}
                     file={file}
-                    onDownload={() => handleDownload(file.id, file.title)}
-                    onDelete={handleDeleteFile}
+                    onDownload={() => handleFileDownload(file.id, file.title, file.type)}
+                    onDelete={handleDeleteFile}  // Pass the function directly
                   />
                 );
               })
