@@ -358,50 +358,82 @@ const FileDashboard = () => {
     }
   };
 
-
+  // File download handler with proper error handling
   const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      // Construct the correct download URL
-      const downloadUrl = `/files/private/${fileType}s/${fileId}/`;
-  
+      // Construct the correct download URL based on file type
+      let downloadUrl = '';
+      switch (fileType) {
+        case 'document':
+          downloadUrl = `/files/private/documents/${fileId}/`;
+          break;
+        case 'image':
+          downloadUrl = `/files/private/images/${fileId}/`;
+          break;
+        case 'audio':
+          downloadUrl = `/files/private/audio/${fileId}/`;
+          break;
+        case 'video':
+          downloadUrl = `/files/private/video/${fileId}/`;
+          break;
+        default:
+          console.error('Unknown file type for download');
+          return;
+      }
+
       const response = await apiClient.get(downloadUrl, {
-        responseType: "blob",
+        responseType: 'blob',
         headers: {
-          "X-CSRFToken": getCsrfToken(),
-        },
+          'X-CSRFToken': getCsrfToken(),
+        }
       });
-  
-      // Extract filename from Content-Disposition if available
-      const contentDisposition = response.headers["content-disposition"];
-      const matches = contentDisposition && /filename="?([^"]+)"?/.exec(contentDisposition);
-      const finalFileName = matches && matches[1] ? matches[1] : fileName;
-  
-      // Create a Blob for the file and trigger download
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+
+      const contentType = response.headers['content-type'];
+      const originalExt = fileName.includes('.') ? '.' + fileName.split('.').pop().toLowerCase() : '';
+      
+      let finalFileName = fileName;
+      if (!finalFileName.includes('.')) {
+        if (contentType === 'video/webm') {
+          finalFileName += '.webm';
+        } else {
+          switch (fileType) {
+            case 'audio':
+              finalFileName += originalExt || '.wav';
+              break;
+            case 'video':
+              finalFileName += contentType === 'video/webm' ? '.webm' : (originalExt || '.mp4');
+              break;
+            case 'image':
+              finalFileName += originalExt || '.jpg';
+              break;
+            case 'document':
+            default:
+              finalFileName += originalExt || '.pdf';
+              break;
+          }
+        }
+      }
+
+      const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
-      link.setAttribute("download", finalFileName);
+      link.setAttribute('download', finalFileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Error downloading file:", error);
-  
-      if (error.response?.status === 404) {
-        alert("File not found. Please try again.");
-      } else if (error.response?.status === 403) {
-        alert("Access denied. Please check your permissions.");
+      console.error('Error downloading file:', error);
+      if (error.response?.status === 403) {
+        alert('Access denied. Please check your permissions or try logging in again.');
+      } else if (error.response?.status === 500) {
+        alert('Server error. Please try again later or contact support.');
       } else {
-        alert("Failed to download file. Please try again.");
+        alert('Error downloading file. Please try again.');
       }
     }
   };
-  
-
-  
-  
 
   // Delete file handler
   const handleDeleteFile = async (file) => {

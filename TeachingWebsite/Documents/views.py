@@ -17,7 +17,6 @@ from django.http import HttpResponse, JsonResponse, Http404
 import mimetypes, os
 from django.utils.encoding import smart_str
 import logging
-from wsgiref.util import FileWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -193,41 +192,76 @@ class PrivateFileViewSet(viewsets.ViewSet):
             logger.error(f"Error uploading file: {str(e)}", exc_info=True)
             return JsonResponse({'error': str(e)}, status=500)
 
-    
-   
-   
-def download_file(request, pk=None):
-    file_obj = (
-        PrivateDocument.objects.filter(id=pk).first() or
-        PrivateImage.objects.filter(id=pk).first() or
-        PrivateAudio.objects.filter(id=pk).first() or
-        PrivateVideo.objects.filter(id=pk).first()
-    )
 
-    if not file_obj:
-        return HttpResponse("File not found", status=404)
 
-    file_field = getattr(file_obj, 'document', None) or \
-                 getattr(file_obj, 'image', None) or \
-                 getattr(file_obj, 'audio', None) or \
-                 getattr(file_obj, 'video', None)
+    def download_file(self, request, pk=None):
+        file_obj = (PrivateDocument.objects.filter(id=pk).first() or
+                    PrivateImage.objects.filter(id=pk).first() or
+                    PrivateAudio.objects.filter(id=pk).first() or
+                    PrivateVideo.objects.filter(id=pk).first())
 
-    if not file_field or not file_field.path:
-        return HttpResponse("File not found on server", status=404)
+        if not file_obj:
+            return HttpResponse("File not found", status=404)
 
-    file_path = file_field.path
-    if not os.path.exists(file_path):
-        return HttpResponse("File not found on server", status=404)
+        # Get the actual file field and path based on type
+        if isinstance(file_obj, PrivateDocument):
+            file_field = file_obj.document
+            content_type = 'application/pdf'  # Default for documents
+        elif isinstance(file_obj, PrivateImage):
+            file_field = file_obj.image
+            content_type = 'image/jpeg'  # Default for images
+        elif isinstance(file_obj, PrivateAudio):
+            file_field = file_obj.audio
+            content_type = 'audio/mpeg'  # Default for audio
+        elif isinstance(file_obj, PrivateVideo):
+            file_field = file_obj.video
+            content_type = 'video/mp4'  # Default for video
+        else:
+            return HttpResponse("Invalid file type", status=400)
 
-    content_type, _ = mimetypes.guess_type(file_path)
-    content_type = content_type or 'application/octet-stream'
-    file_extension = os.path.splitext(file_path)[1].lower()
+        file_path = file_field.path
+        if not os.path.exists(file_path):
+            return HttpResponse("File not found on server", status=404)
 
-    response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
-    response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-    response['Content-Length'] = os.path.getsize(file_path)
+        # Get file extension and override content type if needed
+        file_extension = os.path.splitext(file_path)[1].lower()
+        
+        # Override content type based on file extension
+        extension_content_types = {
+            # Video formats
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm',
+            '.mov': 'video/quicktime',
+            '.mkv': 'video/x-matroska',
+            # Audio formats
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav',
+            '.aac': 'audio/aac',
+            '.ogg': 'audio/ogg',
+            # Image formats
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.gif': 'image/gif',
+            # Document formats
+            '.pdf': 'application/pdf',
+            '.doc': 'application/msword',
+            '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
 
-    return response
+        if file_extension in extension_content_types:
+            content_type = extension_content_types[file_extension]
+
+        # Prepare response
+        response = HttpResponse(content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+        
+        # Stream the file in chunks to avoid memory issues with large files
+        with open(file_path, 'rb') as f:
+            response.write(f.read())
+
+        return response
+
 
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------
