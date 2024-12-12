@@ -204,19 +204,23 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
     def download_file(self, request, pk=None):
         try:
+            logger.info(f"Starting download for file ID: {pk}")
+            
             file_obj = (PrivateDocument.objects.filter(id=pk).first() or
                         PrivateImage.objects.filter(id=pk).first() or
                         PrivateAudio.objects.filter(id=pk).first() or
                         PrivateVideo.objects.filter(id=pk).first())
 
             if not file_obj:
+                logger.error(f"File not found for ID: {pk}")
                 return HttpResponse("File not found", status=404)
 
             # Check permissions
             if request.user.user_type != UserType.TEACHER and request.user != file_obj.user:
+                logger.warning(f"Permission denied for user {request.user} accessing file {pk}")
                 return HttpResponse("Permission denied", status=403)
 
-            # Get the actual file field and path based on type
+            # Get the actual file field based on type
             if isinstance(file_obj, PrivateDocument):
                 file_field = file_obj.document
                 default_content_type = 'application/pdf'
@@ -230,14 +234,12 @@ class PrivateFileViewSet(viewsets.ViewSet):
                 file_field = file_obj.video
                 default_content_type = 'video/mp4'
             else:
+                logger.error(f"Invalid file type for file {pk}")
                 return HttpResponse("Invalid file type", status=400)
 
-            file_path = file_field.path
-            if not os.path.exists(file_path):
-                return HttpResponse("File not found on server", status=404)
-
-            # Get file extension and determine content type
-            file_extension = os.path.splitext(file_path)[1].lower()
+            # Get file name and extension
+            file_name = os.path.basename(file_field.name)
+            file_extension = os.path.splitext(file_name)[1].lower()
             
             # Register common MIME types
             mimetypes.add_type('video/mp4', '.mp4')
@@ -249,53 +251,30 @@ class PrivateFileViewSet(viewsets.ViewSet):
             mimetypes.add_type('audio/aac', '.aac')
             mimetypes.add_type('audio/ogg', '.ogg')
             
-            # Override content type based on file extension
-            extension_content_types = {
-                # Video formats
-                '.mp4': 'video/mp4',
-                '.webm': 'video/webm',
-                '.mov': 'video/quicktime',
-                '.mkv': 'video/x-matroska',
-                # Audio formats
-                '.mp3': 'audio/mpeg',
-                '.wav': 'audio/wav',
-                '.aac': 'audio/aac',
-                '.ogg': 'audio/ogg',
-                # Image formats
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.png': 'image/png',
-                '.gif': 'image/gif',
-                # Document formats
-                '.pdf': 'application/pdf',
-                '.doc': 'application/msword',
-                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            }
+            # Determine content type
+            content_type = mimetypes.guess_type(file_name)[0] or default_content_type
 
-            content_type = extension_content_types.get(file_extension, None)
-            if not content_type:
-                content_type, _ = mimetypes.guess_type(file_path)
-            if not content_type:
-                content_type = default_content_type
-
-            # Get the file size
-            file_size = os.path.getsize(file_path)
-
-            # Create the response with file
-            response = HttpResponse(content_type=content_type)
-            response['Content-Length'] = file_size
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-
-            # Stream the file in chunks
-            with open(file_path, 'rb') as f:
-                response.write(f.read())
-
-            return response
+            # For S3 storage, we'll use the URL
+            try:
+                file_url = file_field.url
+                logger.info(f"File URL obtained: {file_url}")
+                
+                # Create response with headers
+                response = HttpResponse()
+                response['Content-Type'] = content_type
+                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+                
+                # Stream the file from S3
+                response['X-Accel-Redirect'] = file_url
+                return response
+                
+            except Exception as e:
+                logger.error(f"Error accessing file storage: {str(e)}", exc_info=True)
+                return HttpResponse(f"Error accessing file: {str(e)}", status=500)
 
         except Exception as e:
             logger.error(f"Error downloading file: {str(e)}", exc_info=True)
             return HttpResponse(f"Error downloading file: {str(e)}", status=500)
-
 
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------
