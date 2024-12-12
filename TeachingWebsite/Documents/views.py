@@ -216,81 +216,55 @@ class PrivateFileViewSet(viewsets.ViewSet):
             if request.user.user_type != UserType.TEACHER and request.user != file_obj.user:
                 return HttpResponse("Permission denied", status=403)
 
-            # Get the actual file field and path based on type
+            # Get the actual file field based on type
             if isinstance(file_obj, PrivateDocument):
                 file_field = file_obj.document
-                default_content_type = 'application/pdf'
             elif isinstance(file_obj, PrivateImage):
                 file_field = file_obj.image
-                default_content_type = 'image/jpeg'
             elif isinstance(file_obj, PrivateAudio):
                 file_field = file_obj.audio
-                default_content_type = 'audio/mpeg'
             elif isinstance(file_obj, PrivateVideo):
                 file_field = file_obj.video
-                default_content_type = 'video/mp4'
             else:
                 return HttpResponse("Invalid file type", status=400)
 
-            file_path = file_field.path
-            if not os.path.exists(file_path):
-                return HttpResponse("File not found on server", status=404)
+            if not file_field:
+                return HttpResponse("File not found", status=404)
 
-            # Get file extension and determine content type
-            file_extension = os.path.splitext(file_path)[1].lower()
+            # Get file name and extension
+            file_name = os.path.basename(file_field.name)
+            file_extension = os.path.splitext(file_name)[1].lower()
+
+            # Get the storage backend
+            storage = file_field.storage
+
+            # If using S3 (in production)
+            if hasattr(storage, 'bucket'):
+                # Generate a pre-signed URL
+                url = storage.url(file_field.name)
+                return JsonResponse({'url': url})
             
-            # Register common MIME types
-            mimetypes.add_type('video/mp4', '.mp4')
-            mimetypes.add_type('video/webm', '.webm')
-            mimetypes.add_type('video/quicktime', '.mov')
-            mimetypes.add_type('video/x-matroska', '.mkv')
-            mimetypes.add_type('audio/mpeg', '.mp3')
-            mimetypes.add_type('audio/wav', '.wav')
-            mimetypes.add_type('audio/aac', '.aac')
-            mimetypes.add_type('audio/ogg', '.ogg')
-            
-            # Override content type based on file extension
-            extension_content_types = {
-                # Video formats
-                '.mp4': 'video/mp4',
-                '.webm': 'video/webm',
-                '.mov': 'video/quicktime',
-                '.mkv': 'video/x-matroska',
-                # Audio formats
-                '.mp3': 'audio/mpeg',
-                '.wav': 'audio/wav',
-                '.aac': 'audio/aac',
-                '.ogg': 'audio/ogg',
-                # Image formats
-                '.jpg': 'image/jpeg',
-                '.jpeg': 'image/jpeg',
-                '.png': 'image/png',
-                '.gif': 'image/gif',
-                # Document formats
-                '.pdf': 'application/pdf',
-                '.doc': 'application/msword',
-                '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-            }
+            # For local development
+            else:
+                # Register common MIME types
+                mimetypes.add_type('video/mp4', '.mp4')
+                mimetypes.add_type('video/webm', '.webm')
+                mimetypes.add_type('video/quicktime', '.mov')
+                mimetypes.add_type('video/x-matroska', '.mkv')
+                mimetypes.add_type('audio/mpeg', '.mp3')
+                mimetypes.add_type('audio/wav', '.wav')
+                mimetypes.add_type('audio/aac', '.aac')
+                mimetypes.add_type('audio/ogg', '.ogg')
+                
+                # Get content type
+                content_type, _ = mimetypes.guess_type(file_name)
+                if not content_type:
+                    content_type = 'application/octet-stream'
 
-            content_type = extension_content_types.get(file_extension, None)
-            if not content_type:
-                content_type, _ = mimetypes.guess_type(file_path)
-            if not content_type:
-                content_type = default_content_type
-
-            # Get the file size
-            file_size = os.path.getsize(file_path)
-
-            # Create the response with file
-            response = HttpResponse(content_type=content_type)
-            response['Content-Length'] = file_size
-            response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
-
-            # Stream the file in chunks
-            with open(file_path, 'rb') as f:
-                response.write(f.read())
-
-            return response
+                # Create the response with file
+                response = HttpResponse(file_field.read(), content_type=content_type)
+                response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+                return response
 
         except Exception as e:
             logger.error(f"Error downloading file: {str(e)}", exc_info=True)

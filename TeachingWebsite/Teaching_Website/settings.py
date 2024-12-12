@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('RAILWAY_ENVIRONMENT') != 'production'
+DEBUG = True
+#os.getenv('RAILWAY_ENVIRONMENT') != 'production'
 
 # If we're in production (DEBUG is False), add railway domain to allowed hosts
 if not DEBUG:
@@ -151,8 +152,8 @@ USE_I18N = True
 USE_TZ = True
 
 # Security Settings
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True ###***
+SESSION_COOKIE_SECURE = True ###****
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
