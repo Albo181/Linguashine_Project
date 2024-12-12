@@ -195,51 +195,39 @@ class PrivateFileViewSet(viewsets.ViewSet):
 
     
    
-    def download_file(self, request, pk=None):
-        # Retrieve the file object
-        file_obj = (
-            PrivateDocument.objects.filter(id=pk).first() or
-            PrivateImage.objects.filter(id=pk).first() or
-            PrivateAudio.objects.filter(id=pk).first() or
-            PrivateVideo.objects.filter(id=pk).first()
-        )
+   
+def download_file(request, pk=None):
+    file_obj = (
+        PrivateDocument.objects.filter(id=pk).first() or
+        PrivateImage.objects.filter(id=pk).first() or
+        PrivateAudio.objects.filter(id=pk).first() or
+        PrivateVideo.objects.filter(id=pk).first()
+    )
 
-        if not file_obj:
-            logger.error(f"File with ID {pk} not found.")
-            return HttpResponse("File not found", status=404)
+    if not file_obj:
+        return HttpResponse("File not found", status=404)
 
-        # Identify the file field and its path
-        file_field = getattr(file_obj, 'document', None) or \
-                    getattr(file_obj, 'image', None) or \
-                    getattr(file_obj, 'audio', None) or \
-                    getattr(file_obj, 'video', None)
+    file_field = getattr(file_obj, 'document', None) or \
+                 getattr(file_obj, 'image', None) or \
+                 getattr(file_obj, 'audio', None) or \
+                 getattr(file_obj, 'video', None)
 
-        if not file_field or not file_field.path:
-            logger.error(f"File path not found for file ID {pk}.")
-            return HttpResponse("File not found on server", status=404)
+    if not file_field or not file_field.path:
+        return HttpResponse("File not found on server", status=404)
 
-        file_path = file_field.path
+    file_path = file_field.path
+    if not os.path.exists(file_path):
+        return HttpResponse("File not found on server", status=404)
 
-        # Verify that the file exists
-        if not os.path.exists(file_path):
-            logger.error(f"File path {file_path} does not exist on server.")
-            return HttpResponse("File not found on server", status=404)
+    content_type, _ = mimetypes.guess_type(file_path)
+    content_type = content_type or 'application/octet-stream'
+    file_extension = os.path.splitext(file_path)[1].lower()
 
-        # Determine the content type and file extension
-        content_type, _ = mimetypes.guess_type(file_path)
-        content_type = content_type or 'application/octet-stream'
-        file_extension = os.path.splitext(file_path)[1].lower()
+    response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
+    response['Content-Disposition'] = f'attachment; filename="{smart_str(file_obj.title)}{file_extension}"'
+    response['Content-Length'] = os.path.getsize(file_path)
 
-        # Ensure filename has the correct extension
-        filename = f"{file_obj.title}{file_extension}"
-
-        # Prepare the response
-        response = HttpResponse(FileWrapper(open(file_path, 'rb')), content_type=content_type)
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        response['Content-Length'] = os.path.getsize(file_path)
-
-        logger.info(f"Serving file {filename} with content type {content_type}.")
-        return response
+    return response
 
 
 ## PRIVATE INDIVIDUAL FILE-TYPE VIEWSETS -------------------------------------------------------------

@@ -359,52 +359,46 @@ const FileDashboard = () => {
   };
 
 
- const handleFileDownload = async (fileId, fileName, fileType) => {
+  const handleFileDownload = async (fileId, fileName, fileType) => {
     try {
-      // Construct the download URL
+      // Construct the correct download URL
       const downloadUrl = `/files/private/${fileType}s/${fileId}/`;
-
-      // Make the API request
+  
       const response = await apiClient.get(downloadUrl, {
-        responseType: 'blob',
+        responseType: "blob",
         headers: {
-          'X-CSRFToken': getCsrfToken(),
+          "X-CSRFToken": getCsrfToken(),
         },
       });
-
-      // Extract the filename from content-disposition
-      const contentDisposition = response.headers['content-disposition'];
-      let finalFileName = fileName;
-
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match) {
-          finalFileName = match[1];
-        }
-      }
-
+  
+      // Extract filename from Content-Disposition if available
+      const contentDisposition = response.headers["content-disposition"];
+      const matches = contentDisposition && /filename="?([^"]+)"?/.exec(contentDisposition);
+      const finalFileName = matches && matches[1] ? matches[1] : fileName;
+  
       // Create a Blob for the file and trigger download
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', finalFileName);
+      link.setAttribute("download", finalFileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
-
+      console.error("Error downloading file:", error);
+  
       if (error.response?.status === 404) {
-        alert('File not found. Please try again.');
+        alert("File not found. Please try again.");
       } else if (error.response?.status === 403) {
-        alert('Access denied. Please check your permissions.');
+        alert("Access denied. Please check your permissions.");
       } else {
-        alert('Failed to download file. Please try again.');
+        alert("Failed to download file. Please try again.");
       }
     }
   };
+  
 
   
   
