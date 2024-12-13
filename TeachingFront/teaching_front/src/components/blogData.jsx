@@ -7,31 +7,32 @@ const blogData = [
    
       content:
         
-      `¿Estás pensando en certificar tu nivel de inglés con los exámenes de Cambridge, Aptis o EOI? ¡Has llegado al lugar adecuado! 
-      
-
-
-      Ofrezco una preparación integral para todos los niveles, desde 'beginners level' hasta C2 (CPE), diseñada específicamente para ayudarte a alcanzar tus metas lingüísticas y académicas.
+      `- Se ofrece una preparación integral para todos los niveles, desde principiantes hasta C2 (CPE), diseñada específicamente para ayudarte a alcanzar tus metas lingüísticas y académicas.
 
       
-      Entendemos que cada estudiante tiene necesidades y ritmos de aprendizaje únicos. Por eso, adapto las clases a tus objetivos individuales, ya sea que desees perfeccionar tu gramática, ampliar tu vocabulario, mejorar tu comprensión auditiva o ganar fluidez en tu expresión oral. 
+      - Las clases se organizan en grupos reducidos o particulares.
+      
+      
+      - Cada estudiante tiene necesidades y ritmos de aprendizaje únicos, por lo que se adpaptan las clases a tus objetivos individuales, ya sea que desees perfeccionar tu gramática, ampliar tu vocabulario, mejorar tu comprensión auditiva o ganar fluidez en tu expresión oral. 
       
 
-
-        Mi metodología combina teoría sólida con práctica constante, para que te sientas seguro y preparado el día del examen.
+      - La metodología combina teoría sólida con práctica constante, para que te sientas seguro y preparado para cualquier objetivo que tengas en mente.
       
-      Además, tienes la opción de elegir entre clases individuales o en pequeños grupos. Las clases individuales te permiten un enfoque completamente personalizado, mientras que las sesiones en grupo pequeño fomentan un aprendizaje colaborativo, donde los estudiantes pueden apoyarse mutuamente, compartir experiencias y progresar juntos.
       
-      Durante las sesiones, no solo cubrimos el contenido teórico necesario, sino que también realizamos simulacros de examen que te ayudarán a familiarizarte con el formato de las pruebas, a gestionar mejor tu tiempo y a afrontar el examen con confianza. 
-
-
-
-        El objetivo no es solo aprobar, sino lograr un dominio real y duradero del inglés.
+      - Las clases individuales te permiten un enfoque completamente personalizado, mientras que las sesiones en grupo pequeño fomentan un aprendizaje colaborativo, donde los estudiantes pueden apoyarse mutuamente, compartir experiencias y progresar juntos.
       
-      Si buscas una preparación completa, flexible y respaldada por un profesional con amplia experiencia, no dudes en unirte a nuestras clases. 
+
+      - En las sesiones, no solo cubrimos el contenido teórico necesario, sino que también se realizan simulacros de examen que te ayudarán a familiarizarte con el formato de las pruebas, a gestionar mejor tu tiempo y a afrontar el examen con confianza. 
 
 
-        Juntos trabajaremos para que obtengas tu certificado y, lo más importante, para que alcances un nivel de inglés que abra nuevas oportunidades en tu vida personal y profesional.`
+
+      - El objetivo no es solo aprobar, sino lograr un dominio real y duradero del inglés.
+
+      
+      - Si buscas una preparación completa, flexible y respaldada por un profesional con amplia experiencia, no dudes en ponerte en contacto.
+
+
+      - Juntos trabajaremos para que obtengas tu certificado y, lo más importante, para que alcances un nivel de inglés que abra nuevas oportunidades en tu vida personal y profesional.`
     },
     {
         id: 2,
