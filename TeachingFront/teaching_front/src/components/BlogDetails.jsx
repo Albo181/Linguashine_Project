@@ -50,6 +50,7 @@ const BlogDetails = () => {
   return (
     <div className={`min-h-screen flex ${blog.id === 5 ? 'flex-col mt-16 bg-gray-50' : 'justify-center items-center bg-gray-100'} p-4`}>
       {blog.id === 5 ? (
+        // Existing code for blog 5
         <>
           <div className="bg-blue-950 text-white py-12 px-6 font-bold">
             <div className="container mx-auto max-w-5xl text-center">
@@ -76,7 +77,7 @@ const BlogDetails = () => {
           <div className="bg-white py-12 px-6">
             <div className="container mx-auto max-w-5xl">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              <div>
+                <div>
                   {blog.id === 5 && (
                     <h2 className="text-2xl font-semibold text-blue-950 mt-4 mb-6">
                       ¡Bienvenidos a mi rincón de enseñanza!
@@ -91,7 +92,6 @@ const BlogDetails = () => {
                     </p>
                   ))}
                 </div>
-
                 <div className="bg-gray-100 p-6 rounded-lg shadow-md mt-4">
                   <h2 className="text-2xl font-semibold mb-10 text-blue-950">¿Qué se ofrece?</h2>
                   <ul className="list-disc list-inside text-gray-700 text-lg space-y-6">
@@ -111,7 +111,7 @@ const BlogDetails = () => {
                     </Link>
                   </div>
                   <div className="relative flex flex-col items-center">
-                  <OptimizedImage
+                    <OptimizedImage
                       src={tree}
                       alt="tree"
                       className="mt-32 lg:-mt-2 mb-8 h-[150px] lg:h-[275px] w-auto rounded-lg shadow-lg p-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"
@@ -119,7 +119,6 @@ const BlogDetails = () => {
                         borderRadius: '15px',
                       }}
                     />
-
                     <div className="bg-white p-4 rounded-lg shadow-md text-center mt-0">
                       <blockquote className="text-blue-950 italic font-bold mb-2">
                         "A tree's beauty lies in its branches, but its strength lies in its roots." 
@@ -145,11 +144,23 @@ const BlogDetails = () => {
               />
             </div>
           )}
-          {blog.content.split('\n\n').map((paragraph, index) => (
-            <p key={index} className="text-gray-700 leading-relaxed mb-4">
-              {paragraph}
-            </p>
-          ))}
+          {blog.id === 1 ? (
+            blog.content.split('\n\n').map((paragraph, index) => (
+              <p key={index} className="text-gray-700 leading-relaxed mb-4">
+                {paragraph.split(':').map((part, partIndex) => (
+                  <span key={partIndex}>
+                    {partIndex === 0 ? <strong>{part.trim()}:</strong> : part}
+                  </span>
+                ))}
+              </p>
+            ))
+          ) : (
+            blog.content.split('\n\n').map((paragraph, index) => (
+              <p key={index} className="text-gray-700 leading-relaxed mb-4">
+                {paragraph}
+              </p>
+            ))
+          )}
         </div>
       )}
     </div>

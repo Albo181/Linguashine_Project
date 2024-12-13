@@ -7,49 +7,49 @@ const blogData = [
    
       content:
         
-      `- Se ofrece una preparación integral para todos los niveles, desde principiantes hasta C2 (CPE), diseñada específicamente para ayudarte a alcanzar tus metas lingüísticas y académicas.
+      `Clases adaptadas a tus necesidades: Se ofrecen clases en grupos reducidos (de 3 a 6 personas) o sesiones particulares, diseñadas para ajustarse a tus objetivos y ritmo de aprendizaje.
 
-      
-      - Las clases se organizan en grupos reducidos o particulares.
-      
-      
-      - Cada estudiante tiene necesidades y ritmos de aprendizaje únicos, por lo que se adpaptan las clases a tus objetivos individuales, ya sea que desees perfeccionar tu gramática, ampliar tu vocabulario, mejorar tu comprensión auditiva o ganar fluidez en tu expresión oral. 
-      
+      Preparación para todos los niveles: Desde principiantes hasta C2 (CPE), contamos con un programa integral que te ayudará a alcanzar tus metas lingüísticas y académicas de manera efectiva.
 
-      - La metodología combina teoría sólida con práctica constante, para que te sientas seguro y preparado para cualquier objetivo que tengas en mente.
-      
-      
-      - Las clases individuales te permiten un enfoque completamente personalizado, mientras que las sesiones en grupo pequeño fomentan un aprendizaje colaborativo, donde los estudiantes pueden apoyarse mutuamente, compartir experiencias y progresar juntos.
+
+      Enfoque personalizado: Cada estudiante es único, por lo que las clases se ajustan a tus objetivos específicos. Ya sea que desees perfeccionar tu gramática, ampliar tu vocabulario, mejorar tu comprensión auditiva o ganar fluidez en la expresión oral, las sesiones se adaptan completamente a ti.
       
 
-      - En las sesiones, no solo cubrimos el contenido teórico necesario, sino que también se realizan simulacros de examen que te ayudarán a familiarizarte con el formato de las pruebas, a gestionar mejor tu tiempo y a afrontar el examen con confianza. 
+      Metodología práctica y dinámica: Se combina una base teórica sólida con una práctica frecuente, para que te sientas seguro y preparado para cualquier desafío que te propongas.
+      
 
+      Modalidades de aprendizaje:
+      
+      En las clases individuales, recibirás atención personalizada, enfocada exclusivamente en tus necesidades.
+      En las sesiones grupales, el aprendizaje colaborativo te permitirá compartir experiencias, apoyarte en tus compañeros y avanzar juntos hacia el éxito.
+      
+      
 
-
-      - El objetivo no es solo aprobar, sino lograr un dominio real y duradero del inglés.
+      Simulacros y estrategias para el examen: No solo se cubre el contenido teórico necesario, sino que también realizamos simulacros de examen. Esto te ayudará a familiarizarte con el formato, gestionar mejor el tiempo y afrontar la prueba con confianza.
 
       
-      - Si buscas una preparación completa, flexible y respaldada por un profesional con amplia experiencia, no dudes en ponerte en contacto.
+      Un objetivo claro y duradero: El objetivo no es solo aprobar un examen, sino alcanzar un dominio real y duradero del inglés, que te sirva en todos los ámbitos de tu vida.
 
 
-      - Juntos trabajaremos para que obtengas tu certificado y, lo más importante, para que alcances un nivel de inglés que abra nuevas oportunidades en tu vida personal y profesional.`
+      Profesionalidad y experiencia: Si buscas una preparación completa, flexible y guiada por un profesional con amplia experiencia, no dudes en ponerte en contacto.
+
+
+      Tu éxito es siempre el meta principal: Trabajaremos juntos para que no solo obtengas tu certificado, sino para que desarrolles las habilidades necesarias para comunicarte con confianza, y alcances un nivel de inglés que abra nuevas oportunidades en tu vida personal y profesional.`
     },
     {
         id: 2,
         title: '¡Bienvenidos al Club de Inglés 2025! 🎉',
         content: 
 
-`Estoy emocionado de anunciar el relanzamiento de nuestro Club de Inglés, un espacio creado para todos aquellos interesados en mejorar su nivel de inglés mientras disfrutan de actividades sociales en un ambiente relajado y divertido. 
+`Me complace anunciar el relanzamiento del Club de Inglés, un espacio diseñado para todos aquellos interesados en mejorar su nivel de inglés mientras participan en actividades sociales en un entorno relajado y enriquecedor.
 
-Organizamos eventos periódicos que combinan aprendizaje con interacción, donde podrás practicar inglés de una forma más dinámica. 
-      
+El Club organiza eventos periódicos que combinan aprendizaje e interacción, permitiendo a los participantes practicar inglés de forma dinámica y efectiva.
 
-Desde charlas informales hasta juegos, el objetivo es que cada evento sea una oportunidad para mejorar tus habilidades lingüísticas y, al mismo tiempo, hacer nuevas amistades y disfrutar de una comunidad que comparte tus mismos intereses. 
-      
-Si estás buscando un lugar para perfeccionar tu inglés de manera práctica y divertida, este es el sitio ideal para ti. Mantente atento a las actualizaciones para conocer más sobre los próximos eventos y cómo puedes unirte a nosotros.
-  
+Desde conversaciones informales hasta actividades grupales, cada evento está pensado para ofrecer una oportunidad única de perfeccionar las habilidades lingüísticas, al tiempo que se fomenta la creación de nuevas conexiones en una comunidad que comparte intereses comunes.
 
-¡Te esperamos con entusiasmo en 2025!`
+Si buscas un entorno práctico y ameno para avanzar en el aprendizaje del inglés, el Club de Inglés es la opción ideal. Permanece atento a nuestras actualizaciones para obtener más información sobre los próximos eventos y cómo formar parte de esta iniciativa.
+
+Esperamos contar con tu participación en 2025.`
       
       
 
@@ -62,12 +62,12 @@ Si estás buscando un lugar para perfeccionar tu inglés de manera práctica y d
 `El nuevo panel de control para estudiantes está diseñado para mejorar la experiencia educativa de todos vosotros, ofreciendo una plataforma donde podréis recibir archivos personalizados, retroalimentación y calificaciones de forma directa y eficiente.
     
 
-Una de las principales características de nuestro nuevo panel es la capacidad de recibir archivos personalizados y feedback específica para cada uno de vosotros. Esto significa que cada estudiante tendrá acceso a material adaptado a sus necesidades y progresos, lo cual es crucial para un aprendizaje efectivo. Además, podréis ver vuestras calificaciones al instante, lo que os permitirá seguir vuestro avance y mejorar continuamente.
+Una de las principales características del nuevo panel es la capacidad de recibir archivos personalizados y feedback específica para cada uno de vosotros. Esto significa que cada estudiante tendrá acceso a material adaptado a sus necesidades y progresos, lo cual es crucial para un aprendizaje efectivo. Además, podréis ver vuestras calificaciones al instante, lo que os permitirá seguir vuestro avance y mejorar continuamente.
  
 
-El panel también cuenta con un área compartida para estudiantes, donde puedo compartir trabajos colaborativos, avisaros de actualizaciones/noticias interesantes y compartir recursos de utilidad entre todos.
+El panel también cuenta con un área compartida para estudiantes, en la que se compartirán trabajos colaborativos, avisos de actualizaciones/noticias interesantes y, asimismo, podré subir recursos de utilidad para todos.
 
-Este panel de control es solo el comienzo. Con vuestras aportaciones y mi dedicación, estoy seguro de que podremos crear una herramienta educativa de gran valor que no solo mejore vuestras habilidades académicas, sino que también haga del proceso de aprendizaje algo más divertido y motivador.
+Con vuestras aportaciones y ideas, estoy seguro de que podremos crear una herramienta educativa de gran valor que no solo mejore vuestras habilidades académicas, sino que también haga del proceso de aprendizaje algo más divertido y motivador.
 
 ¡Os invito a explorar todas las funcionalidades y a compartir vuestras experiencias y sugerencias para seguir mejorando juntos!`
     },
@@ -76,16 +76,13 @@ Este panel de control es solo el comienzo. Con vuestras aportaciones y mi dedica
       title: 'El rincón del profe 🎙️',
       content:
 
-`El rincón del profe es un espacio especialmente para vosotros, mis estudiantes y seguidores, donde podréis estar al día con todas las novedades de la web, explorar mis nuevos proyectos y practicar vuestro inglés de una forma divertida (I hope!!). 
+`El Rincón del Profe es un espacio diseñado especialmente para estudiantes y seguidores, donde podrás mantenerte al día con las novedades de la web, explorar nuevos proyectos y practicar inglés de una manera amena y dinámica.
 
-   
-y la mejor parte: ¡todo estará en inglés! Así, mientras leéis o escucháis, estaréis mejorando vuestra comprensión del idioma sin daros cuenta.
+Una de las mejores características de este espacio es que todo el contenido estará íntegramente en inglés. De este modo, mientras lees o escuchas, mejorarás tu comprensión del idioma de forma natural y sin esfuerzo.
 
+Además, estamos preparando un proyecto especialmente emocionante: un podcast propio. En cada episodio abordaremos temas interesantes relacionados con el aprendizaje de idiomas, proyectos creativos, curiosidades culturales y mucho más. También contaremos con la participación de invitados especiales que compartirán sus experiencias y consejos. Será como asistir a una clase en formato audio, pero con un enfoque relajado y entretenido.
 
-Además, estoy preparando algo que me tiene especialmente entusiasmado: mi propio podcast. En cada episodio, hablaremos de temas interesantes relacionados con el aprendizaje de idiomas, proyectos creativos, curiosidades culturales y mucho más. También mi intención es invitar a personas interesantes, para que compartan sus experiencias y consejos. ¡Será como tener una clase en formato audio, pero con un toque mucho más relajado y entretenido!
-
-
-La intención es que sea una manera suplementaria y divertida de practicar el idioma mientras descubres nuevos conocimientos y te inspiras para tus propios proyectos.`
+El objetivo es ofrecer una herramienta adicional y enriquecedora para practicar el idioma, al mismo tiempo que descubres nuevos conocimientos e ideas que te inspiren en tus propios proyectos.`
 
 
 
