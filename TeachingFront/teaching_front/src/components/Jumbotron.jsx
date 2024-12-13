@@ -15,7 +15,7 @@ const Jumbotron = () => {
           alt="Mascot"
           className="absolute block top-9 sm:hidden lg:block lg:top-16 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-[8%] md:left-[15%] lg:left-[21%] h-[80px] sm:h-[90px] md:h-[100px] lg:h-[122px] w-auto rounded-full border-2 border-emerald-600 shadow-lg mb-24 sm:mb-0"
           style={{
-            animation: 'float 3s ease-in-out infinite',
+            /*animation: 'float 0.8s ease-in-out infinite',*/
           }}
         />
       </div>
@@ -34,7 +34,7 @@ const Jumbotron = () => {
         <div className="flex flex-col sm:flex-row sm:justify-center gap-4 sm:gap-6 px-4 sm:px-0">
           <a
             href="blog/5"
-            className="inline-flex justify-center items-center py-2.5 sm:py-3 px-6 sm:px-8 text-base sm:text-lg font-medium text-white bg-emerald-600 rounded-full shadow-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-400 transition-transform transform hover:scale-105"
+            className="inline-flex justify-center items-center  py-2.5 sm:py-3 px-6 sm:px-8 text-base sm:text-lg font-medium text-white bg-emerald-600 rounded-full shadow-lg hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-400 transition-transform transform hover:scale-105"
           >
             ¡Infórmate ya!
             <svg

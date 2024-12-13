@@ -31,7 +31,7 @@ const ContactBody = () => {
     {/* Flex container for email and icon */}
     <div className="flex items-center justify-center text-lg font-bold text-green-950 mx-auto max-w-screen-xl pb-8">
       <MdOutlineMail className="mr-2" />
-      <span>Email: info@linguashine.es</span>
+      <span>Email: linguashine1@gmail.com</span>
     </div>
   </div>
   

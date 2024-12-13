@@ -18,8 +18,8 @@ const Base = () => {
             '17 años de experiencia',
             'Máster en formación de profesorado',
             'Forma de enseñanza altamente dinámica y variada',
-            'Herramientas diversas (micrófonos, pizarra y cámaras HD profesionales)',
-            'Programas de estudio individualizados',
+            'Herramientas diversas (micrófonos profesionales, cámaras HD, pizarras y libros digitales)',
+            'Programas de estudio individualizados y recursos propios',
           ].map((text, index) => (
             <p key={index} className="text-base sm:text-lg md:text-xl text-black mb-2 sm:mb-3">
               - {text}

@@ -1,0 +1,26 @@
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.floatingIcon {
+  position: absolute;
+  animation: float 6s ease-in-out infinite;
+}
+
+.spinningIcon {
+  animation: spinSlow 20s linear infinite;
+}
