@@ -152,12 +152,14 @@ USE_I18N = True
 USE_TZ = True
 
 # Security Settings
-CSRF_COOKIE_SECURE = True ###***
-SESSION_COOKIE_SECURE = True ###****
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_DOMAIN = '.linguashine.es'
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -203,7 +205,12 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'cookie',
+    'access-control-allow-origin',
+    'access-control-allow-credentials',
+]
+CORS_EXPOSE_HEADERS = [
+    'access-control-allow-origin',
+    'access-control-allow-credentials',
 ]
 
 # Email Settings
