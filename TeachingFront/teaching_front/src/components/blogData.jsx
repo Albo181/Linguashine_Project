@@ -99,7 +99,7 @@ El objetivo es ofrecer una herramienta adicional y enriquecedora para practicar 
 
 
 
-      Soy filólogo nativo con un máster en Formación de Profesorado y especialista en la educación a través de medios digitales, con títulos en E-learning, Inteligencia Emocional y la Neuroeducación otorgados por la Universidad de Francisco de Vitoria en Madrid. He suplementado mis estudios con la adquisición de dos títulos de informática, centrados en el uso de las tecnologías nuevas, particularmente la Inteligencia Artificial, el uso de la Realidad Virtual y la programación de software educativo. 
+      Soy filólogo nativo con un máster en Formación de Profesorado y especialista en la educación a través de medios digitales, con títulos en E-learning, Inteligencia Emocional y la Neuroeducación otorgados por la Universidad de Francisco de Vitoria en Madrid. He complementado mis estudios con la adquisición de dos títulaciones de informática, centradas en el uso de las nuevas tecnologías, especialmentela Inteligencia Artificial, el uso de la Realidad Virtual y la programación de software educativo. 
 
 
       A lo largo de mi trayectoria, he tenido el privilegio de trabajar con múltiples organizaciones públicas y privadas, de las cuales se incluyen varios ministerios gubernamentales, la Agencia Espacial Española (EADS CASA Espacio), el Colegio de Ingenieros de Madrid y la Universidad de Alcalá de Henares. Asimismo, he trabajado como profesor de instituto durante tres años y, actualmente, lidero un proyecto enfocado en la mejoría de la enseñanza online con el desarrollo de herramientas digitales estimulantes e interactivos.
@@ -107,7 +107,7 @@ El objetivo es ofrecer una herramienta adicional y enriquecedora para practicar 
       
       
 
-      Ya sea que quieras pulir tu gramática, ampliar tu vocabulario o ganar confianza en la conversación, diseñaré clases personalizadas para ayudarte a alcanzar tus objetivos.
+      Tanto si quieres pulir tu gramática, ampliar tu vocabulario o ganar confianza en la conversación, diseñaré clases personalizadas para ayudarte a conseguir tus objetivos.
       
       
       
