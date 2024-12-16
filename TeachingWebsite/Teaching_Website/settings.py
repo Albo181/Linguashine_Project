@@ -156,8 +156,8 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
+SESSION_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_DOMAIN = '.linguashine.es'
 
@@ -205,13 +205,8 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'access-control-allow-origin',
-    'access-control-allow-credentials',
 ]
-CORS_EXPOSE_HEADERS = [
-    'access-control-allow-origin',
-    'access-control-allow-credentials',
-]
+CORS_EXPOSE_HEADERS = ['x-csrftoken']
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
