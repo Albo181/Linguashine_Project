@@ -63,7 +63,7 @@ const Jumbotron = () => {
 
         {/* Decorative Text Section */}
         <div className="mt-8 sm:mt-9 md:mt-10 text-sm sm:text-base md:text-md font-semibold text-emerald-800 border-t border-gray-300 pt-3 sm:pt-4">
-          <p>--- Educación de Adultos Online ---</p>
+          <p>--- Escuela para Adultos Online ---</p>
         </div>
       </div>
     </section>

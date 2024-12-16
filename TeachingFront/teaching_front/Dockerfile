@@ -4,13 +4,14 @@ FROM node:18-alpine as builder
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files first (for better caching)
 COPY package*.json ./
 
-# Install ALL dependencies (including dev dependencies)
-RUN npm install
+# Install dependencies with cache mount
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
-# Copy project files
+# Copy only necessary files
 COPY . .
 
 # Build the app
@@ -21,18 +22,17 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy only necessary files from builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/server.js ./
 
 # Install only production dependencies
-RUN npm install --omit=dev
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --only=production
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
-COPY server.js .
-
-# Expose the port
+# Expose port
 EXPOSE 8080
 
 # Start the server
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
