@@ -179,8 +179,6 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CORS settings
-CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for testing
-CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://attractive-upliftment-production.up.railway.app',
     'https://www.linguashine.es',
@@ -188,6 +186,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:5174'
 ]
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
