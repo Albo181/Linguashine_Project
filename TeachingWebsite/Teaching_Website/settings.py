@@ -52,9 +52,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -159,7 +159,8 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
 SESSION_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_DOMAIN = '.linguashine.es', 'www.linguashine.es'
+CSRF_COOKIE_DOMAIN = '.linguashine.es'
+SESSION_COOKIE_DOMAIN = '.linguashine.es'
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -182,12 +183,12 @@ CSRF_TRUSTED_ORIGINS = [
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
     'https://attractive-upliftment-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
     'http://localhost:5173',
-    'http://localhost:5174',
-    'https://linguashineproject-production.up.railway.app'
+    'http://localhost:5174'
 ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -198,6 +199,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -218,6 +220,8 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+CORS_EXPOSE_HEADERS = ['x-csrftoken']
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
