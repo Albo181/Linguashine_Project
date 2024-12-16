@@ -26,16 +26,16 @@ const SobreMi = () => {
         <div className="absolute -inset-1 bg-gradient-to-r from-blue-200 to-purple-200 rounded-lg blur opacity-25"></div>
         <div className="relative">
           <p className="text-lg text-gray-800 leading-8 mb-6">
-          Soy profesor nativo de Inglaterra, titulado en Filología Inglesa y con 17 años de experiencia en la enseñanza de idiomas en España. A lo largo de mi trayectoria, he trabajado en colegios, universidades, centros de formación, empresas y academias de idiomas en la Comunidad de Madrid. Además, cuento con una sólida especialización en la preparación de exámenes oficiales como los de Cambridge y del British Council, entre otros.
+          Soy profesor nativo de Inglés, titulado en Filología Inglesa y con 17 años de experiencia en la enseñanza de idiomas en España. A lo largo de mi trayectoria, he trabajado en colegios, universidades, centros de formación, empresas y academias de idiomas en la Comunidad de Madrid. Además, cuento con una sólida formación en la preparación de exámenes oficiales como los de Cambridge y del British Council, entre otros.
           </p>
           <p className="text-lg text-gray-800 leading-8 mb-6">
           En junio de 2017, obtuve el Máster en Formación de Profesorado con especialidad en inglés, otorgado por la Universidad de Alcalá de Henares en Madrid. Mi interés por los idiomas va más allá de la enseñanza: en 2019, obtuve el DELE C1 del Instituto Cervantes, y en mi tiempo libre disfruto aprendiendo idiomas como francés, italiano y japonés.
           </p>
           <p className="text-lg text-gray-800 leading-8 mb-6">
-          Entre 2020 y 2021, me formé en Neurolingüística, E-learning y el uso de tecnologías aplicadas a la educación digital. Más recientemente, completé dos titulaciones relacionadas con la programación de aplicaciones educativas y el empleo de herramientas tecnológicas como recursos esenciales en el aula. Estas formaciones han enriquecido mi metodología, permitiéndome incorporar enfoques innovadores adaptados a las demandas del aprendizaje actual.
+          Entre 2020 y 2021, me formé en Neurolingüística, E-learning y el uso de tecnologías aplicadas a la educación digital. Recientemente, completé dos titulaciones relacionadas con la programación de aplicaciones educativas y el empleo de herramientas tecnológicas como recursos esenciales en el aula. Estas formaciones han enriquecido mi metodología, permitiéndome incorporar enfoques innovadores adaptados a las demandas del aprendizaje actual.
           </p>
           <p className="text-lg text-gray-800 leading-8 mb-6">
-          La enseñanza de idiomas es mi pasión. Disfruto transmitiendo conocimientos de manera clara, estructurada y, a la vez, amena. Mi enfoque de enseñanza inmersiva tiene como objetivo principal dotar a los estudiantes de la confianza y fluidez necesarias para comunicarse eficazmente en cualquier situación.
+          La enseñanza de idiomas es mi pasión. Disfruto transmitiendo conocimientos de forma clara, estructurada y amena. Mi enfoque didáctico inmersivo tiene como objetivo dar a los estudiantes de la confianza y fluidez necesarias para comunicarse eficazmente en cualquier situación.
           </p>
           <p className="text-lg text-gray-800 leading-8 mb-6">
           Mi compromiso es seguir compartiendo mi pasión por los idiomas y el aprendizaje con todos mis alumnos. Espero continuar ayudando a muchos más en su camino hacia el dominio de una nueva lengua.
