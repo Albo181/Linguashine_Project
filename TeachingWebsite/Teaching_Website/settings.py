@@ -159,13 +159,13 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
 SESSION_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_DOMAIN = '.linguashine.es'
+CSRF_COOKIE_DOMAIN = '.linguashine.es', 'www.linguashine.es'
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 # Don't force SSL redirect as Railway handles HTTPS
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = True  # Enable HTTPS redirect unless Railway already enforces it
 # Trust Railway's HTTPS header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -175,7 +175,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.linguashine.es',
     'https://linguashine.es',
     'http://localhost:5173',
-    'http://localhost:5174'
+    'http://localhost:5174',
+    "https://*.linguashine.es",        # Wildcard for any subdomain
+    "https://*.railway.app"            # Wildcard for any Railway app
 ]
 
 # CORS settings
@@ -186,6 +188,14 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:5174'
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",  # Matches any subdomain
+    r"^https://linguashine\.es$",      # Matches main domain
+    r"^https://.*\.railway\.app$",     # Matches any Railway app domain
+    r"^http://localhost:\d+$",         # Matches localhost with any port
+]
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
