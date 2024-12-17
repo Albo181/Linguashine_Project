@@ -16,23 +16,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-#os.getenv('RAILWAY_ENVIRONMENT') != 'production'
+DEBUG = False
 
 # If we're in production (DEBUG is False), add railway domain to allowed hosts
-if not DEBUG:
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        'linguashineproject-production.up.railway.app',
-        '.railway.app',
-        '.up.railway.app',
-    ]
-else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-    ]
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'linguashineproject-production.up.railway.app',
+    '.railway.app',
+    '.up.railway.app',
+    'www.linguashine.es',
+    'linguashine.es',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -53,10 +48,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -171,35 +166,20 @@ SECURE_SSL_REDIRECT = True  # Enable HTTPS redirect unless Railway already enfor
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://attractive-upliftment-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    "https://*.linguashine.es",        # Wildcard for any subdomain
-    "https://*.railway.app"            # Wildcard for any Railway app
 ]
 
-# CORS settings
+# CORS settings - updated for stricter configuration
+CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOWED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://attractive-upliftment-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
     'http://localhost:5173',
     'http://localhost:5174'
 ]
 
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.linguashine\.es$",  # Matches any subdomain
-    r"^https://linguashine\.es$",      # Matches main domain
-    r"^https://.*\.railway\.app$",     # Matches any Railway app domain
-    r"^http://localhost:\d+$",         # Matches localhost with any port
-]
-
 CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -220,8 +200,6 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
-
-CORS_EXPOSE_HEADERS = ['x-csrftoken']
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

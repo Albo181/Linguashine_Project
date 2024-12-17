@@ -1,61 +1,55 @@
 import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_URL || 'https://linguashineproject-production.up.railway.app';
-console.log('Using API URL:', baseURL); // Debug log
+console.log('Using API URL:', baseURL);
 
 const apiClient = axios.create({
   baseURL: baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
-let csrfToken = null;
-
-// Add a request interceptor to include CSRF token
-apiClient.interceptors.request.use(async (config) => {
-  if (!csrfToken) {
-    try {
-      // Get CSRF token from cookie endpoint
-      const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
-        withCredentials: true
-      });
-      csrfToken = response.data.csrfToken;
-      console.log('Got CSRF token:', csrfToken); // Debug log
-    } catch (error) {
-      console.error('Error getting CSRF token:', error); // Debug log
+// Add a request interceptor
+apiClient.interceptors.request.use(
+  async (config) => {
+    // For GET requests, we don't need to do anything special
+    if (config.method === 'get') {
+      return config;
     }
-  }
-  
-  if (csrfToken) {
-    config.headers['X-CSRFToken'] = csrfToken;
-  }
-  
-  return config;
-});
 
-// Add a response interceptor to handle 403/401 errors
+    try {
+      // For non-GET requests, ensure we have a CSRF token
+      const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
+        withCredentials: true,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (response.data.csrfToken) {
+        config.headers['X-CSRFToken'] = response.data.csrfToken;
+      }
+    } catch (error) {
+      console.error('Error fetching CSRF token:', error);
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    console.error('API Error:', error.response?.status, error.response?.data); // Debug log
+  (error) => {
     if (error.response?.status === 403 || error.response?.status === 401) {
-      // Clear token and try to get a new one
-      csrfToken = null;
-      try {
-        const response = await axios.get(`${baseURL}/users/api/get-csrf-token/`, {
-          withCredentials: true
-        });
-        csrfToken = response.data.csrfToken;
-        // Retry the original request
-        const config = error.config;
-        config.headers['X-CSRFToken'] = csrfToken;
-        return axios(config);
-      } catch (retryError) {
-        console.error('Error refreshing CSRF token:', retryError); // Debug log
-        return Promise.reject(error);
-      }
+      console.error('Authentication error:', error.response?.status);
     }
     return Promise.reject(error);
   }
