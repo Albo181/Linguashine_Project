@@ -166,18 +166,26 @@ SECURE_SSL_REDIRECT = True  # Enable HTTPS redirect unless Railway already enfor
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
 ]
 
-# CORS settings - updated for stricter configuration
-CORS_ORIGIN_ALLOW_ALL = False
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
     'http://localhost:5173',
     'http://localhost:5174'
 ]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",
+    r"^https://.*\.railway\.app$"
+]
+
+CORS_URLS_REGEX = r"^/api/.*$|^/users/.*$"
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
