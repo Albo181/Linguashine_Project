@@ -177,19 +177,11 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://www.linguashine.es',
-    'https://linguashine.es',
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.linguashine\.es$",
-    r"^https://.*\.railway\.app$"
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
+CORS_ALLOWED_ORIGINS = []
+CORS_ALLOWED_ORIGIN_REGEXES = []
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = False  # Set to False since we're using Allow-Origin: *
+CORS_ALLOW_HEADERS = ['*']  # Match our middleware
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -199,27 +191,8 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-
-# Additional CORS settings
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
-
-# Debug settings - temporarily enable these
-CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
-CORS_ALLOW_PRIVATE_NETWORK = True
 
 # URL settings
 APPEND_SLASH = True  # Add trailing slashes to URLs
