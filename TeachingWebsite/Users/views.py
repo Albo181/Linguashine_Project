@@ -37,6 +37,8 @@ def get_csrf_token(request):
     csrf_token = get_token(request)  # Always generate a new token
     response = JsonResponse({"csrfToken": csrf_token})
     response["X-CSRFToken"] = csrf_token
+    response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+    response["Access-Control-Allow-Credentials"] = "true"
     return response
 
 
@@ -118,6 +120,14 @@ class LoginRateThrottle(AnonRateThrottle):
 class CustomLoginView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
+
+    def options(self, request, *args, **kwargs):
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
 
     def post(self, request):
         username = request.data.get('username')

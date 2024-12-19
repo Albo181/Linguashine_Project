@@ -151,41 +151,23 @@ CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
-SESSION_COOKIE_SAMESITE = 'None'  # Changed from Lax to allow cross-site requests
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 CSRF_USE_SESSIONS = False
-CSRF_COOKIE_DOMAIN = '.linguashine.es'
-SESSION_COOKIE_DOMAIN = '.linguashine.es'
+CSRF_COOKIE_NAME = 'csrftoken'
 
-# Security Headers
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-# Don't force SSL redirect as Railway handles HTTPS
-SECURE_SSL_REDIRECT = True  # Enable HTTPS redirect unless Railway already enforces it
-# Trust Railway's HTTPS header
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Remove domain restrictions for testing
+CSRF_COOKIE_DOMAIN = None
+SESSION_COOKIE_DOMAIN = None
 
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
-    'https://*.linguashine.es',  # Allow all subdomains
 ]
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://www.linguashine.es',
-    'https://linguashine.es',
-    'http://localhost:5173',
-    'http://localhost:5174'
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.linguashine\.es$",
-    r"^https://.*\.railway\.app$"
-]
-
+CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for debugging
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
@@ -208,6 +190,9 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# Add CORS expose headers
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
