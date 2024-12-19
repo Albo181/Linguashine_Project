@@ -17,7 +17,7 @@ const SobreMi = () => {
           </h1>
           <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto mb-6"></div>
           <p className="text-lg text-gray-600 italic font-light tracking-wide">
-            Conoce más sobre mi trayectoria profesional,<br/> mi experiencia y mis pasiones.
+            Conoce más sobre mi trayectoria profesional<br/> 
           </p>
         </div>
       </div>
