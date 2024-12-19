@@ -17,6 +17,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from rest_framework.throttling import AnonRateThrottle
 from django.db import connection
+import logging
+logger = logging.getLogger(__name__)
 
 def session_id_check(request):
     session = request.session
@@ -49,19 +51,33 @@ class CheckAuthView(APIView):
     authentication_classes = []  # No authentication required
     
     def get(self, request):
+        logger.info(f"GET request received from origin: {request.headers.get('Origin')}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
         response = JsonResponse({
-            'logged_in': request.user.is_authenticated
+            'logged_in': request.user.is_authenticated,
+            'debug': {
+                'headers': dict(request.headers),
+                'method': request.method,
+            }
         })
         response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
         response["Access-Control-Allow-Credentials"] = "true"
+        
+        logger.info(f"Response headers: {dict(response.headers)}")
         return response
 
     def options(self, request, *args, **kwargs):
+        logger.info(f"OPTIONS request received from origin: {request.headers.get('Origin')}")
+        logger.info(f"Request headers: {dict(request.headers)}")
+        
         response = HttpResponse()
         response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
         response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
         response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
         response["Access-Control-Allow-Credentials"] = "true"
+        
+        logger.info(f"Response headers: {dict(response.headers)}")
         return response
 
 

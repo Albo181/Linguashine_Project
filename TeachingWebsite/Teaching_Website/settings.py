@@ -47,8 +47,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'Users.middleware.CustomCorsMiddleware',  # Our custom middleware first
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be first
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -174,8 +173,46 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.linguashine.es',
 ]
 
-# CORS settings - simplified since we're using custom middleware
+# CORS settings
+CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",
+    r"^https://.*\.railway\.app$"
+]
+
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Add CORS expose headers
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# Additional CORS settings
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
 
 # Email Settings
@@ -193,51 +230,29 @@ EMAIL_DEBUG = True
 DEBUG_SMTP = True  # This will show SMTP conversation
 EMAIL_TIMEOUT = 30
 
-# Add email to logging configuration
+# Logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': 'debug.log',
-            'formatter': 'verbose',
         },
     },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
     'loggers': {
-        'django.request': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.security': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.mail': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.db.backends': {
+        'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
+            'level': 'INFO',
+            'propagate': False,
         },
-        'corsheaders': {
+        'Users': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }
@@ -289,7 +304,7 @@ if AWS_STORAGE_BUCKET_NAME:
         'CORSRules': [{
             'AllowedHeaders': ['*'],
             'AllowedMethods': ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'],
-            'AllowedOrigins': ['*'],
+            'AllowedOrigins': CORS_ALLOWED_ORIGINS,
             'ExposeHeaders': ['ETag'],
             'MaxAgeSeconds': 3000
         }]
