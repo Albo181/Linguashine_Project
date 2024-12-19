@@ -49,14 +49,20 @@ class CheckAuthView(APIView):
     authentication_classes = []  # No authentication required
     
     def get(self, request):
-        return JsonResponse({
-            'logged_in': request.user.is_authenticated,
-            'debug_info': {
-                'is_secure': request.is_secure(),
-                'headers': dict(request.headers),
-                'cookies': dict(request.COOKIES)
-            }
-        }, status=200)
+        response = JsonResponse({
+            'logged_in': request.user.is_authenticated
+        })
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+    def options(self, request, *args, **kwargs):
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
 
 
 #Gets all users from backend
