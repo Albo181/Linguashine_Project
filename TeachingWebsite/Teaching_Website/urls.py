@@ -20,9 +20,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 def health_check(request):
     response = JsonResponse({"status": "ok", "message": "API is running"})
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
+
+@api_view(['GET', 'OPTIONS'])
+@permission_classes([AllowAny])
+def check_auth(request):
+    """Simple auth check endpoint"""
+    response = JsonResponse({
+        'status': 'ok',
+        'message': 'Auth check endpoint',
+        'is_authenticated': request.user.is_authenticated
+    })
     response["Access-Control-Allow-Origin"] = "*"
     response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
     response["Access-Control-Allow-Headers"] = "*"
@@ -34,6 +50,7 @@ router = DefaultRouter()
 
 urlpatterns = [
     path('', health_check, name='health_check'),  # Add root URL handler
+    path('users/check-auth/', check_auth, name='check_auth'),  # New direct auth check
     path('admin/', admin.site.urls),
     path('api/', include("Feedback_app.urls")),  # Include API routes under the `/api` prefix
     path('send_query/', include("TeachingAPP.urls")),
