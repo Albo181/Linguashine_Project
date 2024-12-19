@@ -47,11 +47,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -156,9 +156,15 @@ SESSION_COOKIE_SAMESITE = 'None'
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
 
-# Remove domain restrictions for testing
-CSRF_COOKIE_DOMAIN = None
+# Domain settings for cookies
+CSRF_COOKIE_DOMAIN = None  # Allow the browser to handle cookie domains
 SESSION_COOKIE_DOMAIN = None
+
+# Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_SSL_REDIRECT = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
@@ -167,7 +173,17 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CORS settings
-CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for debugging
+CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",
+    r"^https://.*\.railway\.app$"
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
@@ -193,6 +209,10 @@ CORS_ALLOW_HEADERS = [
 
 # Add CORS expose headers
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# Additional CORS settings
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+CORS_REPLACE_HTTPS_REFERER = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

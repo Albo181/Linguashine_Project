@@ -47,22 +47,10 @@ def get_csrf_token(request):
 class CheckAuthView(APIView):   
     permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
     
-    def options(self, request, *args, **kwargs):
-        response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "*"
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Max-Age"] = "86400"  # Cache preflight for 24 hours
-        return response
-    
     def get(self, request):
-        response = JsonResponse({
+        return JsonResponse({
             'logged_in': request.user.is_authenticated
         }, status=200)
-        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-        response["Access-Control-Allow-Credentials"] = "true"
-        return response
 
 
 #Gets all users from backend
