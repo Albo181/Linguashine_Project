@@ -59,26 +59,16 @@ class CheckAuthView(APIView):
             'debug': {
                 'headers': dict(request.headers),
                 'method': request.method,
+                'path': request.path,
+                'user': str(request.user),
             }
         })
-        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        logger.info(f"Response headers: {dict(response.headers)}")
         return response
 
     def options(self, request, *args, **kwargs):
         logger.info(f"OPTIONS request received from origin: {request.headers.get('Origin')}")
         logger.info(f"Request headers: {dict(request.headers)}")
-        
-        response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        response["Access-Control-Allow-Credentials"] = "true"
-        
-        logger.info(f"Response headers: {dict(response.headers)}")
-        return response
+        return HttpResponse(status=200)
 
 
 #Gets all users from backend
