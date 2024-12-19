@@ -61,14 +61,33 @@ class CheckAuthView(APIView):
                 'method': request.method,
                 'path': request.path,
                 'user': str(request.user),
+                'cookies': dict(request.COOKIES),
+                'meta': {k: str(v) for k, v in request.META.items()},
             }
         })
+        
+        # Force CORS headers
+        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
+        response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "*"
+        
+        logger.info(f"Response headers: {dict(response.headers)}")
         return response
 
     def options(self, request, *args, **kwargs):
         logger.info(f"OPTIONS request received from origin: {request.headers.get('Origin')}")
         logger.info(f"Request headers: {dict(request.headers)}")
-        return HttpResponse(status=200)
+        
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "3600"
+        
+        logger.info(f"Response headers: {dict(response.headers)}")
+        return response
 
 
 #Gets all users from backend

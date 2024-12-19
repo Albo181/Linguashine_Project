@@ -157,7 +157,7 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
 
 # Domain settings for cookies
-CSRF_COOKIE_DOMAIN = None  # Allow the browser to handle cookie domains
+CSRF_COOKIE_DOMAIN = None
 SESSION_COOKIE_DOMAIN = None
 
 # Security Headers
@@ -165,6 +165,7 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = None  # Disable referrer policy for debugging
 
 CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
@@ -214,13 +215,9 @@ CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
 
-# Allow CORS for all /users/ endpoints
-CORS_URLS_REGEX = r'^/users/.*$'
-
 # Debug settings - temporarily enable these
 CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
-CORS_REPLACE_HTTPS_REFERER = True
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_PRIVATE_NETWORK = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -333,7 +330,7 @@ if AWS_STORAGE_BUCKET_NAME:
         'CORSRules': [{
             'AllowedHeaders': ['*'],
             'AllowedMethods': ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'],
-            'AllowedOrigins': CORS_ALLOWED_ORIGINS,
+            'AllowedOrigins': ['*'],
             'ExposeHeaders': ['ETag'],
             'MaxAgeSeconds': 3000
         }]
