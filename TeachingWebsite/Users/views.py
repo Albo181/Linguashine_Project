@@ -47,30 +47,46 @@ def get_csrf_token(request):
 #Checks log-in status   
 @method_decorator(csrf_exempt, name='dispatch')  # Temporarily exempt this view from CSRF
 class CheckAuthView(APIView):   
-    permission_classes = [AllowAny]
     authentication_classes = []  # No authentication required
+    permission_classes = [AllowAny]
     
     def get(self, request):
         logger.info(f"GET request received from origin: {request.headers.get('Origin')}")
         logger.info(f"Request headers: {dict(request.headers)}")
         
+        # Get the session ID from the request
+        session_id = request.COOKIES.get('sessionid')
+        logger.info(f"Session ID: {session_id}")
+        
+        # Get the CSRF token from the request
+        csrf_token = request.COOKIES.get('csrftoken')
+        logger.info(f"CSRF Token: {csrf_token}")
+        
+        # Check if user is authenticated via session
+        is_authenticated = request.user.is_authenticated
+        logger.info(f"Is authenticated: {is_authenticated}")
+        
         response = JsonResponse({
-            'logged_in': request.user.is_authenticated,
+            'logged_in': is_authenticated,
             'debug': {
+                'session_id': session_id,
+                'csrf_token': csrf_token,
                 'headers': dict(request.headers),
-                'method': request.method,
-                'path': request.path,
-                'user': str(request.user),
                 'cookies': dict(request.COOKIES),
-                'meta': {k: str(v) for k, v in request.META.items()},
             }
         })
         
-        # Force CORS headers
-        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "*"
+        # Set CORS headers
+        origin = request.headers.get('Origin')
+        if origin:
+            response["Access-Control-Allow-Origin"] = origin
+            response["Access-Control-Allow-Credentials"] = "true"
+            response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+            
+        # Set cookie headers
+        response["SameSite"] = "None"
+        response["Secure"] = "true"
         
         logger.info(f"Response headers: {dict(response.headers)}")
         return response
@@ -80,11 +96,19 @@ class CheckAuthView(APIView):
         logger.info(f"Request headers: {dict(request.headers)}")
         
         response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "*"
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Max-Age"] = "3600"
+        
+        # Set CORS headers
+        origin = request.headers.get('Origin')
+        if origin:
+            response["Access-Control-Allow-Origin"] = origin
+            response["Access-Control-Allow-Credentials"] = "true"
+            response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
+            response["Access-Control-Max-Age"] = "3600"
+            
+        # Set cookie headers
+        response["SameSite"] = "None"
+        response["Secure"] = "true"
         
         logger.info(f"Response headers: {dict(response.headers)}")
         return response
