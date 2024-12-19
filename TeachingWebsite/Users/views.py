@@ -11,7 +11,7 @@ from .serializers import StudentAccessSerializer, UserProfileSerializer
 from .permissions import IsStudentAndLoggedIn
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
@@ -43,16 +43,28 @@ def get_csrf_token(request):
 
 
 #Checks log-in status   
+@method_decorator(csrf_exempt, name='dispatch')  # Temporarily exempt this view from CSRF
 class CheckAuthView(APIView):   
     permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
     
+    def options(self, request, *args, **kwargs):
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "86400"  # Cache preflight for 24 hours
+        return response
+    
     def get(self, request):
-        if request.user.is_authenticated:
-            return JsonResponse({'logged_in': True}, status=200)
-        else:
-            return JsonResponse({'logged_in': False}, status=200)
-        
-        
+        response = JsonResponse({
+            'logged_in': request.user.is_authenticated
+        }, status=200)
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Credentials"] = "true"
+        return response
+
+
 #Gets all users from backend
 class AllUsersProfileView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
