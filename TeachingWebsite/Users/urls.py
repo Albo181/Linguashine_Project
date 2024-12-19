@@ -19,6 +19,7 @@ urlpatterns = [
     path('all-users/', AllUsersProfileView.as_view(), name='all-users-profiles'),
     path('user-info/', UserInfoView.as_view(), name='user-info'),
     path('api/test-db/', test_db_connection, name='test_db_connection'),
-    path('test-cors/', test_cors, name='test_cors'),  # New test endpoint
+    path('test-cors/', test_cors, name='test_cors'),  # With trailing slash
+    path('test-cors', test_cors),  # Without trailing slash
     path("", include(router.urls)),  # This will include /users/profile endpoint
 ]

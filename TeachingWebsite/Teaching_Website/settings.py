@@ -221,6 +221,9 @@ CORS_REPLACE_HTTPS_REFERER = True
 CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
 CORS_ALLOW_PRIVATE_NETWORK = True
 
+# URL settings
+APPEND_SLASH = True  # Add trailing slashes to URLs
+
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
