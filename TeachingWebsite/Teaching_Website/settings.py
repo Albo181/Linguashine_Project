@@ -48,10 +48,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -169,6 +169,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
+    'https://*.linguashine.es',  # Allow all subdomains
 ]
 
 # CORS settings
@@ -185,9 +186,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.railway\.app$"
 ]
 
-CORS_URLS_REGEX = r"^/api/.*$|^/users/.*$"
-
 CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -265,6 +265,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'corsheaders': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
     },
 }
