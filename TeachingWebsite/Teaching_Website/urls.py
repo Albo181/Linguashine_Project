@@ -22,6 +22,7 @@ from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from django.views.decorators.csrf import csrf_exempt
 
 def health_check(request):
     response = JsonResponse({"status": "ok", "message": "API is running"})
@@ -44,11 +45,22 @@ def check_auth(request):
     response["Access-Control-Allow-Headers"] = "*"
     return response
 
+@csrf_exempt
+def test_endpoint(request):
+    """Super simple test endpoint"""
+    response = JsonResponse({'status': 'ok'})
+    response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "*"
+    response["Access-Control-Allow-Credentials"] = "true"
+    return response
+
 # Create the router and register your viewsets
 router = DefaultRouter()
 
 
 urlpatterns = [
+    path('test/', test_endpoint),  # New test endpoint
     path('', health_check, name='health_check'),  # Add root URL handler
     path('users/check-auth/', check_auth, name='check_auth'),  # New direct auth check
     path('admin/', admin.site.urls),

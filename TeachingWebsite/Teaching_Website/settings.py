@@ -48,7 +48,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
-    'Users.middleware.CustomCorsMiddleware',  # Our custom middleware second
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -150,17 +149,16 @@ USE_TZ = True
 # Security Settings
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = False  # Must be False for JS to read it
+CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
-SESSION_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SAMESITE = 'None'
 CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
-SESSION_COOKIE_NAME = 'sessionid'
 
 # Domain settings for cookies
-CSRF_COOKIE_DOMAIN = None  # Let the browser handle cookie domains
-SESSION_COOKIE_DOMAIN = None  # Let the browser handle cookie domains
+CSRF_COOKIE_DOMAIN = None
+SESSION_COOKIE_DOMAIN = None
 
 # Security Headers
 SECURE_BROWSER_XSS_FILTER = True
@@ -177,11 +175,19 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = []
-CORS_ALLOWED_ORIGIN_REGEXES = []
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = False  # Set to False since we're using Allow-Origin: *
-CORS_ALLOW_HEADERS = ['*']  # Match our middleware
+CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",
+    r"^https://.*\.railway\.app$"
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -191,11 +197,27 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# Additional CORS settings
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
 
-# URL settings
-APPEND_SLASH = True  # Add trailing slashes to URLs
+# Debug settings - temporarily enable these
+CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
+CORS_ALLOW_PRIVATE_NETWORK = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -253,6 +275,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'corsheaders': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
     },
 }
