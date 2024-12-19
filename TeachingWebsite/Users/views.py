@@ -346,3 +346,26 @@ def test_db_connection(request):
             'status': 'error',
             'message': f'Database connection failed: {str(e)}'
         }, status=500)
+
+
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@api_view(['GET', 'OPTIONS'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def test_cors(request):
+    """A simple test endpoint to debug CORS issues"""
+    if request.method == 'OPTIONS':
+        response = HttpResponse()
+    else:
+        response = HttpResponse('Test endpoint works!')
+        
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "*"
+    
+    return response
