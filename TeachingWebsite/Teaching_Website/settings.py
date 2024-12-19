@@ -48,14 +48,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',  # After CORS and before CSRF
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'Teaching_Website.urls'
@@ -208,15 +208,19 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# Add CORS expose headers
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Additional CORS settings
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
 
-# Very important - whitelist the check-auth endpoint
-CORS_URLS_REGEX = r'^/users/check-auth/.*$'
+# Allow CORS for all /users/ endpoints
+CORS_URLS_REGEX = r'^/users/.*$'
+
+# Debug settings - temporarily enable these
+CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
+CORS_REPLACE_HTTPS_REFERER = True
+CORS_ALLOW_CREDENTIALS = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
