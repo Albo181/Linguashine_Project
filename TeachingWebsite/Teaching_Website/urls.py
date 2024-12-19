@@ -22,7 +22,11 @@ from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
 
 def health_check(request):
-    return JsonResponse({"status": "ok", "message": "API is running"})
+    response = JsonResponse({"status": "ok", "message": "API is running"})
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
 
 # Create the router and register your viewsets
 router = DefaultRouter()
