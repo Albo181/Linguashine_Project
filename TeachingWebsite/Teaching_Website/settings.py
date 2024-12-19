@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'Users.middleware.CustomCorsMiddleware',  # Our custom middleware second
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -157,7 +158,7 @@ CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
 SESSION_COOKIE_NAME = 'sessionid'
 
-# Domain settings for cookies - important for cross-origin
+# Domain settings for cookies
 CSRF_COOKIE_DOMAIN = None  # Let the browser handle cookie domains
 SESSION_COOKIE_DOMAIN = None  # Let the browser handle cookie domains
 
@@ -166,17 +167,28 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_REFERRER_POLICY = 'no-referrer-when-downgrade'  # Less strict referrer policy
+SECURE_REFERRER_POLICY = None  # Disable referrer policy for debugging
 
-# Session settings
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+CSRF_TRUSTED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+    'https://*.linguashine.es',
+]
 
 # CORS settings
-CORS_ORIGIN_ALLOW_ALL = True  # Temporarily allow all origins
-CORS_ALLOW_CREDENTIALS = True  # Required for cookies
+CORS_ALLOWED_ORIGINS = [
+    'https://linguashineproject-production.up.railway.app',
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.linguashine\.es$",
+    r"^https://.*\.railway\.app$"
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -204,6 +216,10 @@ CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 # Additional CORS settings
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
+
+# Debug settings - temporarily enable these
+CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
+CORS_ALLOW_PRIVATE_NETWORK = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -261,10 +277,6 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
-        },
-        'corsheaders': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
         },
     },
 }
