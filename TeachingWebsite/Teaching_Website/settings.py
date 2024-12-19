@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'Users.middleware.CustomCorsMiddleware',  # Our custom middleware first
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -170,48 +171,11 @@ CSRF_TRUSTED_ORIGINS = [
     'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
+    'https://*.linguashine.es',
 ]
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://www.linguashine.es',
-    'https://linguashine.es',
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.linguashine\.es$",
-    r"^https://.*\.railway\.app$"
-]
-
+# CORS settings - simplified since we're using custom middleware
 CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
-]
-
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
-
-# Add CORS expose headers
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-
-# Additional CORS settings
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
 
 # Email Settings
@@ -325,7 +289,7 @@ if AWS_STORAGE_BUCKET_NAME:
         'CORSRules': [{
             'AllowedHeaders': ['*'],
             'AllowedMethods': ['GET', 'POST', 'PUT', 'DELETE', 'HEAD'],
-            'AllowedOrigins': CORS_ALLOWED_ORIGINS,
+            'AllowedOrigins': ['*'],
             'ExposeHeaders': ['ETag'],
             'MaxAgeSeconds': 3000
         }]

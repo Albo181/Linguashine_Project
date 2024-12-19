@@ -45,11 +45,17 @@ def get_csrf_token(request):
 #Checks log-in status   
 @method_decorator(csrf_exempt, name='dispatch')  # Temporarily exempt this view from CSRF
 class CheckAuthView(APIView):   
-    permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required
     
     def get(self, request):
         return JsonResponse({
-            'logged_in': request.user.is_authenticated
+            'logged_in': request.user.is_authenticated,
+            'debug_info': {
+                'is_secure': request.is_secure(),
+                'headers': dict(request.headers),
+                'cookies': dict(request.COOKIES)
+            }
         }, status=200)
 
 
