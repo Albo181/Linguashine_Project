@@ -37,3 +37,31 @@ class EndpointLoggingMiddleware:
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR', '0.0.0.0')
+
+
+class CORSMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        
+        # Add CORS headers
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
+        response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "86400"  # 24 hours
+        
+        return response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if request.method == "OPTIONS":
+            response = self.get_response(request)
+            response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+            response["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+            response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
+            response["Access-Control-Allow-Credentials"] = "true"
+            response["Access-Control-Max-Age"] = "86400"  # 24 hours
+            return response
+        return None

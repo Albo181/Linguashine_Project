@@ -11,14 +11,12 @@ from .serializers import StudentAccessSerializer, UserProfileSerializer
 from .permissions import IsStudentAndLoggedIn
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from rest_framework.throttling import AnonRateThrottle
 from django.db import connection
-import logging
-logger = logging.getLogger(__name__)
 
 def session_id_check(request):
     session = request.session
@@ -39,61 +37,28 @@ def get_csrf_token(request):
     csrf_token = get_token(request)  # Always generate a new token
     response = JsonResponse({"csrfToken": csrf_token})
     response["X-CSRFToken"] = csrf_token
-    response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-    response["Access-Control-Allow-Credentials"] = "true"
     return response
 
 
 #Checks log-in status   
-@method_decorator(csrf_exempt, name='dispatch')  # Temporarily exempt this view from CSRF
 class CheckAuthView(APIView):   
-    authentication_classes = []  # No authentication required
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
     
-    def get(self, request, *args, **kwargs):
-        # Log everything about the request
-        logger.info("=== CheckAuthView GET Request ===")
-        logger.info(f"Request META: {request.META}")
-        logger.info(f"Request Headers: {dict(request.headers)}")
-        logger.info(f"Request Cookies: {request.COOKIES}")
-        
-        # Create a simple response
-        response = JsonResponse({
-            'status': 'ok',
-            'message': 'Auth check endpoint',
-            'debug': {
-                'headers': dict(request.headers),
-                'cookies': dict(request.COOKIES),
-                'meta': {k: str(v) for k, v in request.META.items()},
-            }
-        })
-        
-        # Add CORS headers directly
-        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "*"
-        
-        # Log the response
-        logger.info("=== CheckAuthView Response ===")
-        logger.info(f"Response Headers: {dict(response.headers)}")
-        
-        return response
+    def get(self, request):
+        if request.user.is_authenticated:
+            return JsonResponse({
+                'logged_in': True,
+                'user': {
+                    'username': request.user.username,
+                    'email': request.user.email,
+                    'user_type': request.user.user_type
+                }
+            }, status=200)
+        else:
+            return JsonResponse({'logged_in': False}, status=200)
 
     def options(self, request, *args, **kwargs):
-        logger.info("=== CheckAuthView OPTIONS Request ===")
-        logger.info(f"Request Headers: {dict(request.headers)}")
-        
-        response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = request.headers.get('Origin', 'https://www.linguashine.es')
-        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "*"
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Max-Age"] = "3600"
-        
-        logger.info("=== CheckAuthView OPTIONS Response ===")
-        logger.info(f"Response Headers: {dict(response.headers)}")
-        
+        response = JsonResponse({})
         return response
 
 
@@ -164,14 +129,6 @@ class LoginRateThrottle(AnonRateThrottle):
 class CustomLoginView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
-
-    def options(self, request, *args, **kwargs):
-        response = HttpResponse()
-        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
-        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, X-CSRFToken"
-        response["Access-Control-Allow-Credentials"] = "true"
-        return response
 
     def post(self, request):
         username = request.data.get('username')

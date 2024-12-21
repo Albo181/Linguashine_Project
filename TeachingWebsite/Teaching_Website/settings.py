@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Must be first
+    'Teaching_Website.middleware.CORSMiddleware',  # Our custom CORS middleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'Teaching_Website.middleware.EndpointLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'Teaching_Website.urls'
@@ -153,37 +155,20 @@ CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_SAMESITE = 'None'
-CSRF_USE_SESSIONS = False
 CSRF_COOKIE_NAME = 'csrftoken'
-
-# Domain settings for cookies
 CSRF_COOKIE_DOMAIN = None
 SESSION_COOKIE_DOMAIN = None
 
 # Security Headers
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_SSL_REDIRECT = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_REFERRER_POLICY = None  # Disable referrer policy for debugging
-
-CSRF_TRUSTED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
-    'https://www.linguashine.es',
-    'https://linguashine.es',
-    'https://*.linguashine.es',
-]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
-    'https://linguashineproject-production.up.railway.app',
     'https://www.linguashine.es',
     'https://linguashine.es',
-]
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.linguashine\.es$",
-    r"^https://.*\.railway\.app$"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -207,17 +192,15 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'cache-control',
+    'pragma'
 ]
 
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-
-# Additional CORS settings
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
-CORS_REPLACE_HTTPS_REFERER = True
-
-# Debug settings - temporarily enable these
-CORS_ORIGIN_ALLOW_ALL = True  # Allow all origins temporarily
-CORS_ALLOW_PRIVATE_NETWORK = True
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

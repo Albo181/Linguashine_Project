@@ -2,8 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (StudentProfileView, CustomLoginView, CustomLogoutView, 
                     get_csrf_token, session_id_check, CurrentUserView, 
-                    CheckAuthView, AllUsersProfileView, UserInfoView, test_db_connection,
-                    test_cors)
+                    CheckAuthView, AllUsersProfileView, UserInfoView, test_db_connection)
 
 router = DefaultRouter()
  
@@ -19,7 +18,5 @@ urlpatterns = [
     path('all-users/', AllUsersProfileView.as_view(), name='all-users-profiles'),
     path('user-info/', UserInfoView.as_view(), name='user-info'),
     path('api/test-db/', test_db_connection, name='test_db_connection'),
-    path('test-cors/', test_cors, name='test_cors'),  # With trailing slash
-    path('test-cors', test_cors),  # Without trailing slash
     path("", include(router.urls)),  # This will include /users/profile endpoint
 ]
