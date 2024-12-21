@@ -41,10 +41,15 @@ def get_csrf_token(request):
 
 
 #Checks log-in status   
-class CheckAuthView(APIView):   
-    permission_classes = [AllowAny]  # Explicitly allow unauthenticated access
-    
+class CheckAuthView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for this endpoint
+
     def get(self, request):
+        print("CheckAuthView GET request received")
+        print(f"Is authenticated: {request.user.is_authenticated}")
+        print(f"Headers: {request.headers}")
+        
         if request.user.is_authenticated:
             return JsonResponse({
                 'logged_in': True,
@@ -58,7 +63,12 @@ class CheckAuthView(APIView):
             return JsonResponse({'logged_in': False}, status=200)
 
     def options(self, request, *args, **kwargs):
-        response = JsonResponse({})
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "https://www.linguashine.es"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-CSRFToken"
+        response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "86400"
         return response
 
 

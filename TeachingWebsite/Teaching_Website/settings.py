@@ -148,30 +148,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Security Settings
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_HTTPONLY = False
-SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_SAMESITE = 'None'
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_NAME = 'csrftoken'
-CSRF_COOKIE_DOMAIN = None
-SESSION_COOKIE_DOMAIN = None
-
-# Security Headers
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
 # CORS settings
 CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for testing
-
-CORS_ORIGIN_WHITELIST = [
-    'https://www.linguashine.es',
-    'https://linguashine.es',
-]
 
 CORS_ALLOWED_ORIGINS = [
     'https://www.linguashine.es',
@@ -203,16 +181,37 @@ CORS_ALLOW_HEADERS = [
     'pragma'
 ]
 
+# Cookie settings
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False  # Must be False to allow JavaScript access
+CSRF_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
+SESSION_COOKIE_HTTPONLY = True
+
+# Important: Set these to None to allow cross-domain cookies
+CSRF_COOKIE_DOMAIN = None
+SESSION_COOKIE_DOMAIN = None
+
 # CSRF settings
+CSRF_USE_SESSIONS = False  # Store CSRF token in cookie, not session
+CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_TRUSTED_ORIGINS = [
     'https://www.linguashine.es',
     'https://linguashine.es',
+    'https://linguashineproject-production.up.railway.app',
 ]
 
 # Additional CORS settings
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
 CORS_REPLACE_HTTPS_REFERER = True
+
+# Security settings
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -10,6 +10,8 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
 });
 
 // Add a request interceptor
@@ -47,9 +49,10 @@ apiClient.interceptors.request.use(
 // Add a response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 403 || error.response?.status === 401) {
-      console.error('Authentication error:', error.response?.status);
+      console.log('Authentication error:', error.response?.status);
+      // You might want to redirect to login or handle unauthorized access
     }
     return Promise.reject(error);
   }
