@@ -166,6 +166,13 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # CORS settings
+CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for testing
+
+CORS_ORIGIN_WHITELIST = [
+    'https://www.linguashine.es',
+    'https://linguashine.es',
+]
+
 CORS_ALLOWED_ORIGINS = [
     'https://www.linguashine.es',
     'https://linguashine.es',
@@ -201,6 +208,11 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.linguashine.es',
     'https://linguashine.es',
 ]
+
+# Additional CORS settings
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+CORS_REPLACE_HTTPS_REFERER = True
 
 # Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
