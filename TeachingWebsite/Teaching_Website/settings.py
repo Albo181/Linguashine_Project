@@ -148,7 +148,7 @@ USE_I18N = True
 USE_TZ = True
 
 # CORS settings
-CORS_ORIGIN_ALLOW_ALL = True  # Temporarily enable this for testing
+CORS_ALLOW_ALL_ORIGINS = True  # Temporarily enable this for testing
 
 CORS_ALLOWED_ORIGINS = [
     'https://www.linguashine.es',
