@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import blogData from './blogData';
+import { useTranslation } from 'react-i18next';
+import getBlogData from './blogData';
 import enjoyment from '../images/enjoyment.png';
 import exam from '../images/exam.png';
 import dashboard from '../images/dashboard.png';
 import professional from '../images/professional.png';
 import tree from '../images/tree.png';
 import podcast from '../images/podcast.png';
+import best from '../images/best.png';
+import me2 from '../images/me2.png';
+import duo from '../images/duo.jpg';
 
 const style = document.createElement('style');
 style.textContent = `
@@ -50,7 +54,7 @@ style.textContent = `
     position: absolute;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.35;
+    opacity: 0.18;
   }
   .float-animation {
     animation: float 6s ease-in-out infinite;
@@ -253,6 +257,8 @@ const FloatingElements = ({ blogId }) => {
 const BlogDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const blogData = getBlogData(t);
   const currentBlogId = parseInt(id);
   const blog = blogData.find((b) => b.id === currentBlogId);
 
@@ -268,158 +274,484 @@ const BlogDetails = () => {
 
   if (!blog) return <p>Blog not found!</p>;
 
-  const blogImage = blog.id === 1 ? exam : blog.id === 2 ? enjoyment : blog.id === 3 ? dashboard : blog.id === 4 ? podcast : blog.id === 5 ? professional : '';
+  const renderRichText = (paragraph) => {
+    const parts = paragraph.split('**');
+    return parts.map((part, index) =>
+      index % 2 === 1 ? (
+        <strong key={index} className="font-semibold">
+          {part}
+        </strong>
+      ) : (
+        <span key={index}>{part}</span>
+      )
+    );
+  };
+
+  const blogImage = blog.id === 1 ? me2 : blog.id === 2 ? best : blog.id === 3 ? dashboard : blog.id === 4 ? duo : blog.id === 5 ? professional : '';
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Background gradients for each blog (softened)
+  const backgroundGradients = {
+    1: 'bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900',
+    2: 'bg-gradient-to-br from-slate-900 via-emerald-900 to-teal-900',
+    3: 'bg-gradient-to-br from-slate-800 via-amber-900 to-orange-900',
+    4: 'bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900',
+    5: 'bg-gradient-to-br from-slate-950 via-blue-900 to-purple-900'
+  };
+
   return (
-    <div className={`min-h-screen flex relative ${
-      blog.id === 5 
-        ? 'flex-col mt-16 bg-gray-50' 
-        : blog.id === 1
-          ? 'justify-center items-center bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100'
-          : blog.id === 2
-            ? 'justify-center items-center bg-gradient-to-br from-green-50 via-emerald-100 to-teal-100 animate-gradient'
-            : blog.id === 3
-              ? 'justify-center items-center bg-gradient-to-tr from-amber-50 via-orange-50 to-yellow-100 animate-pulse-slow'
-              : blog.id === 4
-                ? 'justify-center items-center bg-[linear-gradient(120deg,#e0f2fe,#f0f9ff,#dbeafe)] animate-gradient'
-                : 'justify-center items-center bg-gray-100'
-    } p-4`}>
+    <div className={`min-h-screen flex relative pt-28 sm:pt-32 md:pt-36 ${blog.id === 5 ? 'flex-col' : 'justify-center items-center'} ${backgroundGradients[blog.id] || 'bg-gray-900'} p-4 sm:p-6 md:p-8`}>
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+
       <FloatingElements blogId={blog.id} />
-      {/* Navigation Arrows */}
+
+      {/* Close / Back button */}
+      <div className="fixed top-24 sm:top-28 left-4 sm:left-6 z-30">
+        <button
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-white/10 backdrop-blur-md rounded-full border border-white/30 hover:bg-white/20 hover:scale-105 transition-all duration-200"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          <span>Salir</span>
+        </button>
+      </div>
+      
+      {/* Modern Navigation Arrows */}
       <button 
         onClick={goToPreviousBlog}
-        className="fixed left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-10"
+        className="fixed left-4 sm:left-6 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white p-4 rounded-full shadow-2xl border border-white/20 transition-all duration-300 hover:scale-110 z-20 group"
         aria-label="Previous blog"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
       <button 
         onClick={goToNextBlog}
-        className="fixed right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-10"
+        className="fixed right-4 sm:right-6 top-1/2 transform -translate-y-1/2 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white p-4 rounded-full shadow-2xl border border-white/20 transition-all duration-300 hover:scale-110 z-20 group"
         aria-label="Next blog"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
       {blog.id === 5 ? (
-        // Existing code for blog 5
-        <>
-          <div className="bg-blue-950 text-white py-12 px-6 font-bold">
-            <div className="container mx-auto max-w-5xl text-center">
-              <h1 className="text-6xl font-extrabold mb-4">{blog.title}</h1>
-              <p className="text-lg font-light mb-6">
-                Lleva tu inglés al siguiente nivel con clases de inglés personalizadas, profesionales y estimulantes.
+        // Professional design for blog 5 - Languages I'm Learning
+        <div className="relative z-10 w-full max-w-6xl mx-auto mt-4 sm:mt-6 space-y-8">
+          {/* Hero Section */}
+          <div className="blog-typography relative overflow-hidden bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl p-8 sm:p-10 border border-white/20">
+            <div className="text-center">
+              <div className="inline-block mb-4">
+                <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.3em] text-blue-200/80 bg-white/10 px-4 py-2 rounded-full border border-white/20">
+                  {t('blog.posts.5.hero.tag')}
+                </span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 text-white">
+                {blog.title}
+              </h1>
+              <p className="text-lg sm:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed">
+                {t('blog.posts.5.hero.subtitle')}
               </p>
-              <div className="flex justify-center">
-                {blogImage && (
+            </div>
+          </div>
+
+          {/* Introduction with Tree Feature */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Intro Content */}
+            <div className="lg:col-span-2 blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+              <p className="text-xl sm:text-2xl text-white mb-5 font-semibold">
+                For anyone new to this corner of my site: Welcome!
+              </p>
+              <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+              I’m Alex: a linguist, language teacher, digital-pedagogy enthusiast, and someone who has spent an unreasonable (but very enjoyable) number of hours buried in both grammar books and Python scripts.
+              </p>
+              <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+              I hold a Master’s Degree in Further Education, along with postgraduate qualifications in E-Learning, Emotional Intelligence, and Neuroeducation. I’ve also completed several ICT-focused programmes, including Google’s Technical Support with AI certification and Meta’s Full-Stack Development programme.
+              </p>
+              <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-6">
+              Professionally, I’ve taught languages to exam candidates, professionals, and organisations; collaborated with institutions such as the Spanish Space Agency and various government ministries; and — because staying still has never been my strong point — I’m now also exploring VR/AR learning environments with the aim of developing educational software.
+              </p>
+            
+                <p className="text-lg sm:text-xl text-white font-semibold italic -mt-3 mb-3">
+                  But this page isn't about my CV.
+                </p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-3">
+                  It's about the languages I'm learning right now, why I love them, and what I'm working toward. My aim is to update each section in the future with resources and reflections.
+                </p>
+                <p className="text-base sm:text-lg text-white/80 leading-relaxed italic">
+                  (There's even a section on programming languages, because why not?)
+                </p>
+               
+            </div>
+
+            {/* Tree Image and Quote - Sidebar */}
+            <div className="lg:col-span-1 flex flex-col">
+              <div className="relative flex-1 flex flex-col items-center justify-center bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/20">
+                <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur-xl"></div>
                   <OptimizedImage
-                    src={blogImage}
-                    alt="Professional classes"
-                    style={{
-                      maxWidth: '200px',
-                      width: '100%',
-                      height: 'auto',
-                    }}
-                    className="rounded-lg shadow-md border border-2"
+                    src={tree}
+                    alt="tree"
+                    className="relative rounded-xl shadow-lg h-auto w-full max-w-[200px] border-2 border-white/30"
                   />
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 border border-white/20 w-full">
+                  <blockquote className="text-white italic font-semibold text-sm sm:text-base text-center leading-relaxed">
+                    "{t('blog.posts.5.quote')}"
+                  </blockquote>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Languages Section */}
+          <div className="space-y-6">
+            {/* Section Header */}
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+                {t('blog.posts.5.languages.title')}
+              </h2>
+              <p className="text-white/80 text-base">{t('blog.posts.5.languages.subtitle')}</p>
+            </div>
+
+            {/* Languages Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Japanese - Featured Large Card */}
+              <div className="md:col-span-2 blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center gap-4 mb-5">
+                  <span className="text-4xl border border-green-200 rounded p-1 bg-green-200/10">🇯🇵</span>
+                  <div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-blue-400 mb-1">{t('blog.posts.5.languages.japanese.title')}</h2>
+                    <p className="text-sm text-blue-200 font-semibold">{t('blog.posts.5.languages.japanese.subtitle')}</p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg text-white/95 leading-relaxed mb-4 font-medium">
+                  {t('blog.posts.5.languages.japanese.p1')}
+                </p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-6">
+                  {t('blog.posts.5.languages.japanese.p2')}
+                </p>
+                <div className="bg-white/5 rounded-xl p-5 border border-white/10 mb-5">
+                  <p className="text-sm font-semibold text-blue-200 mb-4 uppercase tracking-wide">{t('blog.posts.5.languages.japanese.reflectionsTitle')}</p>
+                  <ul className="space-y-3 text-white/90">
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-300 mt-1">•</span>
+                      <span>{t('blog.posts.5.languages.japanese.reflection1')}</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-300 mt-1">•</span>
+                      <span>{t('blog.posts.5.languages.japanese.reflection2')}</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-300 mt-1">•</span>
+                      <span>{t('blog.posts.5.languages.japanese.reflection3')}</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="text-blue-300 mt-1">•</span>
+                      <span>{t('blog.posts.5.languages.japanese.reflection4')}</span>
+                    </li>
+                  </ul>
+                </div>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed italic bg-white/5 rounded-xl p-4 border border-white/10">
+                  {t('blog.posts.5.languages.japanese.quote')}
+                </p>
+              </div>
+
+              {/* French */}
+              <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-3xl border border-green-200 rounded p-1 bg-green-200/10">🇫🇷</span>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-blue-400">{t('blog.posts.5.languages.french.title')}</h2>
+                    <p className="text-xs text-blue-200 font-semibold">{t('blog.posts.5.languages.french.subtitle')}</p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.french.p1')}
+                </p>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10 mt-4">
+                  <p className="text-base sm:text-lg text-white/95 leading-relaxed">
+                    {t('blog.posts.5.languages.french.p2')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Spanish */}
+              <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-3xl border border-green-200 rounded p-1 bg-green-200/10">🇪🇸</span>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-blue-400">{t('blog.posts.5.languages.spanish.title')}</h2>
+                    <p className="text-xs text-blue-200 font-semibold">{t('blog.posts.5.languages.spanish.subtitle')}</p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.spanish.p1')}
+                </p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.spanish.p2')}
+                </p>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-base sm:text-lg text-white/95 leading-relaxed">
+                    {t('blog.posts.5.languages.spanish.p3')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Italian */}
+              <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-3xl border border-green-200 rounded p-1 bg-green-200/10">🇮🇹</span>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-blue-400">{t('blog.posts.5.languages.italian.title')}</h2>
+                    <p className="text-xs text-blue-200 font-semibold">{t('blog.posts.5.languages.italian.subtitle')}</p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.italian.p1')}
+                </p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.italian.p2')}
+                </p>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-base sm:text-lg text-white/95 leading-relaxed italic">
+                    {t('blog.posts.5.languages.italian.quote')}
+                  </p>
+                </div>
+              </div>
+
+              {/* English */}
+              <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="text-3xl border border-green-200 rounded p-1 bg-green-200/10">🇬🇧</span>
+                  <div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-blue-400 pb-2">{t('blog.posts.5.languages.english.title')}</h2>
+                    <p className="text-xs text-blue-200 font-semibold">{t('blog.posts.5.languages.english.subtitle')}</p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.english.p1')}
+                </p>
+                <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-4">
+                  {t('blog.posts.5.languages.english.p2')}
+                </p>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <p className="text-base sm:text-lg text-white/95 leading-relaxed italic">
+                    {t('blog.posts.5.languages.english.quote')}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          {/* Programming Languages */}
+          <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+            <div className="flex items-center gap-4 mb-6">
+              <span className="text-4xl">💻</span>
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-white mb-1">{t('blog.posts.5.programming.title')}</h2>
+                <p className="text-sm text-blue-200 font-semibold">{t('blog.posts.5.programming.subtitle')}</p>
+              </div>
+            </div>
+            <p className="text-base sm:text-lg text-white/95 leading-relaxed mb-6 font-medium">
+              {t('blog.posts.5.programming.intro')}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p className="text-sm font-semibold text-blue-200 mb-4 uppercase tracking-wide">{t('blog.posts.5.programming.bothRequire')}</p>
+                <ul className="space-y-2 text-white/90">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.require1')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.require2')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.require3')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.require4')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.require5')}</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p className="text-sm font-semibold text-blue-200 mb-4 uppercase tracking-wide">{t('blog.posts.5.programming.toolkitTitle')}</p>
+                <ul className="space-y-2 text-white/90">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.toolkit1')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.toolkit2')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.toolkit3')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.toolkit4')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.programming.toolkit5')}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="bg-white/5 rounded-xl p-5 border border-white/10 mb-6">
+              <p className="text-base sm:text-lg text-white/95 leading-relaxed mb-3 italic">
+                {t('blog.posts.5.programming.story')}
+              </p>
+             
+               
+             
+            </div>
+            <p className="text-base sm:text-lg text-white/95 leading-relaxed font-medium text-center bg-white/5 rounded-xl p-5 border border-white/10">
+              "{t('blog.posts.5.programming.quote')}"
+            </p>
+          </div>
+
+          {/* Why This Page Exists */}
+          <div className="blog-typography bg-white/10 backdrop-blur-xl rounded-2xl shadow-lg p-6 sm:p-8 border border-white/20">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 text-center">
+              {t('blog.posts.5.objectives.title')}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p className="text-base sm:text-lg text-white/95 leading-relaxed mb-4">
+                  {t('blog.posts.5.objectives.p1')}
+                </p>
+                <p className="text-base sm:text-lg text-white/95 leading-relaxed">
+                  {t('blog.posts.5.objectives.p2')}
+                </p>
+              </div>
+              <div className="bg-white/5 rounded-xl p-5 border border-white/10">
+                <p className="text-sm font-semibold text-blue-200 mb-4 uppercase tracking-wide">{t('blog.posts.5.objectives.updateTitle')}</p>
+                <ul className="space-y-2 text-white/90">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.objectives.update1')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.objectives.update2')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.objectives.update3')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.objectives.update4')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-300 mt-1">•</span>
+                    <span>{t('blog.posts.5.objectives.update5')}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="text-center bg-white/5 rounded-xl p-5 border border-white/10">
+              <p className="text-base sm:text-lg text-white/95 leading-relaxed font-medium">
+                {t('blog.posts.5.objectives.closing')}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="relative z-10 w-full max-w-3xl mx-auto mt-4 sm:mt-6">
+          <div className="blog-typography bg-white/8 backdrop-blur-xl rounded-3xl shadow-xl p-5 sm:p-6 md:p-8 border border-white/15">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-blue-200/80">
+              {t('blog.articleLabel')}
+            </div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 text-white text-center">
+              {blog.title}
+            </h1>
+            
+            {blog.video ? (
+              <div className="flex flex-col items-center mb-5">
+                <div className="relative w-full max-w-[260px] sm:max-w-[320px] md:max-w-[440px]">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl blur-xl opacity-40"></div>
+                  <div
+                    className="relative rounded-xl shadow-xl overflow-hidden border border-white/30"
+                    style={{ aspectRatio: '4 / 3' }}
+                  >
+                    <video
+                      src={blog.video}
+                      controls
+                      controlsList="nofullscreen nodownload noremoteplayback"
+                      disablePictureInPicture
+                      playsInline
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="w-full h-full object-cover"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                </div>
+                {blog.videoCaption && (
+                  <p className="text-white/70 text-sm sm:text-base mt-3 text-center italic max-w-[260px] sm:max-w-[320px] md:max-w-[380px]">
+                    {blog.videoCaption}
+                  </p>
                 )}
               </div>
-            </div>
-          </div>
-          <div className="bg-white py-12 px-6">
-            <div className="container mx-auto max-w-5xl">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <div>
-                  {blog.id === 5 && (
-                    <h2 className="text-2xl font-semibold text-blue-950 mt-4 mb-6">
-                      ¡Bienvenidos a mi rincón de enseñanza!
-                    </h2>
-                  )}
-                  {blog.content.split('\n\n').map((paragraph, index) => (
-                    <p
-                      key={index}
-                      className="text-lg text-gray-700 leading-8 mb-6"
-                    >
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-                <div className="bg-gray-100 p-6 rounded-lg shadow-md mt-4">
-                  <h2 className="text-2xl font-semibold mb-10 text-blue-950">¿Qué se ofrece?</h2>
-                  <ul className="list-disc list-inside text-gray-700 text-lg space-y-6">
-                    <li>17+ años de experiencia impartiendo clases.</li>
-                    <li>Un método interactivo, divertido y productivo.</li>
-                    <li>Profesor nativo y bilingüe.</li>
-                    <li>Clases a medida para alcanzar tus objetivos.</li>
-                    <li>Horarios flexibles que adaptan a tu ritmo.</li>
-                    <li>Uso de tecnologías nuevas.</li>
-                  </ul>
-                  <div className="mt-12 text-center mb-16"> 
-                    <Link
-                      className="bg-blue-950 text-white border-2 border-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-800 transition"
-                      to="/contacto"
-                    >
-                      ¡Ponte en contacto!
-                    </Link>
-                  </div>
-                  <div className="relative flex flex-col items-center">
-                    <OptimizedImage
-                      src={tree}
-                      alt="tree"
-                      className="mt-32 lg:-mt-2 mb-8 h-[150px] lg:h-[275px] w-auto rounded-lg shadow-lg p-1 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500"
-                      style={{
-                        borderRadius: '15px',
-                      }}
-                    />
-                    <div className="bg-white p-4 rounded-lg shadow-md text-center mt-0">
-                      <blockquote className="text-blue-950 italic font-bold mb-2">
-                        "A tree's beauty lies in its branches, but its strength lies in its roots." 
-                      </blockquote>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="bg-white shadow-lg rounded-lg p-8 mt-20 mb-6 max-w-3xl mx-auto">
-          <h1 className="text-4xl font-bold mb-4 text-center text-green-700">
-            {blog.title}
-          </h1>
-          {blogImage && (
-            <div className="flex justify-center mb-4">
+      ) : blogImage && (
+        <div className="flex justify-center mb-5">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl blur-xl opacity-40"></div>
+            <div
+              className={`relative rounded-xl shadow-xl border border-white/30
+                ${blog.id === 1 ? 'max-w-[280px] sm:max-w-[200px] md:max-w-[190px] w-full' : ''}
+                ${blog.id === 4 ? 'max-w-[240px] sm:max-w-[180px] md:max-w-[160px] w-full' : ''}
+                ${blog.id !== 1 && blog.id !== 4 ? 'max-w-[260px] sm:max-w-[300px] w-full' : ''}
+              `}
+            >
               <OptimizedImage
                 src={blogImage}
                 alt="Event"
-                className="border-4 border-green-700 h-60 mt-4 mb-4 w-auto rounded-lg"
+                className={`w-full h-auto rounded-xl ${
+                  blog.id === 4 ? 'max-h-[300px]' : ''
+                }`}
               />
             </div>
-          )}
-          {blog.id === 1 ? (
-            blog.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="text-gray-700 leading-relaxed mb-4">
-                {paragraph.split(':').map((part, partIndex) => (
-                  <span key={partIndex}>
-                    {partIndex === 0 ? <strong>{part.trim()}:</strong> : part}
-                  </span>
-                ))}
-              </p>
-            ))
-          ) : (
-            blog.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="text-gray-700 leading-relaxed mb-4">
-                {paragraph}
-              </p>
-            ))
-          )}
+          </div>
+        </div>
+      )}
+
+            <div className="max-w-none">
+              {blog.content.split('\n\n').map((paragraph, index) => (
+                <p
+                  key={index}
+                  className="text-white/90 text-base sm:text-lg leading-relaxed text-justify mb-4"
+                >
+                  {renderRichText(paragraph)}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

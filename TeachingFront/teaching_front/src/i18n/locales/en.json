@@ -1,0 +1,650 @@
+{
+  "common": {
+    "contact": "Contact",
+    "phone": "Phone",
+    "logout": "Logout",
+    "login": "Login",
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "retry": "Retry",
+    "back": "Back"
+  },
+  "navbar": {
+    "contact": "Contact",
+    "phone": "Phone: 633 971 070",
+    "logout": "Logout",
+    "login": "Login",
+    "logoutSuccess": "You have been logged out successfully!"
+  },
+  "jumbotron": {
+    "title1": "Alexander Lenton -",
+    "title2": "Senior English Trainer & Executive Language Coach",
+    "subtitle": "British native teacher and linguist with 18+ years of experience coaching executives, public-sector leaders, and international teams.",
+    "learnMore": "My teaching methodology",
+    "getInfo": "Portfolio",
+    "coursesForAdults": "--- Online Courses for Adults ---",
+    "professionalEnglishTraining": "Professional English Training",
+    "britishNative": "British Native",
+    "executiveCoach": "Executive Coach",
+    "multinationalCorporations": "Multinational Corporations",
+    "aboutMe": "About me"
+  },
+  "base": {
+    "features": {
+      "nativeTeacher": "Bilingual native teacher & linguist",
+      "experience": "18+ years of experience",
+      "master": "Master's degree in teacher training",
+      "dynamic": "Highly dynamic and varied teaching style",
+      "tools": "Diverse tools (professional microphones, HD cameras, digital boards and books)",
+      "programs": "Individualized study programs and own resources"
+    },
+    "aboutMe": "About me",
+    "teachingApproachTitle": "Learn More About My Teaching Approach",
+    "teachingApproachDescription": "Discover how my personalized methodology can help you achieve your English language goals",
+    "methodology": "Methodology",
+    "membersAccess": "Members Access",
+    "testimonials": "Testimonials",
+    "coachingExperienceTitle": "My coaching experience",
+    "coachingExperienceSubtitle": "I offer a professional English training with a personalized approach"
+  },
+  "landing": {
+    "welcomeBack": "Welcome Back, {{name}}!",
+    "personalizedDashboard": "Here's your personalized dashboard.",
+    "yourProfile": "Your Profile",
+    "quickLinks": "Quick Links",
+    "username": "Username",
+    "email": "Email",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "telephone": "Telephone",
+    "viewFullProfile": "View Full Profile",
+    "receiveNotifications": "Receive email notifications",
+    "comingSoon": "Coming soon! 🚀",
+    "myDashboard": "My Dashboard",
+    "sharedFiles": "Shared Files",
+    "assignmentUpload": "Assignment upload",
+    "assignmentFeedback": "Assignment feedback / history",
+    "homework": "Homework",
+    "viewGrades": "View Grades"
+  },
+  "backgroundImage": {
+    "newPortal": "New digital content for members!",
+    "features": {
+      "oneToOne": "Personalized coaching",
+      "smallGroups": "Business professional mentoring",
+      "examPrep": "Exam expertise (Cambridge, IELTS, APTIS, TOEIC...)",
+      "oppositions": "Civil service exam preparation",
+      "universitySupport": "Higher education coach (Universities, adult education, etc.)"
+    }
+  },
+  "dashboard": {
+    "fileDashboard": "File Dashboard",
+    "instructions": "INSTRUCTIONS: Here you can keep your general English files, teachers can also upload files to you"
+  },
+  "sobreMi": {
+    "title": "About me",
+    "subtitle": "Learn more about my professional journey",
+    "p1": "I am a native English teacher and linguist with over 18 years of experience teaching languages across Spain. Since completing my degree in English Philology, I have had the privilege of working in a wide range of educational settings — from universities and secondary schools to training centres, companies and language academies throughout the Madrid region. I also bring extensive experience preparing students for official certifications, including Cambridge and British Council examinations, as well as specialised academic and professional assessments.",
+    "p2": "In 2017, I completed a Master’s degree in Further Education Training (specialising in languages) at the University of Alcalá de Henares. My passion for languages extends well beyond the classroom: I earned the DELE C1 from the Instituto Cervantes in 2019, and over the years I have continued studying French, Italian and Japanese as part of my ongoing commitment to multilingualism and lifelong learning.",
+    "p3": "Between 2020 and 2021, I broadened my pedagogical skill set with training in neurolinguistics, e-learning, and digital education. More recently, I have completed qualifications in educational software development and technology-enhanced learning, allowing me to design more dynamic, interactive, and learner-centred experiences. These areas now complement my work as a digital pedagogy specialist and inform the methodological framework I apply in my classes.",
+    "p4": "Beyond teaching, I am deeply committed to helping professionals to navigate high-stakes exams, meetings, presentations and reports with confidence and clarity. After nearly two decades of preparing candidates for high-level English certifications, I proudly achieved the C2 level myself — a goal that reflects both professional coherence and my belief in modelling the learning process.",
+    "p5": "Language teaching is, above all, my vocation. I strive to deliver clear, structured and engaging lessons that build real communicative competence and empower learners to use language confidently in any situation. My aim is to continue sharing this passion, guiding more students on their path to achieving their linguistic and academic goals.",
+    "highlightExperience": "18+ years of experience",
+    "highlightCambridge": "Cambridge exam specialist",
+    "highlightPassion": "Passionate about teaching",
+    "testimonialsButton": "Testimonials",
+    "portfolioButton": "Portfolio"
+  },
+ "methodPage": {
+  "tagHero": "Teaching methodology",
+  "heroTitle": "A method that simplifies complexity",
+  "heroText": "My methodology is built on the idea that language is not learned in one universal way. Every learner processes information differently. At the core of my teaching are four guiding principles that form a structured but highly human way of learning.",
+
+    "statsExperience": "Experience",
+    "statsExperienceValue": "18+ years",
+    "statsCertification": "Certification",
+    "statsCertificationValue": "C2 Cambridge",
+    "statsEnvironments": "Environments",
+    "statsEnvironmentsValue": "Academic & corporate",
+    "features": {
+      "buildingBlocksTitle": "1.) The \"Building-Blocks\" Approach",
+      "buildingBlocksSubtitle": "Turning complexity into clarity",
+      "buildingBlocksDesc": "I specialise in breaking down complex language systems into clear, digestible learning blocks. Each block is introduced logically, systematically and in the correct sequence—much like constructing a building from the ground up. Once the foundations are secure, learners gain the freedom to experiment, combine elements and move confidently into more advanced territory.",
+      "buildingBlocksBenefits": "This approach: Reduces cognitive overload • Builds long-term retention • Creates confidence through visible structure • Allows learners to understand why English works the way it does",
+      "buildingBlocksGoal": "My goal is always the same: Make the complicated simple and usable.",  
+
+
+
+
+      "potisTitle": "2.) The POTIS Framework",
+      "potisSubtitle": "Language coaching determined by the individual",
+      "potisDesc": "Rather than following fixed programmes, I design every learning plan around what I call the POTIS Framework:",
+      "potisP": "P — Personality",
+      "potisO": "O — Objective/s",
+      "potisT": "T — Time availability",
+      "potisI": "I — Implementation strategy",
+      "potisS": "S — Speed of learning",
+      "potisDetail": "These five factors determine everything: the resources used, the pace of progression, the type of practice, the structure of the course and the balance between accuracy, fluency and performance skills. Two learners with the same level will never receive the same course—because their POTIS profile is never the same.",
+      "flowTitle": "3.) The Flow Principle",
+      "flowSubtitle": "Where structure meets engagement",
+      "flowDesc": "If the building blocks are the ingredients, and POTIS is the recipe, then this principle is what makes the learning experience come alive. The Flow Principle is where I deliberately inject:",
+      "flowElements": "Humour • Anecdotes • Challenge • Curiosity • Energy • And my own teaching personality",
+      "flowDetail": "This is not random entertainment—it is a calibrated layer of engagement that keeps lessons moving quickly, naturally and with momentum. Learners are highly focused, but the experience feels light, human and enjoyable. Many students comment that sessions pass quickly and never feel heavy or mechanical. This element is difficult to quantify, but it is essential: it is what turns a well-designed lesson into a compelling learning experience.",
+      "cultureTitle": "4.) Cultural Transfer",
+      "cultureSubtitle": "Language beyond structure",
+      "cultureDesc": "Language does not exist in isolation. Alongside grammar, vocabulary and skills training, I integrate:",
+      "cultureElements": "Cultural reference points • Real-world usage • Natural conversation patterns • Media, professional contexts and authentic materials",
+      "cultureDetail": "This ensures learners are not only structurally accurate, but also socially and culturally fluent. The result is communication that sounds natural rather than textbook."
+    },
+    "tagProcess": "How This Works in Practice",
+    "processTitle": "A three-phase cycle applied to every project",
+    "processSubtitle": "This process aligns directly with the four core principles above and ensures measurable, real-world outcomes.",
+    "steps": {
+      "diagnosisTitle": "Precision Diagnosis",
+      "diagnosisDetail": "A deep analysis of the learner's: Objectives • Context • Learning history • Strengths and gaps • Full POTIS profile. This defines the entire structure of the learning plan.",
+      "constructionTitle": "Structured Construction",
+      "constructionDetail": "Learning is delivered through: Building-block sequencing • Systematic progression • Guided practice • Increasing autonomy • Continuous micro-feedback. Each stage prepares learners for the next—nothing is rushed, and nothing is random.",
+      "transferTitle": "Real-World Transfer",
+      "transferDetail": "New language is immediately applied to: Professional communication • Meetings and presentations • Academic contexts • Exams • Or real-life interaction. This is where fluency stops being theoretical and becomes functional."
+    },
+    "ctaTitle": "Want to see how this applies to your objective?",
+    "ctaText": "We can analyse your current situation, define the work blocks and prepare a clear plan to reach the level of communication you need.",
+    "ctaCall": "Book a call",
+    "ctaReferences": "View references",
+    "corePrinciplesTitle": "Core Principles",
+    "corePrinciplesSubtitle": "Four pillars that shape every learning experience",
+    "personalizedApproach": "Personalized approach",
+    "provenMethodology": "Proven methodology",
+    "measurableResults": "Measurable results"
+  },
+  "testimonialsPage": {
+    "tag": "Testimonials",
+    "title": "What learners and organisations say",
+    "intro": "A selection of independent reviews and long-term feedback from professionals, exam candidates and partner organisations who have worked with Alex.",
+    "summaryOverall": "5.0 overall",
+    "summaryOverallSub": "Based on recent Google-style reviews",
+    "summaryExams": "Exam success",
+    "summaryExamsSub": "C1–C2, teaching exams and professional goals",
+    "summaryLongTerm": "Long-term work",
+    "summaryLongTermSub": "Many learners stay for years, not weeks",
+    "footerNote": "Selected comments are taken from independent review platforms and long-term collaborations with learners and organisations.",
+    "testimonials": [
+      {
+        "name": "Helena",
+        "meta": "Local Guide · 43 reviews",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "I've already taken several classes with Alex and I'm very happy with my choice. The lessons are very enjoyable and varied, and each time I feel like I'm becoming more comfortable speaking English. 100% recommended.",
+        "note": "Translated from Spanish"
+      },
+      {
+        "name": "Natalia Hernández Olea",
+        "meta": "1 review · 1 photo",
+        "stars": 5,
+        "timeAgo": "1 year ago",
+        "text": "5-star rating on Google (no written comment provided)."
+      },
+      {
+        "name": "Antolín Moreno",
+        "meta": "Local Guide · 106 reviews · 963 photos",
+        "stars": 5,
+        "timeAgo": "2 years ago",
+        "text": "5-star rating on Google (no written comment provided)."
+      },
+      {
+        "name": "María Mateos Vivas",
+        "meta": "4 reviews",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "Alex is the best English teacher I've ever had, and thanks to him, I passed the Advanced Level. He knows how to help you improve your weaknesses, always encourages you to keep improving, and makes English classes enjoyable and fun. Very attentive and professional. I will definitely choose this school to prepare for the C2 exam. 100% recommended!",
+        "tags": ["Communication", "Quality", "Professionalism", "Value"]
+      },
+      {
+        "name": "Ángel Vicente López Soblechero",
+        "meta": "2 reviews",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "A wonderful experience, excellent methodology, and very professional. Without a doubt, my go-to place for continuing to learn English from now on. Highly recommended.",
+        "tags": ["Communication", "Quality", "Professionalism", "Value"]
+      },
+      {
+        "name": "Jaime Tamayo Sanz",
+        "meta": "6 reviews",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "Alex has been my English teacher for two years. I started with him reinforcing my C1 level and now I'm at C2 level. The classes are very interactive and he adapts them to your needs. He listens to you at all times and suggests activities to improve whatever you ask him to do. I couldn't be happier with him and his work. I recommend him 100%. The price–performance ratio is unbeatable.",
+        "extra": "I'm currently preparing for the English exam for the Madrid teaching exams (C1–C2) with him, but I know people who have prepared any Cambridge level. It doesn't have to be a high level.",
+        "tags": ["Quality", "Professionalism"]
+      },
+      {
+        "name": "Stela Jiménez",
+        "meta": "2 reviews",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "I prepared for the C1 exam with Alex a few years ago and later continued to study English with him. Alex is the best English teacher I've ever had. He has the ability to connect with students on a personal level and make the language their passion. As a student, I stopped seeing English as an obligation and it became a hobby I still enjoy today. I would return to his English classes just for the fun of it.",
+        "tags": ["Communication", "Quality", "Professionalism", "Value"]
+      },
+      {
+        "name": "Laura G.",
+        "meta": "3 reviews",
+        "stars": 5,
+        "timeAgo": "3 years ago",
+        "text": "Alex helped me prepare for a series of multi-stage job interviews in English. His sessions were structured, highly personalised, and focused on clear, measurable progress. Thanks to his guidance, I secured the position I was aiming for. Excellent professional.",
+        "tags": ["Communication", "Professionalism", "Quality"]
+      },
+      {
+        "name": "Rubén Martín",
+        "meta": "Local Guide · 12 reviews",
+        "stars": 5,
+        "timeAgo": "2 years ago",
+        "text": "After years without using English, I needed to regain confidence for work. Alex's approach, combining digital tools, real-world practice and clear objectives, helped me recover my fluency quickly. A truly modern and effective educator.",
+        "tags": ["Quality", "Professionalism", "Value"]
+      },
+      {
+        "name": "Dr. Carolina F. Gómez",
+        "meta": "University Lecturer · 5 reviews",
+        "stars": 5,
+        "timeAgo": "1 year ago",
+        "text": "Alex delivered an evening seminar on digital pedagogy for our faculty. His expertise, clarity and ability to translate cutting-edge concepts into practical applications were outstanding. Highly recommended for academic and professional contexts.",
+        "tags": ["Professionalism", "Communication"]
+      },
+      {
+        "name": "Samuel Rodríguez",
+        "meta": "1 review",
+        "stars": 5,
+        "timeAgo": "3 years ago",
+        "text": "I worked with Alex to consolidate my B2–C1 level for professional certification. His detailed feedback and structured planning allowed me to progress much faster than expected. A serious, committed and highly capable teacher.",
+        "tags": ["Quality", "Professionalism", "Communication"]
+      },
+      {
+        "name": "José Manuel Herrera(Dept. coordinator)",
+        "meta": "Organisational feedback",
+        "stars": 5,
+        "timeAgo": "4 years ago",
+        "text": "We collaborated with Alex on a technical-English training programme for engineering staff. His preparation, adaptability and thorough understanding of specialised terminology made the sessions extremely valuable. An excellent professional collaborator.",
+        "tags": ["Professionalism", "Quality"]
+      },
+      {
+        "name": "Patricia Alonso",
+        "meta": "4 reviews",
+        "stars": 5,
+        "timeAgo": "3 years ago",
+        "text": "I prepared for the C2 exam with Alex after previously failing on my own. His feedback (especially in writing and advanced speaking skills) was precise, actionable and clearly grounded in many years of teaching experience. I passed with confidence thanks to his guidance.",
+        "tags": ["Professionalism", "Communication"]
+      },
+      {
+        "name": "JMat Solutions",
+        "meta": "Institutional review",
+        "stars": 5,
+        "timeAgo": "5 years ago",
+        "text": "Alex delivered workshops on communicative English and professional writing for our members. Participants highlighted his clarity, technical knowledge, and ability to adapt examples to engineering contexts. Outstanding trainer.",
+        "tags": ["Quality", "Professionalism", "Value"]
+      },
+      {
+        "name": "Sergio Martínez",
+        "meta": "Corporate HR Specialist · 2 reviews",
+        "stars": 5,
+        "timeAgo": "2 years ago",
+        "text": "I needed intensive coaching to improve my communication skills for multinational meetings. Alex provided targeted correction, strategic vocabulary, and simulation training that made an immediate difference. His personality and attitude to teaching really sets him apart.",
+        "tags": ["Communication", "Quality", "Professionalism"]
+      }
+    ]
+  },
+  "blog": {
+    "sectionTitle": "Personal Blog: Insights & Reflections",
+    "sectionSubtitle": "Reflections on teaching, professional communication, and real-world learning environments",
+    "articleLabel": "Article",
+    "readMore": "Read more",
+    "posts": {
+      "1": {
+        "title": "Personal Reflections on High-Stakes Language Training 📚",
+        "content": "For almost two decades, I've helped hundreds of learners prepare for exams such as Cambridge, IELTS, TOEIC, APTIS, as well as the official EOI exams here in Spain. Although these qualifications serve as stepping stones for students, for me as a trainer they have also become a window into something far more interesting:\nhow professionals think, communicate, and perform under pressure.\n\nWorking with executives, civil servants, engineers, lawyers, and senior managers has shown me that exam preparation is rarely just about the exam itself. Behind every speaking task or structured writing activity lies a deeper communication challenge: clarity of thought, decision-making, interpersonal skills, and the confidence to express complex ideas with precision.\n\n**1. Precision and Structure Matter More Than \"Perfect English\"**\n\nOne of the first things I learned when training high-level professionals is that exam success — and effective communication — depends far more on clarity, structure, and purpose than on flawless grammar.\nWhether I'm preparing a company President for an exam or guiding an engineer through business meeting presentations, the real skill is helping clients organise coherent ideas under time pressure. An individual's English level may be lower-upper intermediate, but if s/he knows how to structure and present complex ideas, both logically and systematically, then comprehension is more likely to be achieved. This ability also transfers directly to international meetings, presentations, and negotiations.\n\n**2. Personalisation Is Not a Method — It's a Necessity**\n\nNo two professionals face the same challenges.\nA maritime logistics manager needs a different communicative toolkit than a civil servant preparing for an EU delegation meeting, and both differ from a lawyer who must respond quickly and accurately in English.\n\nExam preparation has reinforced something I now consider a core principle of my work: Communication training must start with the person, not the syllabus.\n\nFor this reason, I regularly redesign tasks, simulations, and case-study dialogues to reflect the realities of each sector and individual I work with. In my experience, this is not only about meeting objectives and fulfilling company needs, but more about transmitting ideas and proposals in a way that suits the circumstance and personality of the individuals involved.\n\n**3. Real Performance Comes From Real Practice**\n\nMock exams are useful for students, but for professionals, simulations of real scenarios (presentations, briefings, audits, technical explanations, etc.) are far more valuable.\n\nI've seen executives gain remarkable confidence when they practise:\n\n- managing rapid Q&A exchanges\n\n- summarising complex reports\n\n- clarifying data on the spot\n\n- delivering messages to international stakeholders\n\nExam practice becomes a training ground for real-world high-stakes communication, but it is this latter aspect that enables individuals to grow the most.\n\n**4. The Goal Is Always Long-Term Competence**\n\nAlthough exams provide structure, I never approach them as the end goal.\nA certificate is useful, but lasting communicative confidence is far more important.\n\nMy work with senior professionals, especially those in public administration and technical sectors, has shown me that the most meaningful progress happens when learners understand their own communication patterns, develop strategic awareness, whilst also learning how to adapt style and tone for different audiences.\n\nIndividuals must also build resilience when speaking under pressure - a skill that can be guided, although confidence in this area comes from putting learned techniques into practice consistently.\n\nThese abilities remain with them long after the exam day is over. This is always my objective: not to prepare someone to perform in a specific contextual environment, but to give them the skills to adapt to new, evolving circumstances.\n\n**5. Experience Shapes Methodology**\n\nYears of preparing learners for high-level exams has strengthened my ability to:\n\n- analyse communication needs rapidly\n\n- identify hidden linguistic barriers\n\n- design training paths tailored to specific professional demands\n\n- combine academic rigor with practical, industry-specific tasks\n\nThese skills now guide my work with executives and civil servants across Spain, as well as international professionals preparing for roles abroad.\n\n**Closing Thoughts**\n\nProviding a tailored coaching experience may sound like a service aimed at students, but in my case it has served as a long-term laboratory: a space where I've studied how people learn, adapt, and perform when the stakes are high.\n\nThe experience has shaped the type of trainer I am today — someone who not only prepares learners for exams, but who supports professionals in achieving the level of communication required for leadership, clarity, and international collaboration."
+      },
+      "2": {
+        "title": "The Future of English Learning in 2026: Trends I'm Seeing as a Teacher",
+        "content": "Over the past few years, the way people learn English has changed more than at any other time in my teaching career. Some of these changes have been gradual, others have appeared almost overnight, and many are still taking shape. As we move through 2025, I wanted to share a few trends I'm noticing — not from a tech-company perspective, but from the day-to-day reality of working with real learners.\n\nThese observations come from my classes, my students, and countless conversations with professionals who are trying to fit English into already full lives.\n\n**1. Micro-learning is no longer a trend — it's the norm**\n\nTime is scarce, attention is scattered, and people are tired. Most of my students don't want (or realistically can't manage) a 90-minute grammar-heavy class after a long workday.\n\nWhat I'm seeing instead is a shift toward short, focused sessions — 10 to 20 minutes of targeted practice that actually fits into a person's life.\nThis doesn't mean learning less; it means learning smarter. Students who commit to small, consistent routines are often progressing faster than those who only study in long blocks.\n\n**2. AI tools are becoming \"study companions,\" not replacements**\n\nFor all the talk about \"AI replacing teachers,\" I don't see that happening in real classrooms.\nWhat I do see is that AI has become a kind of everyday assistant:\n\n--> students use it to rewrite emails before meetings,\n\n--> to ask grammar questions they didn't want to ask in class,\n\n--> to get extra examples, or even to practise speaking when they're alone.\n\nInstead of replacing human teaching, AI is filling the gaps between classes. It gives learners more control and more confidence, which is something I welcome.\n\n**3. Personalised learning is finally becoming real**\n\nWe've been talking about \"personalisation\" for years, but it often meant little more than choosing a PDF that matched a student's level.\nThis year feels different.\n\nStudents are making learning pathways based on their needs — a mix of short videos, pronunciation practice, teacher feedback, and self-directed input. There's less reliance on a single textbook, and more emphasis on building a personalised ecosystem of resources.\n\nIt feels more flexible, more human, and — importantly — more motivating.\n\n**4. Communication skills are taking priority over grammar**\n\nThis is probably the clearest trend: learners care less about perfection and more about sounding clear, confident, and natural.\n\nMost professionals I teach want to speak spontaneously, control their tone, avoid misunderstandings, and express ideas with nuance.\n\nGrammar still matters, of course, but it's becoming a supporting tool rather than the centre of every lesson. The goal has shifted from \"knowing rules\" to \"making yourself understood without stress.\"\n\n**5. Learners want English to integrate smoothly into their lives**\n\nOne thing that keeps coming up is balance.\nPeople want English to feel like a natural part of their routine, not another job on their to-do list.\n\nI'm noticing more students listening to short podcasts while commuting, using English for tasks they already do (emails, notes, planning), joining English-speaking communities related to their interests, and choosing input that feels genuinely meaningful — not just \"study material.\"\n\nWhen English becomes part of everyday life, the progress feels easier and more sustainable.\n\nLooking ahead, I don't know exactly where things will go next, but it's clear that language learning is becoming more flexible, more personalised, and more human. Technology is helping, but it's not the whole story. Motivation, connection, and good teaching still matter just as much as they always have.\n\nAs a teacher, it's exciting — and honestly a relief — to see learning shift in ways that respect people's time, energy, and individuality.\n\nIf these trends continue, I think 2026 will be a year where learners feel more empowered and less overwhelmed, and where English slowly becomes something woven into daily life rather than something added on top of it."
+      },
+      "3": {
+        "title": "Reimagining Language Learning Through VR",
+        "videoCaption": "A VR proof of concept project (very early stages)",
+        "content": "For years I've been fascinated by the intersection between technology and education—specifically, how immersive tools can transform the way we learn languages. With my background in ICT, including the Google Technical Certificate (with AI focus) and Meta's Full-Stack/Back-End Development programme, I've spent a long time exploring how digital innovation can move language learning beyond textbooks and into lived, memorable experiences.\n\nAt the top of this page you'll find a very early proof-of-concept VR video—nothing polished, but an honest glimpse into the kind of ideas I've been experimenting with. And for me, that's where the excitement lies: in the potential of immersive tech to take learners places they've never been, and give them experiences traditional classrooms simply can't replicate.\n\n**Learning by Doing—Inside the Language Itself**\n\nVR and AR open up a world where learners don't just revisit vocabulary; they interact with it. Imagine:\n\n-- Reliving historical events firsthand, hearing authentic accents, engaging with characters in context.\n\n-- Manipulating virtual objects—throwing, pushing, opening, smashing—to reveal meanings organically.\n\n-- Walking through foreign cities, reading signs, engaging with NPCs, responding to prompts in real time.\n\n-- Reading texts on virtual computer screens, cinema displays, or street posters while following in-world instructions.\n\n-- Language stops being something abstract and becomes something you use—physically, emotionally, and intuitively.\n\nOne idea I love is embedding grammar naturally into stories. Instead of a traditional \"exercise,\" a narrator might issue a command in the imperative (\"Pick up the scanner and…\") or ask a question tied to the plot (\"Why did the visitor leave the room?\"). Grammar becomes meaningful because it serves the narrative, not the other way round.\n\nAnd tools such as in-world translation scanners, AI-driven dialogue partners, or adaptive hints can support learners without breaking immersion.\n\n**Under the Hood: Building the Future**\n\nThese prototypes are all being developed using Unity and C#, the same tools used across the gaming industry. I'm still very much in the experimentation phase—testing mechanics, trying interactions, seeing what genuinely helps learning and what doesn't. Over the coming months, I plan to publish a development timeline, sharing how the ideas evolve from rough sketches into functional experiences.\n\nThis is, in many ways, the most exciting stage: nothing is fixed, everything is possible, and every new prototype opens a door to more ambitious ideas.\n\n**The Challenge: Getting People to Try It**\n\nThe biggest hurdle right now isn't the technology—it's adoption. VR headsets are still a bit bulky, and for many people the idea of stepping into a virtual world feels intimidating or unnecessary. But with each new generation of devices, headsets are becoming smaller, cheaper, lighter, and far more adaptable.\n\nAR in particular has enormous potential because it layers learning onto the physical world without asking users to leave it. Once the technology becomes more accessible, I believe immersive language learning will shift from \"interesting experiment\" to \"mainstream expectation.\"\n\n**AI: The Quiet Power Beneath It All**\n\nAI is the connective tissue that can elevate VR/AR from interesting simulations to truly interactive learning environments. With AI-driven characters who adapt to the learner's level, real-time feedback, natural-language conversations, and personalised pathways, immersive learning becomes not only possible, but scalable.\n\nWe're not just building virtual worlds; we're building responsive, reactive, and emotionally engaging ones.\n\n**A Small Mention: My Digital Learning Space**\n\nFor those who want to follow this journey more closely, I've created a private members area on my platform where I share early prototypes, development notes, and behind-the-scenes progress. It's not a teaching service—just a space where people interested in this intersection of language, technology, and creativity can see the evolution of my work.\n\n**Looking Ahead**\n\nWe are at the edge of a major transformation in language education. VR and AR allow us to live the language, not simply study it. AI gives those experiences depth, adaptability, and relevance. And with each new tool, each experiment, and each prototype I create, I'm more convinced than ever that immersive learning isn't just innovative, it's inevitable.\n\nIf this is the future of language education, I couldn't be more excited to help shape it."
+      },
+      "4": {
+        "title": "Are Language Apps Becoming Too Commercial? 🎙️",
+        "content": "Are Language Apps Becoming Too Commercial? My Thoughts After 800 Days on Duolingo.\n\nToday, I hit a slightly ridiculous personal milestone: 800 consecutive days of using Duolingo.\nIf you've ever tried to keep a streak going, you'll know that reaching 50 days feels impressive. Reaching 800 feels… well, somewhere between commitment and obsession.\n\nBut after all this time, and as someone who works in language education every day, I've found myself thinking more and more about the way language apps are evolving—especially apps like Duolingo, which started as a fun, friendly tool and has slowly transformed into something a bit more commercial.\n\nI Still Love the Gamification… But Something Has Changed.\n\nI'll admit it: I love Duolingo's gamified approach. It makes learning feel light, colourful, and achievable after a long day. Those little dopamine boosts—the sounds, the animations, the level-ups—really do work. The app has helped millions of people build a daily learning habit, and I'm no exception.\n\nBut recently, I've felt my enthusiasm slipping a little.\n\nThere are adverts everywhere, and not just normal ads, but ads for Duolingo itself:\n\"Upgrade to Super!\"\n\"Try our annual plan!\"\n\"Unlock this feature by subscribing!\"\n\nIt feels more like navigating a shop than a learning platform at times.\n\nFeatures that used to encourage genuine learning—like the forums, where learners could ask questions, help each other, and share discoveries—have disappeared entirely. And features that would be incredibly helpful (for example, the AI voice chat) are locked behind a subscription wall.\n\nI understand why: companies need to survive. But the balance between accessibility and monetisation feels harder to maintain than ever.\n\nIt's not Just Duolingo, it's Everywhere.\n\nThis trend isn't unique to language apps.\nThink about YouTube, where ads interrupt videos every five minutes. Or news websites where half the page is covered in pop-ups. Even educational platforms that once offered generous free versions now operate with more restrictions.\n\nThe reality is:\nfree digital spaces are disappearing.\n\nAnd yes, I do believe this shift is inevitable. Apps cost money to build, maintain, and improve. We ask a lot from them: clean interfaces, personalised learning paths, instant feedback, AI chatbots—and someone has to pay the bill.\n\nBut as a long-term user, I also feel the loss of simplicity. The more animated sprites Duolingo adds, the slower the experience becomes. Instead of focusing on language learning, I sometimes feel I'm battling menus, pop-ups, and shiny distractions.\n\nOther Apps: Great Tools, Same Story\n\nThere are other brilliant tools out there:\n\n**Rosetta Stone** – still one of the most solid, immersive systems for learning language structure and pronunciation. But again, it's expensive, and the best content is behind a substantial paywall.\n\n**Memrise** – Originally famous for its spaced-repetition vocabulary training and video-based native speaker clips. Highly effective at beginner-to-intermediate level. However, access to full courses, advanced review modes and detailed proficiency tracking is locked behind a monthly or annual fee.\n\n**Babbel** – A polished, curriculum-driven app with strong grammar explanations and practical dialogue. Very effective for structured beginners. However, real progress requires unlocking full course paths, revisions, and higher-level content via a paid subscription.\n\n**Mondly** – A visually engaging app with chatbot conversations, speech recognition and themed vocabulary packs. It feels generous at first, but access to full conversational content, advanced levels and progress tracking is restricted to premium users.\n\nIt seems that every major platform, real or imagined, eventually faces the same challenge:\nHow do you create something high quality, but keep it accessible, without bombarding learners with adverts or fees?\n\nThere's no easy answer.\n\n**So Where Does This Leave Us?**\n\nDespite all of this, I still believe language apps are invaluable tools. They're not perfect, but they're still portable, fast, motivating, and available to anyone with a phone.\n\nAnd in Duolingo's defence, it does still offer a truly free learning experience, something rare in 2025.\n\nFor me, the key is balance. Language apps should enhance learning, not replace deeper study. They should motivate, not overwhelm with marketing messages. And above all, they should stay focused on what first made them successful: helping people learn a language in a way that feels fun and achievable.\n\nEven after 800 days, I'm not quitting.\nBut I am more aware than ever of how language apps are changing and how we, as learners and educators, might need to adapt to get the most from them."
+      },
+      "5": {
+        "title": "Languages I'm Learning — Human and Digital Alike",
+        "content": "It's about the languages I'm learning right now, why I love them, what I'm working toward, and how the process keeps me grounded as a teacher.",
+        "hero": {
+          "tag": "Personal Journey",
+          "subtitle": "A personal space to share my language journey"
+        },
+        "intro": {
+          "welcome": "For anyone new to this corner of my site: Welcome!",
+          "p1": "I'm Alex: a linguist, language teacher, digital-pedagogy enthusiast, and someone who has spent an unreasonable (but very enjoyable) number of hours buried in both grammar books and Python scripts.",
+          "p2": "I hold a Master's Degree in Further Education, along with postgraduate qualifications in E-Learning, Emotional Intelligence, and Neuroeducation. I've also completed several ICT-focused programmes, including Google's Technical Support with AI certification and Meta's Full-Stack Development programme.",
+          "p3": "Professionally, I've taught languages to exam candidates, professionals, and organisations; collaborated with institutions such as the Spanish Space Agency and various government ministries; and — because staying still has never been my strong point — I'm now also exploring VR/AR learning environments with the aim of developing educational software.",
+          "notCV": "But this page isn't about my CV.",
+          "p4": "It's about the languages I'm learning right now, why I love them, and what I'm working toward. My aim is to update each section in the future with resources and reflections.",
+          "p5": "(There's even a section on programming languages, because why not?)"
+        },
+        "quote": "A tree's beauty lies in its branches, but its strength lies in its roots.",
+        "languages": {
+          "title": "The Languages I'm Learning",
+          "subtitle": "Four languages, one journey",
+          "japanese": {
+            "title": "My Japanese Journey",
+            "subtitle": "JLPT N3 — 2026",
+            "p1": "My most active project at the moment is Japanese — a language that constantly surprises me, humbles me, and rewards me in equal measure.",
+            "p2": "I'm currently preparing for the JLPT N3 exam in 2026, and every week I discover a new detail that reminds me how different the world can look when it's filtered through another linguistic lens.",
+            "reflectionsTitle": "Some reflections so far:",
+            "reflection1": "The logic of the grammar is beautifully compact: 「〜てしまう」「〜ように」「〜ながら」— small structures with huge expressive power.",
+            "reflection2": "The writing system is a puzzle I now enjoy solving, stroke by stroke.",
+            "reflection3": "Vocabulary requires patience, but there's something meditative about it.",
+            "reflection4": "Japanese forces me to slow down and think differently, which I love.",
+            "quote": "Every time I study, I'm reminded of what my students feel: the mix of frustration and joy, the small breakthroughs, the \"Ohhhhhh, NOW I get it!\" moments. And honestly? There's something magical about reading a sentence in Japanese and feeling it click."
+          },
+          "french": {
+            "title": "French",
+            "subtitle": "Returning to an Old Favourite",
+            "p1": "French is a language I've spoken for years, and now it's about time I give it the recognition it deserves. My plan is to sit the C1 exam next year to finally put an official label on a language that has accompanied me since my early days in Primary School.",
+            "p2": "I love French for its rhythm and for the way it fills in conceptual gaps between Spanish and English. One thing I've noticed is how French seems to \"bridge\" the grammar logic between the other languages I know — it's become my linguistic middle ground."
+          },
+          "spanish": {
+            "title": "Spanish",
+            "subtitle": "A Daily Companion",
+            "p1": "Spanish is part of my everyday life here in Spain, so although I speak it fluently, taking the C2 exam isn't my priority right now — mainly because I use the language constantly.",
+            "p2": "Still, Spanish continues to fascinate me. It has a flexibility and expressiveness that makes teaching it (yes — I've taught Spanish too!) genuinely enjoyable.",
+            "p3": "Teaching Spanish gave me a deeper appreciation for its syntaxis, especially how verb systems interact in ways that English learners find surprisingly intuitive once the logic is unlocked."
+          },
+          "italian": {
+            "title": "Italian",
+            "subtitle": "The Unexpectedly Friendly Language",
+            "p1": "Italian is my \"hobby language\" — the one I learn when I want something enjoyable, musical, and intuitive.",
+            "p2": "Curiously, while it shares plenty with Spanish, that's not the only reason it feels comfortable. Its grammar simply clicks with me. The cadence, the structure, the vocabulary — it all falls into place in a way that makes progress satisfying without being overwhelming.",
+            "quote": "I'd like to dedicate time to reaching a higher level, but for now it's the language I turn to when I want to study with a smile."
+          },
+          "english": {
+            "title": "English",
+            "subtitle": "My Native Language",
+            "p1": "English is my native language, and I've always had a deep love for reading. From an early age, books opened up worlds of imagination and knowledge that shaped who I am today.",
+            "p2": "After helping students prepare for the C2 exam for nearly two decades, I'm proud to say that I finally sat the exam myself this year. It was a meaningful milestone — not just as a validation of my own proficiency, but as a way to fully understand the journey my students undertake.",
+            "quote": "Teaching English has deepened my appreciation for its nuances, and experiencing the exam process from the other side has given me invaluable insights into what my students go through."
+          }
+        },
+        "programming": {
+          "title": "Programming Languages",
+          "subtitle": "The Other Kind of Grammar",
+          "intro": "People often separate human languages from computer languages, but honestly? They're surprisingly similar.",
+          "bothRequire": "Both require:",
+          "require1": "building blocks",
+          "require2": "syntax",
+          "require3": "logic",
+          "require4": "creativity",
+          "require5": "and a willingness to make mistakes until things finally work",
+          "toolkitTitle": "My toolkit includes:",
+          "toolkit1": "HTML & CSS (my oldest companions)",
+          "toolkit2": "Django and Python",
+          "toolkit3": "Javascript (still very much a work in progress)",
+          "toolkit4": "React, Vite, Tailwind and modern frameworks",
+          "toolkit5": "Design logic for interactive 3D learning environments",
+          "story": "My programming story began years ago, coding basic websites and small games in C++, before moving on to C# in Unity for the early VR/AR experiences I've been prototyping.  In fact, this very website was coded by me — a huge but rewarding undertaking in its own right.",
+          "quote": "Programming satisfies the analytical side of my brain, while Japanese and French nurture the creative one. Somehow, the two worlds keep each other balanced."
+        },
+        "objectives": {
+          "title": "My Objectives: Moving Forward",
+          "p1": "This space will be a way for me to share resources, experiences and updates in regards to my own language journey. I also aim to upload text and video lessons to help other language-learners on a similar journey.",
+          "p2": "Learning languages — whether spoken or coded — keeps me curious, humble, and adaptable. It reminds me that progress isn't linear, that mistakes are part of the journey, and that teaching only works if the teacher keeps learning, too.",
+          "updateTitle": "I'll update this page as I move forward with:",
+          "update1": "My JLPT N3 preparation and related learning tips",
+          "update2": "My progress with the French C1 exam",
+          "update3": "General language observations and thoughts",
+          "update4": "New / existing VR learning projects - progress + video updates",
+          "update5": "Time management practices - my experience & advice",
+          "closing": "If you're someone who loves learning languages, especially if you want to share tips, techniques and experiences - this page is intended for you!"
+        }
+      }
+    }
+  },
+  "portfolio": {
+    "tag": "Portfolio",
+    "tagSub": "Executive Impact",
+    "name": "Alexander James Lenton",
+    "title": "Senior English Teacher, Corporate Trainer & Executive Language Coach",
+    "subtitle": "C2 Professional | 18+ Years of Experience | UK–Spain Dual Nationality",
+    "stats": {
+      "focus": "Focus",
+      "focusValue": "Executive & Corporate Communication",
+      "service": "Service",
+      "serviceValue": "Coaching, Training, Academic Leadership",
+      "regions": "Regions",
+      "regionsValue": "UK · Spain · International Teams"
+    },
+    "sectors": {
+      "title": "Sectors I Specialise In",
+      "list": [
+        "Maritime, Transport & Logistics",
+        "Engineering & Technical Fields",
+        "Aerospace & Research",
+        "Public Administration & Government",
+        "Legal & Corporate Services",
+        "Industry, Operations & Manufacturing",
+        "Adult & Higher Education"
+      ]
+    },
+    "clients": {
+      "title": "Key Clients & Organisations Trained",
+      "subtitle": "(Direct training delivered through executive coaching, corporate contracts, and academic institutions.)",
+      "provenImpact": "Proven Impact",
+      "sections": {
+        "government": {
+          "title": "Government, Public Administration & National Infrastructure",
+          "clients": [
+            {
+              "name": "Puertos del Estado (Spanish State Ports Authority)",
+              "detail": "English coach for the President, executive board and state employees"
+            },
+            {
+              "name": "Ministry of Development / Public Works"
+            },
+            {
+              "name": "Hydrographic Studies Centre"
+            },
+            {
+              "name": "CEDEX Experimental Research Centre",
+              "detail": "Onsite English coaching for the President"
+            },
+            {
+              "name": "Civil servants / senior administration professionals across Spain"
+            }
+          ]
+        },
+        "aerospace": {
+          "title": "Aerospace, Engineering & Technical Sectors",
+          "clients": [
+            {
+              "name": "EADS Space Agency (Airbus Defence & Space)",
+              "detail": "Technical English consultant for teams working on the Mars Rover Expedition"
+            },
+            {
+              "name": "Engineering College, Madrid",
+              "detail": "Lead English Teacher & Coordinator"
+            },
+            {
+              "name": "Jemat Initiatives S.I",
+              "detail": "Executive coach for senior engineering partners"
+            },
+            {
+              "name": "Engineers, R&D teams, and technical specialists from multiple organisations"
+            }
+          ]
+        },
+        "corporate": {
+          "title": "Corporate Clients (Business, Finance, Industry, Tech)",
+          "clients": [
+            {
+              "name": "Smurfit Kappa",
+              "detail": "Corporate English trainer for management and production teams"
+            },
+            {
+              "name": "Cojali S.L",
+              "detail": "Corporate English trainer for President, management teams, including finance, production, logistics, sales and marketing departments"
+            },
+            {
+              "name": "Bayogar S.L.",
+              "detail": "Business English for executives and family members"
+            },
+            {
+              "name": "Coexpan S.A.",
+              "detail": "Business English for management team"
+            },
+            {
+              "name": "Alain Afflelou Optometrists"
+            },
+            {
+              "name": "Professionals from multinational companies across logistics, business services, and finance"
+            },
+            {
+              "name": "HR teams and corporate staff requiring English for international communication"
+            },
+            {
+              "name": "High-level private clients, including company presidents, directors, and decision-makers"
+            }
+          ]
+        },
+        "legal": {
+          "title": "Law Firms & Legal Professionals",
+          "clients": [
+            {
+              "name": "Freshfields Bruckhaus Deringer (International Law Firm)",
+              "detail": "English training for lawyers and legal teams"
+            },
+            {
+              "name": "Chance and Cooperate  Professional Advisors"
+            },
+            {
+              "name": "Independent lawyers and boutique firms (general legal English training)"
+            },
+            {
+              "name": "In‑house corporate legal teams (support with international communication)"
+            }
+          ]
+        },
+        "education": {
+          "title": "Education, Academic Institutions & Exam Training",
+          "clients": [
+            {
+              "name": "University of Alcalá (UAH)",
+              "detail": "Cambridge Exam Preparation Trainer"
+            },
+            {
+              "name": "Corazonistas Secondary School (Madrid)",
+              "detail": "English Language Coordinator & Teacher (including CAE/CPE)"
+            },
+            {
+              "name": "Obispo Perelló School (Madrid)",
+              "detail": "ESO & Bachillerato English Teacher"
+            },
+            {
+              "name": "The British House (Alcalá)",
+              "detail": "Head Teacher & Exam Preparation Coordinator"
+            },
+            {
+              "name": "Centro Estudios Método (Alcalá)"
+            },
+            {
+              "name": "Britannia English",
+              "detail": "Business English Teacher"
+            },
+            {
+              "name": "Canterbury English (Madrid)",
+              "detail": "English Teacher for business professionals"
+            },
+            {
+              "name": "Grafton Academy (Alcalá)",
+              "detail": "General and Business English Teacher"
+            },
+            {
+              "name": "Linguacenter (Madrid)",
+              "detail": "On-site Business English Teacher"
+            }
+          ]
+        }
+      }
+    },
+    "cta": {
+      "tag": "Tailored Language Impact",
+      "title": "Ready to build confident communicators inside your organisation?",
+      "text": "Let's design a high-level English program for leaders, technical teams, and decision-makers.",
+      "button": "Discuss a Training Brief"
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "phone": "Phone",
+    "email": "Email"
+  },
+  "contactForm": {
+    "title": "Send me a message",
+    "nameLabel": "Name *",
+    "namePlaceholder": "Your name",
+    "subjectLabel": "Subject *",
+    "subjectPlaceholder": "Choose an option *",
+    "subjectOptionQuestion": "I have a question",
+    "subjectOptionCall": "I would like you to call me",
+    "subjectOptionOther": "Other reason",
+    "messageLabel": "Message *",
+    "messagePlaceholder": "Your message...",
+    "submitIdle": "Send message",
+    "submitPending": "Sending...",
+    "submitSuccess": "Message sent",
+    "successBanner": "Thank you! Your message has been sent.",
+    "errorBanner": "An error has occurred. Please try again.",
+    "errorName": "Please enter your name",
+    "errorSubject": "Please select an option",
+    "errorMessage": "Please write your message",
+    "rateLimit": "You have sent too many messages. Please wait a while before sending another one."
+  },
+  "loginForm": {
+    "title": "Members access",
+    "subtitle": "Welcome to your learning portal",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submitIdle": "Log in",
+    "submitPending": "Logging in...",
+    "errorEmpty": "Please enter both username and password.",
+    "errorGeneric": "Failed to login. Please try again.",
+    "errorInvalid": "Login failed. Please check your credentials."
+  },
+  "footer": {
+    "brandDescription": "Professional English training with personalized methodology. Transform your language skills with expert guidance.",
+    "resources": {
+      "title": "Resources",
+      "memberCourses": "Member Courses",
+      "studentZone": "Student Zone",
+      "blog": "Blog"
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "teachingMethod": "Teaching Method",
+      "aboutMe": "About Me",
+      "contact": "Contact",
+      "portfolio": "Portfolio",
+      "testimonials": "Testimonials"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacyPolicy": "Privacy Policy",
+      "termsConditions": "Terms & Conditions"
+    },
+    "copyright": "© 2025",
+    "copyrightName": "LentonEducation",
+    "copyrightText": "All Rights Reserved.",
+    "madeWith": "Made with",
+    "forLearners": "for language learners"
+  }
+}
+

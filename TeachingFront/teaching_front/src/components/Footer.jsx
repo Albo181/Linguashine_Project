@@ -1,73 +1,212 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+  const { t } = useTranslation();
+  
   return (
-    <footer className="bg-green-950 border-t">
-      <div className="mx-auto w-full max-w-screen-xl p-2 sm:p-4 py-2 sm:py-6 lg:py-8">
-        <div className="md:flex md:justify-around">
-          <div className="mb-3 md:mb-0 text-center md:text-left">
-            <Link to="/" className="flex items-center justify-center md:justify-start">
-              <span className="self-center text-lg sm:text-2xl font-bold whitespace-nowrap text-white">Linguashine</span>
+    <footer className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 border-t border-white/10 overflow-hidden">
+      {/* Background effects */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Grid pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+
+      <div className="relative z-10 mx-auto w-full max-w-7xl p-8 sm:p-12 lg:p-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+          
+          {/* Brand Section */}
+          <div className="lg:col-span-1">
+            <Link to="/" className="inline-block mb-6 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg blur opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                <span className="relative text-2xl sm:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+                  Linguashine
+                </span>
+              </div>
             </Link>
+            <p className="text-white/70 text-sm leading-relaxed mb-6">
+              {t('footer.brandDescription')}
+            </p>
+            {/* Social Links */}
+            <div className="flex gap-4">
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-110"
+                aria-label="Facebook"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </a>
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-110"
+                aria-label="Twitter"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                </svg>
+              </a>
+              <a 
+                href="https://linkedin.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-110"
+                aria-label="LinkedIn"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                </svg>
+              </a>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-8 sm:grid-cols-3 text-center">
-            <div>
-              <h2 className="mb-2 sm:mb-6 text-sm font-semibold uppercase text-white text-center">Recursos</h2>
-              <ul className="text-white text-sm sm:text-base font-medium space-y-2 sm:space-y-4 text-center">
-                <li>
-                  <Link to="/" className="hover:underline">Cursos grabados</Link>
-                </li>
-                <li>
-                  <Link to="/login" className="hover:underline">Zona de Estudiantes</Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h2 className="mb-2 sm:mb-6 text-sm font-semibold text-white uppercase text-center">Follow</h2>
-              <ul className="text-white text-sm sm:text-base font-medium space-y-2 sm:space-y-4 text-center">
-                <li>
-                  <a href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
-                </li>
-                <li>
-                  <a href="https://discord.gg/yourinvite" target="_blank" rel="noopener noreferrer" className="hover:underline">Discord</a>
-                </li>
-              </ul>
-            </div>
-            <div className="col-span-2 sm:col-span-1 mt-3 sm:mt-0">
-              <h2 className="mb-2 sm:mb-6 text-sm font-semibold text-white uppercase text-center">Legal</h2>
-              <ul className="text-white text-sm sm:text-base font-medium space-y-2 sm:space-y-4 text-center">
-                <li>
-                  <Link to="/" className="hover:underline">Privacy Policy</Link>
-                </li>
-                <li>
-                  <Link to="/" className="hover:underline">Terms &amp; Conditions</Link>
-                </li>
-              </ul>
-            </div>
+
+          {/* Resources Section */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-6 relative">
+              {t('footer.resources.title')}
+              <div className="absolute bottom-0 left-0 w-12 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"></div>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link 
+                  to="/" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.resources.memberCourses')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/login" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.resources.studentZone')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/blog" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-blue-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.resources.blog')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Quick Links Section */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-6 relative">
+              {t('footer.quickLinks.title')}
+              <div className="absolute bottom-0 left-0 w-12 h-0.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link 
+                  to="/metodo" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.quickLinks.teachingMethod')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/sobre-mi" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.quickLinks.aboutMe')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/contacto" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.quickLinks.contact')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/portfolio" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.quickLinks.portfolio')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/testimonials" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-purple-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.quickLinks.testimonials')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal Section */}
+          <div>
+            <h3 className="text-white font-bold text-lg mb-6 relative">
+              {t('footer.legal.title')}
+              <div className="absolute bottom-0 left-0 w-12 h-0.5 bg-gradient-to-r from-pink-400 to-red-400 rounded-full"></div>
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link 
+                  to="/" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.legal.privacyPolicy')}
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/" 
+                  className="text-white/70 hover:text-white transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1.5 h-1.5 bg-pink-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  {t('footer.legal.termsConditions')}
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
-        <hr className="my-3 sm:my-6 border-gray-200 sm:mx-auto lg:my-8" />
-        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between space-y-3 sm:space-y-0">
-          <span className="text-xs sm:text-sm text-white text-center"> 2025 <Link to="/" className="hover:underline">LentonEducation</Link>. All Rights Reserved.</span>
-          <div className="flex justify-center space-x-3 sm:space-x-5">
-            <a href="https://facebook.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-900">
-              <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 8 19">
-                <path fillRule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clipRule="evenodd"/>
-              </svg>
-              <span className="sr-only">Facebook page</span>
-            </a>
-            <a href="https://twitter.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-900">
-              <svg className="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 17">
-                <path fillRule="evenodd" d="M20 1.892a8.178 8.178 0 0 1-2.355.635 4.074 4.074 0 0 0 1.8-2.235 8.344 8.344 0 0 1-2.605.98A4.13 4.13 0 0 0 13.85 0a4.068 4.068 0 0 0-4.1 4.038 4 4 0 0 0 .105.919A11.705 11.705 0 0 1 1.4.734a4.006 4.006 0 0 0 1.268 5.392 4.165 4.165 0 0 1-1.859-.5v.05A4.057 4.057 0 0 0 4.1 9.635a4.19 4.19 0 0 1-1.856.07 4.108 4.108 0 0 0 3.831 2.807A8.36 8.36 0 0 1 0 14.184 11.732 11.732 0 0 0 6.291 16 11.502 11.502 0 0 0 17.964 4.5c0-.177 0-.35-.012-.523A8.143 8.143 0 0 0 20 1.892Z" clipRule="evenodd"/>
-              </svg>
-              <span className="sr-only">Twitter page</span>
-            </a>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-white/10 pt-8 mt-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-white/60 text-sm text-center sm:text-left">
+              {t('footer.copyright')} <span className="text-white font-semibold">{t('footer.copyrightName')}</span>. {t('footer.copyrightText')}
+            </p>
+            <div className="flex items-center gap-2 text-white/60 text-sm">
+              <span>{t('footer.madeWith')}</span>
+              <span className="text-red-400 animate-pulse">❤️</span>
+              <span>{t('footer.forLearners')}</span>
+            </div>
           </div>
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

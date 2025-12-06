@@ -44,6 +44,8 @@ const TeacherHomeworkReview = lazy(() => import('./components/TeacherHomeworkRev
 const StudentHomeworkSummary = lazy(() => import('./components/StudentHomeworkSummary'));
 const GradeSummary = lazy(() => import('./components/GradeSummary'));
 const HomeworkPage = lazy(() => import('./components/HomeworkPage'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Testimonials = lazy(() => import('./pages/Testimonials'));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -78,6 +80,11 @@ const App = () => {
             <Contact />
           </Suspense>
         } />
+        <Route path="/portfolio" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Portfolio />
+          </Suspense>
+        } />
         <Route path="/metodo" element={
           <Suspense fallback={<LoadingSpinner />}>
             <Method />
@@ -86,6 +93,16 @@ const App = () => {
         <Route path="/sobre-mi" element={
           <Suspense fallback={<LoadingSpinner />}>
             <Sobre_Mi />
+          </Suspense>
+        } />
+        <Route path="/testimonios" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Testimonials />
+          </Suspense>
+        } />
+        <Route path="/testimonials" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <Testimonials />
           </Suspense>
         } />
         <Route path="/login" element={

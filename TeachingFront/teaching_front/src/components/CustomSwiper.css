@@ -1,20 +1,40 @@
 /* Swiper Navigation */
 .swiper-button-next,
 .swiper-button-prev {
-  color: #1e40af; /* Tailwind blue-800 */
-  font-size: 18px;
-  transition: transform 0.2s ease-in-out;
+  color: #6366f1; /* Tailwind indigo-500 */
+  background: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease-in-out;
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 20px;
+  font-weight: bold;
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  background: linear-gradient(to right, #6366f1, #8b5cf6);
+  color: white;
 }
 
 /* Swiper Pagination */
 .swiper-pagination-bullet {
-  background: #34d399; /* Tailwind green-400 */
+  background: #cbd5e1; /* Tailwind slate-300 */
+  opacity: 1;
+  width: 10px;
+  height: 10px;
+  transition: all 0.3s ease-in-out;
 }
+
 .swiper-pagination-bullet-active {
-  background: #10b981; /* Tailwind green-500 */
+  background: linear-gradient(to right, #6366f1, #8b5cf6);
+  width: 24px;
+  border-radius: 10px;
 }

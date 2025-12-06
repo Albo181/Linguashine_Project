@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './FileDashboard.css';
 import apiClient from '../api/apiClient';
 
@@ -73,6 +74,7 @@ const ProfileImage = ({ src, userName, className = "" }) => {
 
 const LandingPage = () => {
   console.log('LandingPage component rendering');
+  const { t } = useTranslation();
 
   const [user, setUser] = useState(null);
   const [receiveNotifications, setReceiveNotifications] = useState(false);
@@ -169,7 +171,7 @@ const LandingPage = () => {
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
             ></path>
           </svg>
-          <p className="mt-3 text-gray-600">Loading...</p>
+          <p className="mt-3 text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -181,12 +183,12 @@ const LandingPage = () => {
       <div className="flex min-h-screen justify-center items-center bg-gray-100">
         <div className="text-center text-red-600">
           <p>{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Retry
-          </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              {t('common.retry')}
+            </button>
         </div>
       </div>
     );
@@ -215,9 +217,9 @@ const LandingPage = () => {
             </div>
           </div>
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Welcome Back, {user?.first_name}!
+            {t('landing.welcomeBack', { name: user?.first_name })}
           </h1>
-          <p className="text-lg text-gray-500">Here's your personalized dashboard.</p>
+          <p className="text-lg text-gray-500">{t('landing.personalizedDashboard')}</p>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -229,28 +231,28 @@ const LandingPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800">Your Profile</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">{t('landing.yourProfile')}</h2>
             </div>
             
             <div className="space-y-3 mb-6">
               <div className="flex items-center text-gray-600">
-                <span className="font-medium w-24">Usuario:</span>
+                <span className="font-medium w-24">{t('landing.username')}:</span>
                 <span>{user.username}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <span className="font-medium w-24">Email:</span>
+                <span className="font-medium w-24">{t('landing.email')}:</span>
                 <span>{user.email}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <span className="font-medium w-24">Nombre:</span>
+                <span className="font-medium w-24">{t('landing.firstName')}:</span>
                 <span>{user.first_name}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <span className="font-medium w-24">Apellidos:</span>
+                <span className="font-medium w-24">{t('landing.lastName')}:</span>
                 <span>{user.last_name}</span>
               </div>
               <div className="flex items-center text-gray-600">
-                <span className="font-medium w-24">Teléfono:</span>
+                <span className="font-medium w-24">{t('landing.telephone')}:</span>
                 <span>{user.telephone}</span>
               </div>
             </div>
@@ -264,7 +266,7 @@ const LandingPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                View Full Profile
+                {t('landing.viewFullProfile')}
               </button>
 
               <label className="flex items-center space-x-3 text-gray-700 bg-gray-50 p-4 rounded-lg group relative">
@@ -275,9 +277,9 @@ const LandingPage = () => {
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-not-allowed opacity-50"
                   disabled
                 />
-                <span>Receive email notifications</span>
+                <span>{t('landing.receiveNotifications')}</span>
                 <div className="hidden group-hover:block absolute top-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-sm py-1 px-2 rounded whitespace-nowrap">
-                  Coming soon! 🚀
+                  {t('landing.comingSoon')}
                 </div>
               </label>
             </div>
@@ -291,7 +293,7 @@ const LandingPage = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold text-gray-800">Quick Links</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">{t('landing.quickLinks')}</h2>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -301,7 +303,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                     </svg>
-                    My Dashboard
+                    {t('landing.myDashboard')}
                   </Link>
                 </li>
                 <li>
@@ -309,7 +311,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    Shared Files
+                    {t('landing.sharedFiles')}
                   </Link>
                 </li>
                 <li>
@@ -317,7 +319,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    Assignment upload
+                    {t('landing.assignmentUpload')}
                   </Link>
                 </li>
                 <li>
@@ -328,7 +330,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
-                    Assignment feedback / history
+                    {t('landing.assignmentFeedback')}
                   </Link>
                 </li>
                 <li>
@@ -336,7 +338,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
-                    Homework
+                    {t('landing.homework')}
                   </Link>
                 </li>
                 <li>
@@ -344,7 +346,7 @@ const LandingPage = () => {
                     <svg className="w-5 h-5 text-blue-500 mr-3 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    View Grades
+                    {t('landing.viewGrades')}
                   </Link>
                 </li>
               </ul>

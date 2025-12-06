@@ -15,8 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-your-key-here')
 
+# Detect environment: Production has DATABASE_URL and/or AWS_STORAGE_BUCKET_NAME
+DATABASE_URL = os.getenv('DATABASE_URL')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+IS_PRODUCTION = bool(DATABASE_URL or AWS_STORAGE_BUCKET_NAME)
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = not IS_PRODUCTION  # True for local, False for production
 
 # If we're in production (DEBUG is False), add railway domain to allowed hosts
 ALLOWED_HOSTS = [
@@ -43,12 +48,15 @@ INSTALLED_APPS = [
     'TeachingAPP',
     'Feedback_app',
     'Documents',
-    'storages',
 ]
+
+# Only add storages if using S3 (production)
+if AWS_STORAGE_BUCKET_NAME:
+    INSTALLED_APPS.append('storages')
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'Teaching_Website.middleware.CORSMiddleware',
+    # Note: Custom middleware (CORSMiddleware, EndpointLoggingMiddleware) removed - using django-cors-headers only
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -57,7 +65,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'Teaching_Website.middleware.EndpointLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'Teaching_Website.urls'
@@ -82,7 +89,6 @@ WSGI_APPLICATION = 'Teaching_Website.wsgi.application'
 
 # Database
 # Try to get the DATABASE_URL from environment, otherwise use default PostgreSQL settings
-DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:  # Only use Railway DB in production
     # Parse database URL
     import dj_database_url
@@ -181,12 +187,12 @@ CORS_ALLOW_HEADERS = [
     'pragma'
 ]
 
-# Cookie settings
-CSRF_COOKIE_SECURE = True
+# Cookie settings - Only secure in production
+CSRF_COOKIE_SECURE = IS_PRODUCTION
 CSRF_COOKIE_HTTPONLY = False  # Must be False to allow JavaScript access
-CSRF_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'  # Required for cross-site requests
+CSRF_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'  # Lax for local development
+SESSION_COOKIE_SECURE = IS_PRODUCTION
+SESSION_COOKIE_SAMESITE = 'None' if IS_PRODUCTION else 'Lax'  # Lax for local development
 SESSION_COOKIE_HTTPONLY = True
 
 # Important: Set these to None to allow cross-domain cookies
@@ -205,11 +211,11 @@ CSRF_TRUSTED_ORIGINS = [
 # Additional CORS settings
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
-CORS_REPLACE_HTTPS_REFERER = True
+# Note: CORS_REPLACE_HTTPS_REFERER was removed - it's no longer supported by django-cors-headers
 
-# Security settings
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+# Security settings - Only enforce in production
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if IS_PRODUCTION else None
+SECURE_SSL_REDIRECT = IS_PRODUCTION  # Don't force HTTPS locally
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
@@ -296,10 +302,10 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_ROOT = BASE_DIR / 'media'  # Keep this for local development
 MEDIA_URL = '/media/'  # Default for local development
 
-# AWS S3 Configuration
+# AWS S3 Configuration (only used in production)
+# Note: AWS_STORAGE_BUCKET_NAME is already defined above for IS_PRODUCTION detection
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME', 'eu-south-2')
 
 # Only configure S3 if bucket name is provided

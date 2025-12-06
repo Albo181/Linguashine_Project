@@ -20,7 +20,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from django.http import JsonResponse
-from Users.views import check_auth
 
 def health_check(request):
     response = JsonResponse({"status": "ok", "message": "API is running"})
@@ -42,7 +41,6 @@ urlpatterns = [
     path('send_query/', include("TeachingAPP.urls")),
     path('users/', include("Users.urls")),
     path('files/', include('Documents.urls')),
-    path('users/check-auth/', check_auth, name='check_auth'),
     
     # Add alternative path for user-info to maintain compatibility
     path('api/user-info/', include("Users.urls")),
