@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import meshirt from '../images/meshirt.jpg';
 import me_maybe from '../images/me_maybe.png';
 
 const SobreMi = () => {
