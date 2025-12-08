@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import meshirt from '../images/meshirt.jpg';
+import me_maybe from '../images/me_maybe.png';
 
 const SobreMi = () => {
   const { t } = useTranslation();
@@ -37,11 +38,18 @@ const SobreMi = () => {
             {/* Glow effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-full blur-2xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
             {/* Image container */}
-            <div className="relative overflow-hidden rounded-full border-4 border-white/20 shadow-2xl transform group-hover:scale-105 transition-transform duration-300">
+            <div 
+              className="relative overflow-hidden rounded-full border-4 border-white/20 shadow-2xl transform group-hover:scale-105 transition-transform duration-300"
+              onContextMenu={(e) => e.preventDefault()}
+            >
               <img 
-                src={meshirt} 
+                src={me_maybe} 
                 alt="Profile" 
-                className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 object-cover filter grayscale"
+                className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 object-cover filter grayscale scale-140 select-none pointer-events-none"
+                draggable="false"
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitUserDrag: 'none' }}
               />
             </div>
           </div>
