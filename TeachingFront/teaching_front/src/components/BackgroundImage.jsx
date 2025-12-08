@@ -108,7 +108,7 @@ const BackgroundImage = () => {
                     disablePictureInPicture
                     playsInline
                     onContextMenu={(e) => e.preventDefault()}
-                    className="w-full max-w-xs sm:max-w-sm md:max-w-md rounded-xl border border-white/20 shadow-lg"
+                    className="w-full max-w-xs sm:max-w-sm md:max-w-md aspect-video object-cover rounded-xl border border-white/20 shadow-lg"
                   />
                 </div>
               </div>
